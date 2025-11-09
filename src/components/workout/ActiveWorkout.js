@@ -500,7 +500,10 @@ function ActiveWorkout({
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={handleEndWorkout}
+          onPress={() => {
+            console.log('END BUTTON PRESSED!');
+            handleEndWorkout();
+          }}
           style={styles.endButton}
           activeOpacity={0.8}
         >
