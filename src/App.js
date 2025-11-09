@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import storage from './utils/storage';
 import StatsPage from './components/screens/StatsPage';
 import ProfilePage from './components/screens/ProfilePage';
 import SavedWorkoutsPage from './components/screens/SavedWorkoutsPage';
@@ -11,7 +11,7 @@ import MuscleGroupSelector from './components/screens/MuscleGroupSelector';
 import GeneratedWorkout from './components/workout/GeneratedWorkout';
 import CustomWorkoutBuilder from './components/workout/CustomWorkoutBuilder';
 import ActiveWorkout from './components/workout/ActiveWorkout';
-import { normalizeWorkout } from './utils/workoutHelpers';
+import { normalizeWorkout, getLocalISOString } from './utils/workoutHelpers';
 import { TRAINING_TYPES } from './components/data/exercisesData';
 
 function App() {
@@ -36,6 +36,7 @@ function App() {
   });
 
   const scrollViewRef = useRef(null);
+  const isLoadedRef = useRef(false); // Flag to prevent saving before loading
 
   useEffect(() => {
     loadData();
@@ -43,15 +44,30 @@ function App() {
 
   const loadData = async () => {
     try {
-      const savedWorkoutsData = await AsyncStorage.getItem('savedWorkouts');
-      const workoutHistoryData = await AsyncStorage.getItem('workoutHistory');
-      const targetDateData = await AsyncStorage.getItem('selectedTargetDate');
-      
+      console.log('🔍 Loading data from storage...');
+      const savedWorkoutsData = await storage.getItem('savedWorkouts');
+      const workoutHistoryData = await storage.getItem('workoutHistory');
+      const targetDateData = await storage.getItem('selectedTargetDate');
+      const userStatsData = await storage.getItem('userStats');
+
+      console.log('📦 Loaded data:', {
+        savedWorkouts: savedWorkoutsData ? 'found' : 'empty',
+        workoutHistory: workoutHistoryData ? 'found' : 'empty',
+        targetDate: targetDateData ? 'found' : 'empty',
+        userStats: userStatsData ? 'found' : 'empty'
+      });
+
       if (savedWorkoutsData) setSavedWorkouts(JSON.parse(savedWorkoutsData));
       if (workoutHistoryData) setWorkoutHistory(JSON.parse(workoutHistoryData));
       if (targetDateData) setTargetDate(targetDateData);
+      if (userStatsData) setUserStats(JSON.parse(userStatsData));
+
+      // Mark as loaded to enable saving
+      isLoadedRef.current = true;
+      console.log('✅ Data loaded, auto-save enabled');
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('❌ Error loading data:', error);
+      isLoadedRef.current = true; // Enable saving even on error
     }
   };
 
@@ -62,33 +78,49 @@ function App() {
   }, [currentTab, planScreen]);
 
   useEffect(() => {
-    AsyncStorage.setItem('savedWorkouts', JSON.stringify(savedWorkouts));
+    if (!isLoadedRef.current) return; // Don't save until data is loaded
+    console.log('💾 Saving savedWorkouts:', savedWorkouts.length, 'workouts');
+    storage.setItem('savedWorkouts', JSON.stringify(savedWorkouts));
   }, [savedWorkouts]);
 
   useEffect(() => {
-    AsyncStorage.setItem('workoutHistory', JSON.stringify(workoutHistory));
+    if (!isLoadedRef.current) return; // Don't save until data is loaded
+    console.log('💾 Saving workoutHistory:', workoutHistory.length, 'workouts');
+    storage.setItem('workoutHistory', JSON.stringify(workoutHistory));
   }, [workoutHistory]);
 
   useEffect(() => {
+    if (!isLoadedRef.current) return; // Don't save until data is loaded
     if (targetDate) {
-      AsyncStorage.setItem('selectedTargetDate', targetDate);
+      storage.setItem('selectedTargetDate', targetDate);
     } else {
-      AsyncStorage.removeItem('selectedTargetDate');
+      storage.removeItem('selectedTargetDate');
     }
   }, [targetDate]);
+
+  useEffect(() => {
+    if (!isLoadedRef.current) return; // Don't save until data is loaded
+    console.log('💾 Saving userStats:', userStats);
+    storage.setItem('userStats', JSON.stringify(userStats));
+  }, [userStats]);
 
   const handleSaveWorkout = (workout) => {
     const rawWorkout = {
       id: Date.now(),
       ...workout,
-      savedAt: new Date().toISOString()
+      savedAt: getLocalISOString()
     };
     const normalized = normalizeWorkout(rawWorkout);
     setSavedWorkouts(prev => [normalized, ...prev]);
   };
 
   const handleDeleteWorkout = (workoutId) => {
-    setSavedWorkouts(prev => prev.filter(w => w.id !== workoutId));
+    console.log('🗑️ Deleting workout with ID:', workoutId);
+    setSavedWorkouts(prev => {
+      const filtered = prev.filter(w => w.id !== workoutId);
+      console.log('📊 Workouts before:', prev.length, 'after:', filtered.length);
+      return filtered;
+    });
   };
 
   const handleUpdateWorkout = (workoutId, updates) => {
@@ -132,13 +164,13 @@ function App() {
     if (existingWorkout) {
       return;
     }
-    
+
     setWorkoutHistory(prev => {
       const updated = [...prev, workoutData];
-      AsyncStorage.setItem('workoutHistory', JSON.stringify(updated));
+      storage.setItem('workoutHistory', JSON.stringify(updated));
       return updated;
     });
-    
+
     setPlanScreen('landing');
     setSelectedMuscleGroups([]);
     setPreloadedWorkout(null);

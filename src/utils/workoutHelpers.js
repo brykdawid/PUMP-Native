@@ -1,8 +1,33 @@
 // PLIK: utils/workoutHelpers.js
 
 /**
+ * Zwraca lokalną datę w formacie YYYY-MM-DD
+ */
+export function getLocalDateString(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Zwraca lokalną datę i czas w formacie ISO ale z lokalną datą
+ * Format: YYYY-MM-DDTHH:mm:ss.sssZ (ale z lokalnym czasem)
+ */
+export function getLocalISOString(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const ms = String(date.getMilliseconds()).padStart(3, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${ms}Z`;
+}
+
+/**
  * Zunifikowany format treningu
- * 
+ *
  * {
  *   id: number,
  *   title: string,
@@ -78,7 +103,7 @@ export function normalizeWorkout(workout) {
     type: 'custom',
     exercises: [],
     metadata: {},
-    savedAt: workout.savedAt || new Date().toISOString()
+    savedAt: workout.savedAt || getLocalISOString()
   };
 }
 

@@ -1,19 +1,53 @@
 // PLIK: components/ProfilePage.js - React Native
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import storage from '../../utils/storage';
 
 function ProfilePage() {
   const [profileImage, setProfileImage] = useState(null);
+  const isLoadedRef = useRef(false); // Flag to prevent saving before loading
+
+  // Load profile image from storage on mount
+  useEffect(() => {
+    loadProfileImage();
+  }, []);
+
+  // Save profile image to storage whenever it changes
+  useEffect(() => {
+    if (!isLoadedRef.current) return; // Don't save until data is loaded
+    if (profileImage !== null) {
+      console.log('💾 Saving profile image to storage');
+      storage.setItem('profileImage', profileImage);
+    }
+  }, [profileImage]);
+
+  const loadProfileImage = async () => {
+    try {
+      console.log('🔍 Loading profile image from storage...');
+      const savedImage = await storage.getItem('profileImage');
+      if (savedImage) {
+        console.log('✅ Profile image found in storage');
+        setProfileImage(savedImage);
+      } else {
+        console.log('ℹ️ No profile image in storage');
+      }
+      isLoadedRef.current = true;
+      console.log('✅ Profile data loaded, auto-save enabled');
+    } catch (error) {
+      console.error('❌ Error loading profile image:', error);
+      isLoadedRef.current = true; // Enable saving even on error
+    }
+  };
 
   const handleImagePick = async () => {
     try {
       // Zapytaj o pozwolenia
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (permissionResult.granted === false) {
         Alert.alert('Brak uprawnień', 'Musisz zezwolić na dostęp do zdjęć');
         return;
@@ -25,10 +59,36 @@ function ProfilePage() {
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.5,
+        base64: true, // Request base64 data
       });
 
       if (!result.canceled) {
-        setProfileImage(result.assets[0].uri);
+        const uri = result.assets[0].uri;
+
+        // In web environment, convert blob URL to base64 data URL for persistence
+        if (uri.startsWith('blob:') || uri.startsWith('http')) {
+          console.log('🔄 Converting image to base64 for web storage...');
+          try {
+            const response = await fetch(uri);
+            const blob = await response.blob();
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+              const base64data = reader.result;
+              console.log('✅ Image converted to base64, size:', Math.round(base64data.length / 1024), 'KB');
+              setProfileImage(base64data);
+            };
+
+            reader.readAsDataURL(blob);
+          } catch (conversionError) {
+            console.error('❌ Error converting image:', conversionError);
+            // Fallback to original URI if conversion fails
+            setProfileImage(uri);
+          }
+        } else {
+          // Native app or already a data URL
+          setProfileImage(uri);
+        }
       }
     } catch (error) {
       console.error('Error picking image:', error);
