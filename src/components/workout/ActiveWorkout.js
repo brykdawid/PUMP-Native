@@ -319,6 +319,7 @@ function ActiveWorkout({
     return (
       <CalendarTab
         workoutHistory={workoutHistory}
+        setWorkoutHistory={setWorkoutHistory}
         onGoToPlan={onGoToPlan}
         onSaveWorkout={onSaveWorkout}
       />

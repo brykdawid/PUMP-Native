@@ -22,7 +22,7 @@ const MONTHS_PL = [
 
 const DAYS_SHORT_PL = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
 
-function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
+function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWorkout }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekStartDate, setWeekStartDate] = useState(getWeekStart(new Date()));
@@ -184,6 +184,26 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
     onSaveWorkout(workoutToSave);
     setShowWorkoutModal(false);
     Alert.alert('Sukces', 'Trening został zapisany w zakładce Zapisane!');
+  };
+
+  // Usuwanie treningu z kalendarza
+  const handleDeleteWorkout = (workout) => {
+    Alert.alert(
+      'Usuń trening',
+      'Czy na pewno chcesz usunąć ten trening z kalendarza?',
+      [
+        { text: 'Anuluj', style: 'cancel' },
+        {
+          text: 'Usuń',
+          style: 'destructive',
+          onPress: () => {
+            if (setWorkoutHistory) {
+              setWorkoutHistory(prev => prev.filter(w => w.id !== workout.id));
+            }
+          }
+        }
+      ]
+    );
   };
 
   // Formatuj czas treningu
@@ -382,14 +402,24 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
                     )}
                   </View>
 
-                  <TouchableOpacity
-                    onPress={() => handleViewWorkout(workout)}
-                    style={styles.previewButton}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="eye-outline" size={18} color="#9333ea" />
-                    <Text style={styles.previewButtonText}>Podgląd</Text>
-                  </TouchableOpacity>
+                  <View style={styles.actionButtons}>
+                    <TouchableOpacity
+                      onPress={() => handleViewWorkout(workout)}
+                      style={styles.previewButton}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="eye-outline" size={18} color="#9333ea" />
+                      <Text style={styles.previewButtonText}>Podgląd</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => handleDeleteWorkout(workout)}
+                      style={styles.deleteButton}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             ))}
@@ -817,6 +847,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#10b981',
   },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   previewButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -832,6 +867,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#9333ea',
+  },
+  deleteButton: {
+    padding: 8,
+    backgroundColor: '#fef2f2',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fecaca',
   },
   modalOverlay: {
     flex: 1,

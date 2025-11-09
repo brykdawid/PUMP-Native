@@ -115,7 +115,12 @@ function App() {
   };
 
   const handleDeleteWorkout = (workoutId) => {
-    setSavedWorkouts(prev => prev.filter(w => w.id !== workoutId));
+    console.log('🗑️ Deleting workout with ID:', workoutId);
+    setSavedWorkouts(prev => {
+      const filtered = prev.filter(w => w.id !== workoutId);
+      console.log('📊 Workouts before:', prev.length, 'after:', filtered.length);
+      return filtered;
+    });
   };
 
   const handleUpdateWorkout = (workoutId, updates) => {
