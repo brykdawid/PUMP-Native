@@ -7,9 +7,12 @@ import {
   StyleSheet,
   Modal,
   Alert,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getExercises } from '../../utils/apiHelpers';
+import GifModal from './GifModal';
 
 const MONTHS_PL = [
   'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
@@ -24,6 +27,8 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
   const [weekStartDate, setWeekStartDate] = useState(getWeekStart(new Date()));
   const [selectedWorkoutForView, setSelectedWorkoutForView] = useState(null);
   const [showWorkoutModal, setShowWorkoutModal] = useState(false);
+  const [allExercises, setAllExercises] = useState([]);
+  const [selectedGifExercise, setSelectedGifExercise] = useState(null);
 
   // Pobierz poniedziałek dla danego dnia
   function getWeekStart(date) {
@@ -34,6 +39,23 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
     d.setHours(0, 0, 0, 0);
     return d;
   }
+
+  // Załaduj ćwiczenia z API
+  useEffect(() => {
+    let mounted = true;
+    async function loadExercises() {
+      try {
+        const data = await getExercises();
+        if (mounted) {
+          setAllExercises(data);
+        }
+      } catch (error) {
+        console.error('Error loading exercises:', error);
+      }
+    }
+    loadExercises();
+    return () => { mounted = false; };
+  }, []);
 
   // Wygeneruj 7 dni tygodnia od poniedziałku
   const weekDays = useMemo(() => {
@@ -136,10 +158,13 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
 
   // Obsługa podglądu treningu
   const handleViewWorkout = (workout) => {
-    if (!workout.scheduled) {
-      setSelectedWorkoutForView(workout);
-      setShowWorkoutModal(true);
-    }
+    setSelectedWorkoutForView(workout);
+    setShowWorkoutModal(true);
+  };
+
+  // Znajdź pełne dane ćwiczenia z API
+  const getExerciseDetails = (exerciseName) => {
+    return allExercises.find(ex => ex.name === exerciseName) || null;
   };
 
   // Zapisywanie treningu do zakładki zapisane
@@ -290,13 +315,7 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
           // Lista treningów
           <View style={styles.workoutListContainer}>
             {selectedDayWorkouts.map((workout, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.workoutCard}
-                onPress={() => handleViewWorkout(workout)}
-                activeOpacity={workout.scheduled ? 1 : 0.7}
-                disabled={workout.scheduled}
-              >
+              <View key={index} style={styles.workoutCard}>
                 <View style={styles.workoutCardHeader}>
                   <View style={styles.workoutTitleRow}>
                     <Ionicons
@@ -349,18 +368,29 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
                   </View>
                 )}
 
-                <View style={styles.workoutStatus}>
-                  {workout.scheduled ? (
-                    <View style={styles.statusBadge}>
-                      <Text style={styles.statusBadgeTextScheduled}>Zaplanowany</Text>
-                    </View>
-                  ) : (
-                    <View style={[styles.statusBadge, styles.statusBadgeCompleted]}>
-                      <Text style={styles.statusBadgeTextCompleted}>Ukończony</Text>
-                    </View>
-                  )}
+                <View style={styles.workoutActions}>
+                  <View style={styles.workoutStatus}>
+                    {workout.scheduled ? (
+                      <View style={styles.statusBadge}>
+                        <Text style={styles.statusBadgeTextScheduled}>Zaplanowany</Text>
+                      </View>
+                    ) : (
+                      <View style={[styles.statusBadge, styles.statusBadgeCompleted]}>
+                        <Text style={styles.statusBadgeTextCompleted}>Ukończony</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => handleViewWorkout(workout)}
+                    style={styles.previewButton}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="eye-outline" size={18} color="#9333ea" />
+                    <Text style={styles.previewButtonText}>Podgląd</Text>
+                  </TouchableOpacity>
                 </View>
-              </TouchableOpacity>
+              </View>
             ))}
 
             {/* Przycisk dodawania kolejnego treningu */}
@@ -416,28 +446,72 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
 
               {/* Lista ćwiczeń */}
               <Text style={styles.exercisesHeader}>Ćwiczenia</Text>
-              {selectedWorkoutForView?.exercises?.map((exercise, idx) => (
-                <View key={idx} style={styles.modalExerciseCard}>
-                  <Text style={styles.modalExerciseName}>{exercise.name}</Text>
+              {selectedWorkoutForView?.exercises?.map((exercise, idx) => {
+                const exerciseDetails = getExerciseDetails(exercise.name);
 
-                  {exercise.sets && exercise.sets.length > 0 && (
-                    <View style={styles.modalSetsContainer}>
-                      <Text style={styles.modalSetsHeader}>Serie:</Text>
-                      {exercise.sets.map((set, setIdx) => (
-                        <View key={setIdx} style={styles.modalSetRow}>
-                          <Text style={styles.modalSetNumber}>{setIdx + 1}.</Text>
-                          <Text style={styles.modalSetDetails}>
-                            {set.weight || '—'} kg × {set.reps || '—'} powtórzeń
-                          </Text>
-                          {set.completed && (
-                            <Ionicons name="checkmark-circle" size={16} color="#10b981" />
-                          )}
+                return (
+                  <View key={idx} style={styles.modalExerciseCard}>
+                    {/* Obrazek ćwiczenia */}
+                    {exerciseDetails?.image && (
+                      <TouchableOpacity
+                        onPress={() => setSelectedGifExercise(exerciseDetails)}
+                        style={styles.modalExerciseImageContainer}
+                        activeOpacity={0.8}
+                      >
+                        <Image
+                          source={{ uri: exerciseDetails.image }}
+                          style={styles.modalExerciseImage}
+                          resizeMode="cover"
+                        />
+                        <View style={styles.imageOverlay}>
+                          <Ionicons name="play-circle" size={32} color="#fff" />
                         </View>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              ))}
+                      </TouchableOpacity>
+                    )}
+
+                    <Text style={styles.modalExerciseName}>{exercise.name}</Text>
+
+                    {/* Opis */}
+                    {exerciseDetails?.description && (
+                      <View style={styles.modalDescriptionContainer}>
+                        <Text style={styles.modalDescriptionLabel}>Opis:</Text>
+                        <Text style={styles.modalDescriptionText}>
+                          {exerciseDetails.description}
+                        </Text>
+                      </View>
+                    )}
+
+                    {/* Wskazówki */}
+                    {exerciseDetails?.tips && (
+                      <View style={styles.modalTipsContainer}>
+                        <View style={styles.modalTipsHeader}>
+                          <Ionicons name="bulb" size={16} color="#f59e0b" />
+                          <Text style={styles.modalTipsLabel}>Wskazówki:</Text>
+                        </View>
+                        <Text style={styles.modalTipsText}>{exerciseDetails.tips}</Text>
+                      </View>
+                    )}
+
+                    {/* Serie (tylko dla ukończonych treningów) */}
+                    {exercise.sets && exercise.sets.length > 0 && (
+                      <View style={styles.modalSetsContainer}>
+                        <Text style={styles.modalSetsHeader}>Serie:</Text>
+                        {exercise.sets.map((set, setIdx) => (
+                          <View key={setIdx} style={styles.modalSetRow}>
+                            <Text style={styles.modalSetNumber}>{setIdx + 1}.</Text>
+                            <Text style={styles.modalSetDetails}>
+                              {set.weight || '—'} kg × {set.reps || '—'} powtórzeń
+                            </Text>
+                            {set.completed && (
+                              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+                            )}
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
             </ScrollView>
 
             {/* Przycisk zapisz */}
@@ -461,6 +535,14 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
           </View>
         </View>
       </Modal>
+
+      {/* GifModal do animacji ćwiczeń */}
+      <GifModal
+        exercise={selectedGifExercise}
+        onClose={() => setSelectedGifExercise(null)}
+        onToggleFavorite={() => {}}
+        isFavorite={false}
+      />
     </View>
   );
 }
@@ -718,9 +800,19 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontWeight: '500',
   },
+  workoutActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
   workoutStatus: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -740,6 +832,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#10b981',
+  },
+  previewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#f3e8ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d8b4fe',
+  },
+  previewButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9333ea',
   },
   modalOverlay: {
     flex: 1,
@@ -808,11 +916,73 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
+  modalExerciseImageContainer: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 12,
+    position: 'relative',
+    backgroundColor: '#e5e7eb',
+  },
+  modalExerciseImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   modalExerciseName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#111827',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  modalDescriptionContainer: {
+    marginBottom: 12,
+    paddingVertical: 8,
+  },
+  modalDescriptionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6b7280',
+    marginBottom: 6,
+  },
+  modalDescriptionText: {
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
+  },
+  modalTipsContainer: {
+    backgroundColor: '#fffbeb',
+    borderLeftWidth: 3,
+    borderLeftColor: '#f59e0b',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  modalTipsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  modalTipsLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#92400e',
+  },
+  modalTipsText: {
+    fontSize: 14,
+    color: '#78350f',
+    lineHeight: 20,
   },
   modalSetsContainer: {
     marginTop: 8,
