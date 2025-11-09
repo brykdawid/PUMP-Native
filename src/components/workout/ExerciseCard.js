@@ -2,7 +2,17 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-function ExerciseCard({ exercise, exerciseId, isExpanded, onToggle }) {
+function ExerciseCard({
+  exercise,
+  exerciseId,
+  isExpanded,
+  onToggle,
+  // Optional action buttons
+  onFavorite,
+  isFavorite,
+  onReplace,
+  replaceButtonText = 'Wymień'
+}) {
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -30,7 +40,37 @@ function ExerciseCard({ exercise, exerciseId, isExpanded, onToggle }) {
           style={styles.icon}
         />
       </TouchableOpacity>
-      
+
+      {/* Action buttons (star and swap) */}
+      {(onFavorite || onReplace) && (
+        <View style={styles.exerciseActions}>
+          {onFavorite && (
+            <TouchableOpacity
+              onPress={onFavorite}
+              style={styles.favoriteButton}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={isFavorite ? 'star' : 'star-outline'}
+                size={20}
+                color={isFavorite ? '#facc15' : '#9ca3af'}
+              />
+            </TouchableOpacity>
+          )}
+
+          {onReplace && (
+            <TouchableOpacity
+              onPress={onReplace}
+              style={styles.replaceButton}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="refresh" size={16} color="#2563eb" />
+              <Text style={styles.replaceButtonText}>{replaceButtonText}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       {isExpanded && (
         <View style={styles.descriptionContainer}>
           <Text style={styles.descriptionText}>
@@ -92,6 +132,33 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontSize: 14,
     lineHeight: 20,
+  },
+  exerciseActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#ffffff',
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
+  favoriteButton: {
+    padding: 8,
+  },
+  replaceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#dbeafe',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  replaceButtonText: {
+    color: '#2563eb',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 

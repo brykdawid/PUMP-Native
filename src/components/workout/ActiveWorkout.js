@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
   Modal,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -359,12 +360,28 @@ function ActiveWorkout({
                     style={styles.exerciseHeader}
                     activeOpacity={0.7}
                   >
+                    {/* Exercise Image/GIF */}
+                    <TouchableOpacity
+                      onPress={() => setSelectedExercise(exercise)}
+                      style={styles.exerciseImageContainer}
+                      activeOpacity={0.8}
+                    >
+                      <Image
+                        source={{ uri: exercise.image }}
+                        style={styles.exerciseImage}
+                        resizeMode="cover"
+                      />
+                    </TouchableOpacity>
+
+                    {/* Exercise Info */}
                     <View style={styles.exerciseHeaderLeft}>
                       <Text style={styles.exerciseName}>{exercise.name}</Text>
                       <Text style={styles.exerciseSets}>
                         {completedSets}/{sets.length} serie
                       </Text>
                     </View>
+
+                    {/* Controls */}
                     <View style={styles.exerciseHeaderRight}>
                       <TouchableOpacity
                         onPress={() => removeExercise(exercise.name)}
@@ -696,6 +713,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
+    gap: 16,
+  },
+  exerciseImageContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    overflow: 'hidden',
+    flexShrink: 0,
+    backgroundColor: '#f3f4f6',
+  },
+  exerciseImage: {
+    width: '100%',
+    height: '100%',
   },
   exerciseHeaderLeft: {
     flex: 1,
