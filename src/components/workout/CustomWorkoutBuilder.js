@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import storage from '../../utils/storage';
 import { getExercises } from '../../utils/apiHelpers';
 import { TRAINING_TYPES, CATEGORY_TO_AI_LABELS } from '../data/exercisesData';
+import { getLocalISOString } from '../../utils/workoutHelpers';
 import GifModal from './GifModal';
 import ExerciseCard from './ExerciseCard';
 
@@ -219,7 +220,7 @@ function CustomWorkoutBuilder({
           tips: exercise.tips,
           labels: exercise.labels,
           category: exercise.category,
-          savedAt: new Date().toISOString()
+          savedAt: getLocalISOString()
         }];
     
     setFavorites(newFavorites);

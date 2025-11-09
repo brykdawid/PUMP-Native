@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import storage from '../../utils/storage';
-import { normalizeWorkout, getTotalExercises as getExerciseCount } from '../../utils/workoutHelpers';
+import { normalizeWorkout, getTotalExercises as getExerciseCount, getLocalISOString } from '../../utils/workoutHelpers';
 import GifModal from '../workout/GifModal';
 import ExerciseCard from '../workout/ExerciseCard';
 
@@ -69,7 +69,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
         tips: exercise.tips,
         labels: exercise.labels,
         category: exercise.category,
-        savedAt: new Date().toISOString()
+        savedAt: getLocalISOString()
       }];
     }
 

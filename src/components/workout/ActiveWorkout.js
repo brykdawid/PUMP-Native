@@ -16,6 +16,7 @@ import GifModal from './GifModal';
 import CalendarTab from './CalendarTab';
 import { getExercises } from '../../utils/apiHelpers';
 import { TRAINING_TYPES } from '../data/exercisesData';
+import { getLocalISOString } from '../../utils/workoutHelpers';
 
 function ActiveWorkout({
   activeWorkout,
@@ -277,7 +278,7 @@ function ActiveWorkout({
     const title = categories.map(cat => getCategoryName(cat)).join('+');
 
     const workoutData = {
-      date: new Date().toISOString(),
+      date: getLocalISOString(),
       duration: elapsedTime,
       title: title || 'Trening',
       type: workoutType,

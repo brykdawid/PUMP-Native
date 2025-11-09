@@ -11,7 +11,7 @@ import MuscleGroupSelector from './components/screens/MuscleGroupSelector';
 import GeneratedWorkout from './components/workout/GeneratedWorkout';
 import CustomWorkoutBuilder from './components/workout/CustomWorkoutBuilder';
 import ActiveWorkout from './components/workout/ActiveWorkout';
-import { normalizeWorkout } from './utils/workoutHelpers';
+import { normalizeWorkout, getLocalISOString } from './utils/workoutHelpers';
 import { TRAINING_TYPES } from './components/data/exercisesData';
 
 function App() {
@@ -98,7 +98,7 @@ function App() {
     const rawWorkout = {
       id: Date.now(),
       ...workout,
-      savedAt: new Date().toISOString()
+      savedAt: getLocalISOString()
     };
     const normalized = normalizeWorkout(rawWorkout);
     setSavedWorkouts(prev => [normalized, ...prev]);

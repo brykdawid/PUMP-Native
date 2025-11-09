@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getExercises } from '../../utils/apiHelpers';
+import { getLocalISOString } from '../../utils/workoutHelpers';
 import GifModal from './GifModal';
 
 const MONTHS_PL = [
@@ -177,7 +178,7 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
       type: selectedWorkoutForView.type || 'custom',
       exercises: selectedWorkoutForView.exercises || [],
       date: formatDateToISO(selectedDate),
-      savedAt: new Date().toISOString()
+      savedAt: getLocalISOString()
     };
 
     onSaveWorkout(workoutToSave);
