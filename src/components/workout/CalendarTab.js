@@ -209,9 +209,10 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
                       {date.getDate()}
                     </Text>
                   </View>
-                  {hasWorkout && !isSelectedDate && (
-                    <View style={styles.workoutDot} />
-                  )}
+                  <View style={[
+                    styles.workoutDot,
+                    (!hasWorkout || isSelectedDate) && styles.workoutDotHidden
+                  ]} />
                 </TouchableOpacity>
               );
             })}
@@ -439,6 +440,9 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: '#10b981',
     marginTop: 4,
+  },
+  workoutDotHidden: {
+    opacity: 0,
   },
   selectedDateHeader: {
     marginHorizontal: 16,
