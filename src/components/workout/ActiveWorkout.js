@@ -6,7 +6,6 @@ import {
   ScrollView,
   TextInput,
   StyleSheet,
-  Alert,
   Platform,
   Modal,
   Image,
@@ -37,6 +36,7 @@ function ActiveWorkout({
   const [searchQueries, setSearchQueries] = useState({});
   const [showSearchForCategory, setShowSearchForCategory] = useState(null);
   const [showMuscleGroupModal, setShowMuscleGroupModal] = useState(false);
+  const [showEndWorkoutModal, setShowEndWorkoutModal] = useState(false);
 
   const workoutType = activeWorkout?.type || 'custom';
 
@@ -263,50 +263,41 @@ function ActiveWorkout({
   };
 
   const handleEndWorkout = () => {
-    console.log('handleEndWorkout called');
+    console.log('handleEndWorkout called - showing modal');
+    setShowEndWorkoutModal(true);
+  };
 
-    Alert.alert(
-      'Zakończ sesję',
-      'Czy na pewno chcesz zakończyć trening?',
-      [
-        { text: 'Anuluj', style: 'cancel' },
-        {
-          text: 'Zakończ',
-          style: 'destructive',
-          onPress: () => {
-            console.log('User confirmed end workout');
+  const confirmEndWorkout = () => {
+    console.log('User confirmed end workout');
+    setShowEndWorkoutModal(false);
 
-            const workoutData = {
-              date: new Date().toISOString(),
-              duration: elapsedTime,
-              exercises: workoutExercises.map(ex => ({
-                name: ex.name,
-                sets: exerciseSets[ex.name] || []
-              }))
-            };
+    const workoutData = {
+      date: new Date().toISOString(),
+      duration: elapsedTime,
+      exercises: workoutExercises.map(ex => ({
+        name: ex.name,
+        sets: exerciseSets[ex.name] || []
+      }))
+    };
 
-            console.log('Workout data to save:', workoutData);
+    console.log('Workout data to save:', workoutData);
 
-            // Update workout history first
-            if (setWorkoutHistory) {
-              setWorkoutHistory(prev => {
-                const updated = [...prev, workoutData];
-                console.log('Updated workout history:', updated);
-                return updated;
-              });
-            }
+    // Update workout history first
+    if (setWorkoutHistory) {
+      setWorkoutHistory(prev => {
+        const updated = [...prev, workoutData];
+        console.log('Updated workout history:', updated);
+        return updated;
+      });
+    }
 
-            // Use setTimeout to ensure state update completes before navigation
-            setTimeout(() => {
-              if (onEndWorkout) {
-                console.log('Calling onEndWorkout - navigating back');
-                onEndWorkout();
-              }
-            }, 100);
-          }
-        }
-      ]
-    );
+    // Use setTimeout to ensure state update completes before navigation
+    setTimeout(() => {
+      if (onEndWorkout) {
+        console.log('Calling onEndWorkout - navigating back');
+        onEndWorkout();
+      }
+    }, 100);
   };
 
   const totalExercises = workoutExercises.length;
@@ -616,6 +607,48 @@ function ActiveWorkout({
                 })}
               </View>
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showEndWorkoutModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowEndWorkoutModal(false)}
+      >
+        <View style={styles.confirmModalOverlay}>
+          <View style={styles.confirmModal}>
+            <Text style={styles.confirmModalTitle}>Zakończ sesję</Text>
+            <Text style={styles.confirmModalMessage}>
+              Czy na pewno chcesz zakończyć trening?
+            </Text>
+
+            <View style={styles.confirmModalButtons}>
+              <TouchableOpacity
+                onPress={() => {
+                  console.log('User cancelled');
+                  setShowEndWorkoutModal(false);
+                }}
+                style={[styles.confirmModalButton, styles.confirmModalButtonCancel]}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.confirmModalButtonTextCancel}>Anuluj</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={confirmEndWorkout}
+                style={[styles.confirmModalButton, styles.confirmModalButtonConfirm]}
+                activeOpacity={0.7}
+              >
+                <LinearGradient
+                  colors={['#ef4444', '#dc2626']}
+                  style={styles.confirmModalButtonGradient}
+                >
+                  <Text style={styles.confirmModalButtonTextConfirm}>Zakończ</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -997,6 +1030,72 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#6b7280',
     marginTop: 4,
+  },
+  confirmModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  confirmModal: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  confirmModalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  confirmModalMessage: {
+    fontSize: 16,
+    color: '#6b7280',
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  confirmModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  confirmModalButton: {
+    flex: 1,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  confirmModalButtonCancel: {
+    backgroundColor: '#f3f4f6',
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmModalButtonConfirm: {
+    overflow: 'hidden',
+  },
+  confirmModalButtonGradient: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confirmModalButtonTextCancel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+  },
+  confirmModalButtonTextConfirm: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 });
 
