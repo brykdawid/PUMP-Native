@@ -1,9 +1,32 @@
 // Storage utility that works in both web and native environments
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Detect if we're running in a browser
 const isWeb = Platform.OS === 'web';
+
+// Cross-platform confirm dialog
+export const confirmDialog = (title, message, onConfirm, onCancel) => {
+  if (isWeb && typeof window !== 'undefined') {
+    // Use native browser confirm dialog
+    const confirmed = window.confirm(`${title}\n\n${message}`);
+    if (confirmed && onConfirm) {
+      onConfirm();
+    } else if (!confirmed && onCancel) {
+      onCancel();
+    }
+  } else {
+    // Use React Native Alert for mobile
+    Alert.alert(
+      title,
+      message,
+      [
+        { text: 'Anuluj', style: 'cancel', onPress: onCancel },
+        { text: 'OK', style: 'destructive', onPress: onConfirm }
+      ]
+    );
+  }
+};
 
 const storage = {
   async getItem(key) {

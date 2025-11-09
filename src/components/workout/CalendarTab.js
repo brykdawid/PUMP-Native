@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getExercises } from '../../utils/apiHelpers';
 import { getLocalISOString } from '../../utils/workoutHelpers';
+import { confirmDialog } from '../../utils/storage';
 import GifModal from './GifModal';
 
 const MONTHS_PL = [
@@ -188,21 +189,25 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
 
   // Usuwanie treningu z kalendarza
   const handleDeleteWorkout = (workout) => {
-    Alert.alert(
+    console.log('🗑️ Calendar: Attempting to delete workout', workout.id);
+    confirmDialog(
       'Usuń trening',
       'Czy na pewno chcesz usunąć ten trening z kalendarza?',
-      [
-        { text: 'Anuluj', style: 'cancel' },
-        {
-          text: 'Usuń',
-          style: 'destructive',
-          onPress: () => {
-            if (setWorkoutHistory) {
-              setWorkoutHistory(prev => prev.filter(w => w.id !== workout.id));
-            }
-          }
+      () => {
+        console.log('✅ Calendar: User confirmed deletion');
+        if (setWorkoutHistory) {
+          setWorkoutHistory(prev => {
+            const filtered = prev.filter(w => w.id !== workout.id);
+            console.log('📊 Calendar: Workouts before:', prev.length, 'after:', filtered.length);
+            return filtered;
+          });
+        } else {
+          console.error('❌ Calendar: setWorkoutHistory is not defined');
         }
-      ]
+      },
+      () => {
+        console.log('❌ Calendar: User cancelled deletion');
+      }
     );
   };
 

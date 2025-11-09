@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import storage from '../../utils/storage';
+import storage, { confirmDialog } from '../../utils/storage';
 import { normalizeWorkout, getTotalExercises as getExerciseCount, getLocalISOString } from '../../utils/workoutHelpers';
 import GifModal from '../workout/GifModal';
 import ExerciseCard from '../workout/ExerciseCard';
@@ -158,17 +158,21 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
   };
 
   const handleDelete = (workoutId) => {
-    Alert.alert(
+    console.log('🗑️ SavedWorkouts: Attempting to delete workout', workoutId);
+    confirmDialog(
       'Usuń trening',
       'Czy na pewno chcesz usunąć ten trening?',
-      [
-        { text: 'Anuluj', style: 'cancel' },
-        { 
-          text: 'Usuń', 
-          style: 'destructive',
-          onPress: () => onDeleteWorkout(workoutId)
+      () => {
+        console.log('✅ SavedWorkouts: User confirmed deletion, calling onDeleteWorkout');
+        if (onDeleteWorkout) {
+          onDeleteWorkout(workoutId);
+        } else {
+          console.error('❌ SavedWorkouts: onDeleteWorkout is not defined');
         }
-      ]
+      },
+      () => {
+        console.log('❌ SavedWorkouts: User cancelled deletion');
+      }
     );
   };
 
