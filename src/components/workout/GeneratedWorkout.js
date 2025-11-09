@@ -167,9 +167,11 @@ function GeneratedWorkout({
     const randomIndex = Math.floor(Math.random() * availableExercises.length);
     const selectedExercise = availableExercises[randomIndex];
     
+    // POPRAWKA: Zachowaj kategorię podczas wymiany
     const newExercise = {
       ...selectedExercise,
       count: exerciseToReplace.count,
+      category: category, // WAŻNE: Ustaw kategorię
     };
     
     setWorkoutPlan(prev => ({
@@ -199,7 +201,7 @@ function GeneratedWorkout({
   };
 
   const fallbackGeneration = () => {
-    console.log('Fallback generation');
+    console.log('Fallback generation - selectedTypes:', selectedTypes);
     const categoryLabels = {
       'barki': 'shoulders',
       'biceps': 'biceps',
@@ -215,19 +217,27 @@ function GeneratedWorkout({
     const plan = {};
     
     selectedTypes.forEach(category => {
+      console.log(`Generating for category: ${category}`);
       const targetLabel = categoryLabels[category];
       const categoryExercises = allExercises.filter(ex => 
         ex.labels && ex.labels.includes(targetLabel)
       );
       
+      console.log(`Found ${categoryExercises.length} exercises for ${category} (label: ${targetLabel})`);
+      
       const shuffled = [...categoryExercises].sort(() => Math.random() - 0.5);
+      
+      // POPRAWKA: Dodaj kategorię do każdego ćwiczenia
       plan[category] = shuffled.slice(0, 5).map((ex, idx) => ({
         ...ex,
-        count: idx + 1
+        count: idx + 1,
+        category: category // WAŻNE: Ustaw kategorię wybrana przez użytkownika
       }));
+      
+      console.log(`Generated ${plan[category].length} exercises for ${category}`);
     });
     
-    console.log('Generated plan:', plan);
+    console.log('Final generated plan:', Object.keys(plan).map(k => `${k}: ${plan[k].length}`));
     setWorkoutPlan(plan);
   };
 
@@ -282,11 +292,26 @@ function GeneratedWorkout({
 
   const handleBeginWorkout = () => {
     if (onBeginWorkout) {
+      // POPRAWKA: Flatten exercises z zachowaniem kategorii
+      const allExercises = [];
+      Object.entries(workoutPlan).forEach(([category, exercises]) => {
+        exercises.forEach(ex => {
+          allExercises.push({
+            ...ex,
+            category: category, // Upewnij się że kategoria jest przekazana
+            id: `${ex.name}-${Date.now()}-${Math.random()}`
+          });
+        });
+      });
+      
+      console.log('Beginning workout with exercises:', allExercises.map(e => `${e.name} (${e.category})`));
+      
       const workoutData = {
         type: 'generated',
-        exercises: Object.values(workoutPlan).flat(),
+        exercises: allExercises,
         warmup: warmupExercises,
-        categories: selectedTypes
+        categories: selectedTypes,
+        title: selectedTypes.map(t => getShortCategoryName(t)).join('+')
       };
       onBeginWorkout(workoutData, customDate, true);
     }
@@ -309,9 +334,21 @@ function GeneratedWorkout({
 
   const handleSaveWorkout = () => {
     if (onSaveWorkout) {
+      // POPRAWKA: Flatten z zachowaniem kategorii
+      const allExercises = [];
+      Object.entries(workoutPlan).forEach(([category, exercises]) => {
+        exercises.forEach(ex => {
+          allExercises.push({
+            ...ex,
+            category: category, // Upewnij się że kategoria jest przekazana
+            id: `${ex.name}-${Date.now()}-${Math.random()}`
+          });
+        });
+      });
+      
       const workoutData = {
         type: 'generated',
-        exercises: Object.values(workoutPlan).flat(),
+        exercises: allExercises,
         warmup: warmupExercises,
         categories: selectedTypes,
         name: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
@@ -325,10 +362,25 @@ function GeneratedWorkout({
   const handleScheduleWorkout = () => {
     if (!scheduleCalledRef.current && onScheduleWorkout) {
       scheduleCalledRef.current = true;
+      
+      // POPRAWKA: Flatten z zachowaniem kategorii
+      const allExercises = [];
+      Object.entries(workoutPlan).forEach(([category, exercises]) => {
+        exercises.forEach(ex => {
+          allExercises.push({
+            ...ex,
+            category: category, // Upewnij się że kategoria jest przekazana
+            id: `${ex.name}-${Date.now()}-${Math.random()}`
+          });
+        });
+      });
+      
+      console.log('Scheduling workout with exercises:', allExercises.map(e => `${e.name} (${e.category})`));
+      
       const workoutData = {
         id: Date.now(),
         type: 'generated',
-        exercises: Object.values(workoutPlan).flat(),
+        exercises: allExercises,
         warmup: warmupExercises,
         categories: selectedTypes,
         name: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
