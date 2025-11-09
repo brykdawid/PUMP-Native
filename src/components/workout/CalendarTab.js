@@ -5,9 +5,14 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Modal,
+  Alert,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getExercises } from '../../utils/apiHelpers';
+import GifModal from './GifModal';
 
 const MONTHS_PL = [
   'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
@@ -16,10 +21,14 @@ const MONTHS_PL = [
 
 const DAYS_SHORT_PL = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
 
-function CalendarTab({ workoutHistory, onGoToPlan }) {
+function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekStartDate, setWeekStartDate] = useState(getWeekStart(new Date()));
+  const [selectedWorkoutForView, setSelectedWorkoutForView] = useState(null);
+  const [showWorkoutModal, setShowWorkoutModal] = useState(false);
+  const [allExercises, setAllExercises] = useState([]);
+  const [selectedGifExercise, setSelectedGifExercise] = useState(null);
 
   // Pobierz poniedziałek dla danego dnia
   function getWeekStart(date) {
@@ -30,6 +39,23 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
     d.setHours(0, 0, 0, 0);
     return d;
   }
+
+  // Załaduj ćwiczenia z API
+  useEffect(() => {
+    let mounted = true;
+    async function loadExercises() {
+      try {
+        const data = await getExercises();
+        if (mounted) {
+          setAllExercises(data);
+        }
+      } catch (error) {
+        console.error('Error loading exercises:', error);
+      }
+    }
+    loadExercises();
+    return () => { mounted = false; };
+  }, []);
 
   // Wygeneruj 7 dni tygodnia od poniedziałku
   const weekDays = useMemo(() => {
@@ -128,6 +154,35 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
     if (onGoToPlan) {
       onGoToPlan(formatDateToISO(selectedDate));
     }
+  };
+
+  // Obsługa podglądu treningu
+  const handleViewWorkout = (workout) => {
+    setSelectedWorkoutForView(workout);
+    setShowWorkoutModal(true);
+  };
+
+  // Znajdź pełne dane ćwiczenia z API
+  const getExerciseDetails = (exerciseName) => {
+    return allExercises.find(ex => ex.name === exerciseName) || null;
+  };
+
+  // Zapisywanie treningu do zakładki zapisane
+  const handleSaveCompletedWorkout = () => {
+    if (!selectedWorkoutForView || !onSaveWorkout) return;
+
+    const workoutToSave = {
+      id: Date.now(),
+      title: selectedWorkoutForView.title || 'Trening',
+      type: selectedWorkoutForView.type || 'custom',
+      exercises: selectedWorkoutForView.exercises || [],
+      date: formatDateToISO(selectedDate),
+      savedAt: new Date().toISOString()
+    };
+
+    onSaveWorkout(workoutToSave);
+    setShowWorkoutModal(false);
+    Alert.alert('Sukces', 'Trening został zapisany w zakładce Zapisane!');
   };
 
   // Formatuj czas treningu
@@ -269,7 +324,7 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
                       color={workout.scheduled ? "#f59e0b" : "#10b981"}
                     />
                     <View style={styles.workoutTitleContainer}>
-                      <Text style={styles.workoutTitle}>
+                      <Text style={styles.workoutTitle} numberOfLines={1} ellipsizeMode="tail">
                         {workout.title || workout.name || 'Trening'}
                       </Text>
                       <Text style={styles.workoutType}>
@@ -313,22 +368,181 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
                   </View>
                 )}
 
-                <View style={styles.workoutStatus}>
-                  {workout.scheduled ? (
-                    <View style={styles.statusBadge}>
-                      <Text style={styles.statusBadgeTextScheduled}>Zaplanowany</Text>
-                    </View>
-                  ) : (
-                    <View style={[styles.statusBadge, styles.statusBadgeCompleted]}>
-                      <Text style={styles.statusBadgeTextCompleted}>Ukończony</Text>
-                    </View>
-                  )}
+                <View style={styles.workoutActions}>
+                  <View style={styles.workoutStatus}>
+                    {workout.scheduled ? (
+                      <View style={styles.statusBadge}>
+                        <Text style={styles.statusBadgeTextScheduled}>Zaplanowany</Text>
+                      </View>
+                    ) : (
+                      <View style={[styles.statusBadge, styles.statusBadgeCompleted]}>
+                        <Text style={styles.statusBadgeTextCompleted}>Ukończony</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => handleViewWorkout(workout)}
+                    style={styles.previewButton}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="eye-outline" size={18} color="#9333ea" />
+                    <Text style={styles.previewButtonText}>Podgląd</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             ))}
+
+            {/* Przycisk dodawania kolejnego treningu */}
+            <TouchableOpacity
+              style={styles.addAnotherWorkoutButton}
+              onPress={handleAddWorkout}
+            >
+              <LinearGradient
+                colors={['#9333ea', '#7c3aed']}
+                style={styles.addWorkoutGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="add-circle-outline" size={24} color="#fff" />
+                <Text style={styles.addWorkoutText}>Dodaj Kolejny Trening</Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
+
+      {/* Modal podglądu zakończonego treningu */}
+      <Modal
+        visible={showWorkoutModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowWorkoutModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.workoutModal}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {selectedWorkoutForView?.title || 'Szczegóły treningu'}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowWorkoutModal(false)}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={28} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+              {/* Info o czasie */}
+              {selectedWorkoutForView?.duration && (
+                <View style={styles.modalInfoCard}>
+                  <Ionicons name="time-outline" size={20} color="#9333ea" />
+                  <Text style={styles.modalInfoText}>
+                    Czas treningu: {formatDuration(selectedWorkoutForView.duration)}
+                  </Text>
+                </View>
+              )}
+
+              {/* Lista ćwiczeń */}
+              <Text style={styles.exercisesHeader}>Ćwiczenia</Text>
+              {selectedWorkoutForView?.exercises?.map((exercise, idx) => {
+                const exerciseDetails = getExerciseDetails(exercise.name);
+
+                return (
+                  <View key={idx} style={styles.modalExerciseCard}>
+                    {/* Obrazek ćwiczenia */}
+                    {exerciseDetails?.image && (
+                      <TouchableOpacity
+                        onPress={() => setSelectedGifExercise(exerciseDetails)}
+                        style={styles.modalExerciseImageContainer}
+                        activeOpacity={0.8}
+                      >
+                        <Image
+                          source={{ uri: exerciseDetails.image }}
+                          style={styles.modalExerciseImage}
+                          resizeMode="cover"
+                        />
+                        <View style={styles.imageOverlay}>
+                          <Ionicons name="play-circle" size={32} color="#fff" />
+                        </View>
+                      </TouchableOpacity>
+                    )}
+
+                    <Text style={styles.modalExerciseName}>{exercise.name}</Text>
+
+                    {/* Opis */}
+                    {exerciseDetails?.description && (
+                      <View style={styles.modalDescriptionContainer}>
+                        <Text style={styles.modalDescriptionLabel}>Opis:</Text>
+                        <Text style={styles.modalDescriptionText}>
+                          {exerciseDetails.description}
+                        </Text>
+                      </View>
+                    )}
+
+                    {/* Wskazówki */}
+                    {exerciseDetails?.tips && (
+                      <View style={styles.modalTipsContainer}>
+                        <View style={styles.modalTipsHeader}>
+                          <Ionicons name="bulb" size={16} color="#f59e0b" />
+                          <Text style={styles.modalTipsLabel}>Wskazówki:</Text>
+                        </View>
+                        <Text style={styles.modalTipsText}>{exerciseDetails.tips}</Text>
+                      </View>
+                    )}
+
+                    {/* Serie (tylko dla ukończonych treningów) */}
+                    {exercise.sets && exercise.sets.length > 0 && (
+                      <View style={styles.modalSetsContainer}>
+                        <Text style={styles.modalSetsHeader}>Serie:</Text>
+                        {exercise.sets.map((set, setIdx) => (
+                          <View key={setIdx} style={styles.modalSetRow}>
+                            <Text style={styles.modalSetNumber}>{setIdx + 1}.</Text>
+                            <Text style={styles.modalSetDetails}>
+                              {set.weight || '—'} kg × {set.reps || '—'} powtórzeń
+                            </Text>
+                            {set.completed && (
+                              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+                            )}
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+            </ScrollView>
+
+            {/* Przycisk zapisz */}
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                onPress={handleSaveCompletedWorkout}
+                style={styles.saveWorkoutButton}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={['#9333ea', '#7c3aed']}
+                  style={styles.saveWorkoutGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                >
+                  <Ionicons name="bookmark" size={20} color="#fff" />
+                  <Text style={styles.saveWorkoutText}>Zapisz Trening</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* GifModal do animacji ćwiczeń */}
+      <GifModal
+        exercise={selectedGifExercise}
+        onClose={() => setSelectedGifExercise(null)}
+        onToggleFavorite={() => {}}
+        isFavorite={false}
+      />
     </View>
   );
 }
@@ -494,6 +708,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: '80%',
   },
+  addAnotherWorkoutButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 12,
+  },
   addWorkoutGradient: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -581,9 +800,19 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontWeight: '500',
   },
+  workoutActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+  },
   workoutStatus: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -603,6 +832,209 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#10b981',
+  },
+  previewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#f3e8ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d8b4fe',
+  },
+  previewButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9333ea',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  workoutModal: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    flex: 1,
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  modalContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  modalInfoCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3e8ff',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  modalInfoText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b21a8',
+  },
+  exercisesHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 12,
+  },
+  modalExerciseCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  modalExerciseImageContainer: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 12,
+    position: 'relative',
+    backgroundColor: '#e5e7eb',
+  },
+  modalExerciseImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalExerciseName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 12,
+  },
+  modalDescriptionContainer: {
+    marginBottom: 12,
+    paddingVertical: 8,
+  },
+  modalDescriptionLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#6b7280',
+    marginBottom: 6,
+  },
+  modalDescriptionText: {
+    fontSize: 14,
+    color: '#374151',
+    lineHeight: 20,
+  },
+  modalTipsContainer: {
+    backgroundColor: '#fffbeb',
+    borderLeftWidth: 3,
+    borderLeftColor: '#f59e0b',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  modalTipsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 6,
+  },
+  modalTipsLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#92400e',
+  },
+  modalTipsText: {
+    fontSize: 14,
+    color: '#78350f',
+    lineHeight: 20,
+  },
+  modalSetsContainer: {
+    marginTop: 8,
+  },
+  modalSetsHeader: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  modalSetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    gap: 8,
+  },
+  modalSetNumber: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#9333ea',
+    width: 24,
+  },
+  modalSetDetails: {
+    fontSize: 14,
+    color: '#374151',
+    flex: 1,
+  },
+  modalFooter: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  saveWorkoutButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  saveWorkoutGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 8,
+  },
+  saveWorkoutText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });
 

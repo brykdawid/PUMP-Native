@@ -292,6 +292,21 @@ function GeneratedWorkout({
     }
   };
 
+  const getShortCategoryName = (id) => {
+    const names = {
+      'barki': 'Barki',
+      'biceps': 'Biceps',
+      'brzuch': 'Brzuch',
+      'klatka': 'Klatka',
+      'nogi': 'Nogi',
+      'plecy': 'Plecy',
+      'posladki': 'Pośladki',
+      'przedramiona': 'Przedramiona',
+      'triceps': 'Triceps'
+    };
+    return names[id] || id;
+  };
+
   const handleSaveWorkout = () => {
     if (onSaveWorkout) {
       const workoutData = {
@@ -299,7 +314,7 @@ function GeneratedWorkout({
         exercises: Object.values(workoutPlan).flat(),
         warmup: warmupExercises,
         categories: selectedTypes,
-        name: `Trening ${selectedTypes.map(t => getCategoryName(t)).join(', ')}`,
+        name: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
         date: customDate
       };
       onSaveWorkout(workoutData);
@@ -316,7 +331,8 @@ function GeneratedWorkout({
         exercises: Object.values(workoutPlan).flat(),
         warmup: warmupExercises,
         categories: selectedTypes,
-        name: `Trening ${selectedTypes.map(t => getCategoryName(t)).join(', ')}`,
+        name: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
+        title: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
         date: customDate,
         scheduled: true
       };
