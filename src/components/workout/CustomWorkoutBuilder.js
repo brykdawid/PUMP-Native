@@ -254,9 +254,20 @@ function CustomWorkoutBuilder({
       Alert.alert('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
       return;
     }
-    
+
     if (onSaveWorkout) {
-      onSaveWorkout(selectedExercises, [], customDate, workoutTitle, isFavorite);
+      const categories = Object.keys(exercisesByCategory);
+      const workoutData = {
+        type: 'custom',
+        exercises: selectedExercises,
+        warmup: [],
+        categories: categories,
+        name: workoutTitle,
+        date: customDate,
+        isFavorite: isFavorite
+      };
+      onSaveWorkout(workoutData);
+      Alert.alert('Sukces', 'Trening został zapisany!');
     }
   };
 
@@ -265,13 +276,16 @@ function CustomWorkoutBuilder({
       Alert.alert('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
       return;
     }
-    
+
     if (onBeginWorkout) {
-      const workoutPlan = {};
-      Object.entries(exercisesByCategory).forEach(([category, exercises]) => {
-        workoutPlan[category] = exercises;
-      });
-      onBeginWorkout(workoutPlan, []);
+      const categories = Object.keys(exercisesByCategory);
+      const workoutData = {
+        type: 'custom',
+        exercises: selectedExercises,
+        warmup: [],
+        categories: categories
+      };
+      onBeginWorkout(workoutData, customDate, true);
     }
   };
 
@@ -280,14 +294,22 @@ function CustomWorkoutBuilder({
       Alert.alert('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
       return;
     }
-    
+
     if (!scheduleCalledRef.current && onScheduleWorkout) {
       scheduleCalledRef.current = true;
-      const workoutPlan = {};
-      Object.entries(exercisesByCategory).forEach(([category, exercises]) => {
-        workoutPlan[category] = exercises;
-      });
-      onScheduleWorkout(workoutPlan, [], customDate);
+      const categories = Object.keys(exercisesByCategory);
+      const workoutData = {
+        id: Date.now(),
+        type: 'custom',
+        exercises: selectedExercises,
+        warmup: [],
+        categories: categories,
+        name: workoutTitle,
+        date: customDate,
+        scheduled: true
+      };
+      onScheduleWorkout(workoutData);
+      Alert.alert('Sukces', 'Trening został zaplanowany!');
     }
   };
 
