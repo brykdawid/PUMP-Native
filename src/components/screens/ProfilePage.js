@@ -1,13 +1,37 @@
 // PLIK: components/ProfilePage.js - React Native
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function ProfilePage() {
   const [profileImage, setProfileImage] = useState(null);
+
+  // Load profile image from storage on mount
+  useEffect(() => {
+    loadProfileImage();
+  }, []);
+
+  // Save profile image to storage whenever it changes
+  useEffect(() => {
+    if (profileImage !== null) {
+      AsyncStorage.setItem('profileImage', profileImage);
+    }
+  }, [profileImage]);
+
+  const loadProfileImage = async () => {
+    try {
+      const savedImage = await AsyncStorage.getItem('profileImage');
+      if (savedImage) {
+        setProfileImage(savedImage);
+      }
+    } catch (error) {
+      console.error('Error loading profile image:', error);
+    }
+  };
 
   const handleImagePick = async () => {
     try {

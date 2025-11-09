@@ -46,10 +46,12 @@ function App() {
       const savedWorkoutsData = await AsyncStorage.getItem('savedWorkouts');
       const workoutHistoryData = await AsyncStorage.getItem('workoutHistory');
       const targetDateData = await AsyncStorage.getItem('selectedTargetDate');
-      
+      const userStatsData = await AsyncStorage.getItem('userStats');
+
       if (savedWorkoutsData) setSavedWorkouts(JSON.parse(savedWorkoutsData));
       if (workoutHistoryData) setWorkoutHistory(JSON.parse(workoutHistoryData));
       if (targetDateData) setTargetDate(targetDateData);
+      if (userStatsData) setUserStats(JSON.parse(userStatsData));
     } catch (error) {
       console.error('Error loading data:', error);
     }
@@ -76,6 +78,10 @@ function App() {
       AsyncStorage.removeItem('selectedTargetDate');
     }
   }, [targetDate]);
+
+  useEffect(() => {
+    AsyncStorage.setItem('userStats', JSON.stringify(userStats));
+  }, [userStats]);
 
   const handleSaveWorkout = (workout) => {
     const rawWorkout = {
