@@ -488,7 +488,20 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
                           <Ionicons name="bulb" size={16} color="#f59e0b" />
                           <Text style={styles.modalTipsLabel}>Wskazówki:</Text>
                         </View>
-                        <Text style={styles.modalTipsText}>{exerciseDetails.tips}</Text>
+                        {Array.isArray(exerciseDetails.tips) ? (
+                          <View style={styles.tipsListContainer}>
+                            {exerciseDetails.tips.map((tip, tipIdx) => (
+                              <View key={tipIdx} style={styles.tipItemRow}>
+                                <View style={styles.tipNumberBadge}>
+                                  <Text style={styles.tipNumberText}>{tipIdx + 1}</Text>
+                                </View>
+                                <Text style={styles.tipItemText}>{tip}</Text>
+                              </View>
+                            ))}
+                          </View>
+                        ) : (
+                          <Text style={styles.modalTipsText}>{exerciseDetails.tips}</Text>
+                        )}
                       </View>
                     )}
 
@@ -980,6 +993,36 @@ const styles = StyleSheet.create({
     color: '#92400e',
   },
   modalTipsText: {
+    fontSize: 14,
+    color: '#78350f',
+    lineHeight: 20,
+  },
+  tipsListContainer: {
+    gap: 8,
+  },
+  tipItemRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    paddingTop: 4,
+  },
+  tipNumberBadge: {
+    width: 22,
+    height: 22,
+    backgroundColor: '#f59e0b',
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+    marginTop: 2,
+  },
+  tipNumberText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  tipItemText: {
+    flex: 1,
     fontSize: 14,
     color: '#78350f',
     lineHeight: 20,
