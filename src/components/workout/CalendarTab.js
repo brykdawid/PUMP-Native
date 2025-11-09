@@ -473,41 +473,19 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
                       </TouchableOpacity>
                     )}
 
-                    <Text style={styles.modalExerciseName}>{exercise.name}</Text>
-
-                    {/* Opis */}
-                    {exerciseDetails?.description && (
-                      <View style={styles.modalDescriptionContainer}>
-                        <Text style={styles.modalDescriptionLabel}>Opis:</Text>
-                        <Text style={styles.modalDescriptionText}>
-                          {exerciseDetails.description}
-                        </Text>
-                      </View>
-                    )}
-
-                    {/* Wskazówki */}
-                    {exerciseDetails?.tips && (
-                      <View style={styles.modalTipsContainer}>
-                        <View style={styles.modalTipsHeader}>
-                          <Ionicons name="bulb" size={16} color="#f59e0b" />
-                          <Text style={styles.modalTipsLabel}>Wskazówki:</Text>
-                        </View>
-                        {Array.isArray(exerciseDetails.tips) ? (
-                          <View style={styles.tipsListContainer}>
-                            {exerciseDetails.tips.map((tip, tipIdx) => (
-                              <View key={tipIdx} style={styles.tipItemRow}>
-                                <View style={styles.tipNumberBadge}>
-                                  <Text style={styles.tipNumberText}>{tipIdx + 1}</Text>
-                                </View>
-                                <Text style={styles.tipItemText}>{tip}</Text>
-                              </View>
-                            ))}
-                          </View>
-                        ) : (
-                          <Text style={styles.modalTipsText}>{exerciseDetails.tips}</Text>
-                        )}
-                      </View>
-                    )}
+                    <View style={styles.exerciseNameRow}>
+                      <Text style={styles.modalExerciseName}>{exercise.name}</Text>
+                      {exerciseDetails && (
+                        <TouchableOpacity
+                          onPress={() => setSelectedGifExercise(exerciseDetails)}
+                          style={styles.detailsButton}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons name="information-circle-outline" size={20} color="#9333ea" />
+                          <Text style={styles.detailsButtonText}>Szczegóły</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
 
                     {/* Serie (tylko dla ukończonych treningów) */}
                     {exercise.sets && exercise.sets.length > 0 && (
@@ -960,80 +938,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  modalExerciseName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 12,
-  },
-  modalDescriptionContainer: {
-    marginBottom: 12,
-    paddingVertical: 8,
-  },
-  modalDescriptionLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6b7280',
-    marginBottom: 6,
-  },
-  modalDescriptionText: {
-    fontSize: 14,
-    color: '#374151',
-    lineHeight: 20,
-  },
-  modalTipsContainer: {
-    backgroundColor: '#fffbeb',
-    borderLeftWidth: 3,
-    borderLeftColor: '#f59e0b',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  modalTipsHeader: {
+  exerciseNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
-  },
-  modalTipsLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#92400e',
-  },
-  modalTipsText: {
-    fontSize: 14,
-    color: '#78350f',
-    lineHeight: 20,
-  },
-  tipsListContainer: {
+    justifyContent: 'space-between',
+    marginBottom: 12,
     gap: 8,
   },
-  tipItemRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-    paddingTop: 4,
-  },
-  tipNumberBadge: {
-    width: 22,
-    height: 22,
-    backgroundColor: '#f59e0b',
-    borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexShrink: 0,
-    marginTop: 2,
-  },
-  tipNumberText: {
-    color: '#ffffff',
-    fontSize: 11,
+  modalExerciseName: {
+    fontSize: 16,
     fontWeight: 'bold',
-  },
-  tipItemText: {
+    color: '#111827',
     flex: 1,
-    fontSize: 14,
-    color: '#78350f',
-    lineHeight: 20,
+  },
+  detailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: '#f3e8ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d8b4fe',
+  },
+  detailsButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#9333ea',
   },
   modalSetsContainer: {
     marginTop: 8,
