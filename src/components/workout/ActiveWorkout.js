@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import GifModal from './GifModal';
 import CalendarTab from './CalendarTab';
 import { getExercises } from '../../utils/apiHelpers';
@@ -281,16 +280,13 @@ function ActiveWorkout({
                 sets: exerciseSets[ex.name] || []
               }))
             };
-            
-            try {
-              const history = await AsyncStorage.getItem('workoutHistory');
-              const historyArray = history ? JSON.parse(history) : [];
-              historyArray.push(workoutData);
-              await AsyncStorage.setItem('workoutHistory', JSON.stringify(historyArray));
-            } catch (error) {
-              console.error('Error saving workout:', error);
+
+            // Update the workout history state (will be auto-saved to AsyncStorage by App.js)
+            if (setWorkoutHistory) {
+              setWorkoutHistory(prev => [...prev, workoutData]);
             }
-            
+
+            // End the workout and navigate back
             if (onEndWorkout) {
               onEndWorkout();
             }
