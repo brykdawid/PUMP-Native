@@ -263,15 +263,23 @@ function ActiveWorkout({
   };
 
   const handleEndWorkout = async () => {
+    console.log('handleEndWorkout called');
+    console.log('workoutExercises:', workoutExercises);
+    console.log('exerciseSets:', exerciseSets);
+    console.log('onEndWorkout:', onEndWorkout);
+    console.log('setWorkoutHistory:', setWorkoutHistory);
+
     Alert.alert(
       'Zakończ sesję',
       'Czy na pewno chcesz zakończyć trening?',
       [
-        { text: 'Anuluj', style: 'cancel' },
+        { text: 'Anuluj', style: 'cancel', onPress: () => console.log('Alert cancelled') },
         {
           text: 'Zakończ',
           style: 'destructive',
           onPress: async () => {
+            console.log('User confirmed end workout');
+
             const workoutData = {
               date: new Date().toISOString(),
               duration: elapsedTime,
@@ -281,14 +289,22 @@ function ActiveWorkout({
               }))
             };
 
+            console.log('Workout data created:', workoutData);
+
             // Update the workout history state (will be auto-saved to AsyncStorage by App.js)
             if (setWorkoutHistory) {
+              console.log('Calling setWorkoutHistory');
               setWorkoutHistory(prev => [...prev, workoutData]);
+            } else {
+              console.log('WARNING: setWorkoutHistory is not defined!');
             }
 
             // End the workout and navigate back
             if (onEndWorkout) {
+              console.log('Calling onEndWorkout');
               onEndWorkout();
+            } else {
+              console.log('WARNING: onEndWorkout is not defined!');
             }
           }
         }
