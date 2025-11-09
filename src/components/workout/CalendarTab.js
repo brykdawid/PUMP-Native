@@ -455,55 +455,43 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
 
                 return (
                   <View key={idx} style={styles.modalExerciseCard}>
-                    {/* Obrazek ćwiczenia */}
-                    {exerciseDetails?.image && (
-                      <TouchableOpacity
-                        onPress={() => setSelectedGifExercise(exerciseDetails)}
-                        style={styles.modalExerciseImageContainer}
-                        activeOpacity={0.8}
-                      >
-                        <Image
-                          source={{ uri: exerciseDetails.image }}
-                          style={styles.modalExerciseImage}
-                          resizeMode="cover"
-                        />
-                        <View style={styles.imageOverlay}>
-                          <Ionicons name="play-circle" size={32} color="#fff" />
-                        </View>
-                      </TouchableOpacity>
-                    )}
-
-                    <View style={styles.exerciseNameRow}>
-                      <Text style={styles.modalExerciseName}>{exercise.name}</Text>
-                      {exerciseDetails && (
+                    <View style={styles.exerciseRow}>
+                      {/* Mały obrazek ćwiczenia */}
+                      {exerciseDetails?.image && (
                         <TouchableOpacity
                           onPress={() => setSelectedGifExercise(exerciseDetails)}
-                          style={styles.detailsButton}
-                          activeOpacity={0.7}
+                          style={styles.exerciseThumbnail}
+                          activeOpacity={0.8}
                         >
-                          <Ionicons name="information-circle-outline" size={20} color="#9333ea" />
-                          <Text style={styles.detailsButtonText}>Szczegóły</Text>
+                          <Image
+                            source={{ uri: exerciseDetails.image }}
+                            style={styles.thumbnailImage}
+                            resizeMode="cover"
+                          />
                         </TouchableOpacity>
                       )}
-                    </View>
 
-                    {/* Serie (tylko dla ukończonych treningów) */}
-                    {exercise.sets && exercise.sets.length > 0 && (
-                      <View style={styles.modalSetsContainer}>
-                        <Text style={styles.modalSetsHeader}>Serie:</Text>
-                        {exercise.sets.map((set, setIdx) => (
-                          <View key={setIdx} style={styles.modalSetRow}>
-                            <Text style={styles.modalSetNumber}>{setIdx + 1}.</Text>
-                            <Text style={styles.modalSetDetails}>
-                              {set.weight || '—'} kg × {set.reps || '—'} powtórzeń
-                            </Text>
-                            {set.completed && (
-                              <Ionicons name="checkmark-circle" size={16} color="#10b981" />
-                            )}
+                      <View style={styles.exerciseInfo}>
+                        <Text style={styles.modalExerciseName}>{exercise.name}</Text>
+
+                        {/* Serie (tylko dla ukończonych treningów) */}
+                        {exercise.sets && exercise.sets.length > 0 && (
+                          <View style={styles.modalSetsContainer}>
+                            {exercise.sets.map((set, setIdx) => (
+                              <View key={setIdx} style={styles.modalSetRow}>
+                                <Text style={styles.modalSetNumber}>{setIdx + 1}.</Text>
+                                <Text style={styles.modalSetDetails}>
+                                  {set.weight || '—'} kg × {set.reps || '—'} powtórzeń
+                                </Text>
+                                {set.completed && (
+                                  <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+                                )}
+                              </View>
+                            ))}
                           </View>
-                        ))}
+                        )}
                       </View>
-                    )}
+                    </View>
                   </View>
                 );
               })}
@@ -908,89 +896,56 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   modalExerciseCard: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#ffffff',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    padding: 12,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
-  modalExerciseImageContainer: {
-    width: '100%',
-    height: 150,
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginBottom: 12,
-    position: 'relative',
-    backgroundColor: '#e5e7eb',
+  exerciseRow: {
+    flexDirection: 'row',
+    gap: 12,
   },
-  modalExerciseImage: {
+  exerciseThumbnail: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#e5e7eb',
+    flexShrink: 0,
+  },
+  thumbnailImage: {
     width: '100%',
     height: '100%',
   },
-  imageOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    alignItems: 'center',
+  exerciseInfo: {
+    flex: 1,
     justifyContent: 'center',
-  },
-  exerciseNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    gap: 8,
   },
   modalExerciseName: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#111827',
-    flex: 1,
-  },
-  detailsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    backgroundColor: '#f3e8ff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#d8b4fe',
-  },
-  detailsButtonText: {
-    fontSize: 13,
     fontWeight: '600',
-    color: '#9333ea',
+    color: '#111827',
+    marginBottom: 8,
   },
   modalSetsContainer: {
-    marginTop: 8,
-  },
-  modalSetsHeader: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
-    marginBottom: 8,
+    gap: 4,
   },
   modalSetRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
     gap: 8,
   },
   modalSetNumber: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
     color: '#9333ea',
-    width: 24,
+    width: 20,
   },
   modalSetDetails: {
-    fontSize: 14,
-    color: '#374151',
+    fontSize: 13,
+    color: '#6b7280',
     flex: 1,
   },
   modalFooter: {
