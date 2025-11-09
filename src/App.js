@@ -197,6 +197,7 @@ function App() {
           onBeginWorkout={handleBeginWorkout}
           workoutHistory={workoutHistory}
           setWorkoutHistory={setWorkoutHistory}
+          onSaveWorkout={handleSaveWorkout}
         />
       );
     }

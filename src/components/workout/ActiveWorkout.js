@@ -17,15 +17,16 @@ import CalendarTab from './CalendarTab';
 import { getExercises } from '../../utils/apiHelpers';
 import { TRAINING_TYPES } from '../data/exercisesData';
 
-function ActiveWorkout({ 
-  activeWorkout, 
-  workoutStartTime, 
-  targetDate, 
-  onEndWorkout, 
-  onGoToPlan, 
-  onBeginWorkout, 
-  workoutHistory, 
-  setWorkoutHistory 
+function ActiveWorkout({
+  activeWorkout,
+  workoutStartTime,
+  targetDate,
+  onEndWorkout,
+  onGoToPlan,
+  onBeginWorkout,
+  workoutHistory,
+  setWorkoutHistory,
+  onSaveWorkout
 }) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [exerciseSets, setExerciseSets] = useState({});
@@ -271,11 +272,18 @@ function ActiveWorkout({
     console.log('User confirmed end workout');
     setShowEndWorkoutModal(false);
 
+    // Generate title from categories
+    const categories = Object.keys(exercisesByCategory);
+    const title = categories.map(cat => getCategoryName(cat)).join('+');
+
     const workoutData = {
       date: new Date().toISOString(),
       duration: elapsedTime,
+      title: title || 'Trening',
+      type: workoutType,
       exercises: workoutExercises.map(ex => ({
         name: ex.name,
+        category: ex.category,
         sets: exerciseSets[ex.name] || []
       }))
     };
@@ -311,6 +319,7 @@ function ActiveWorkout({
       <CalendarTab
         workoutHistory={workoutHistory}
         onGoToPlan={onGoToPlan}
+        onSaveWorkout={onSaveWorkout}
       />
     );
   }
