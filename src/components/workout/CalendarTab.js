@@ -46,36 +46,15 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
     return days;
   }, [weekStartDate]);
 
-  // Wygeneruj dni miesiąca dla widoku kalendarza
-  const monthDays = useMemo(() => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
+  // Format daty do ISO (YYYY-MM-DD)
+  const formatDateToISO = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
-    // Pierwszy dzień miesiąca
-    const firstDay = new Date(year, month, 1);
-    const firstDayOfWeek = firstDay.getDay();
-    const startOffset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Poniedziałek = 0
-
-    // Ostatni dzień miesiąca
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-
-    const days = [];
-
-    // Puste komórki przed pierwszym dniem miesiąca
-    for (let i = 0; i < startOffset; i++) {
-      days.push(null);
-    }
-
-    // Dni miesiąca
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(new Date(year, month, i));
-    }
-
-    return days;
-  }, [currentDate]);
-
-  // Sprawdź czy dany dzień ma ukończony trening
+  // Sprawdź czy dany dzień ma trening (ukończony lub zaplanowany)
   const hasWorkoutOnDate = (date) => {
     if (!date) return false;
     const dateStr = formatDateToISO(date);
@@ -86,13 +65,15 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
     });
   };
 
-  // Format daty do ISO (YYYY-MM-DD)
-  const formatDateToISO = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
+  // Pobierz treningi dla wybranego dnia
+  const selectedDayWorkouts = useMemo(() => {
+    const dateStr = formatDateToISO(selectedDate);
+    return workoutHistory.filter(workout => {
+      if (!workout.date) return false;
+      const workoutDateStr = workout.date.split('T')[0];
+      return workoutDateStr === dateStr;
+    });
+  }, [selectedDate, workoutHistory]);
 
   // Sprawdź czy data jest dzisiaj
   const isToday = (date) => {
@@ -116,12 +97,14 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
     const newDate = new Date(currentDate);
     newDate.setMonth(currentDate.getMonth() - 1);
     setCurrentDate(newDate);
+    setWeekStartDate(getWeekStart(newDate));
   };
 
   const goToNextMonth = () => {
     const newDate = new Date(currentDate);
     newDate.setMonth(currentDate.getMonth() + 1);
     setCurrentDate(newDate);
+    setWeekStartDate(getWeekStart(newDate));
   };
 
   // Nawigacja tygodnia
@@ -129,32 +112,39 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
     const newWeekStart = new Date(weekStartDate);
     newWeekStart.setDate(weekStartDate.getDate() - 7);
     setWeekStartDate(newWeekStart);
+    setCurrentDate(newWeekStart); // Aktualizuj miesiąc
   };
 
   const goToNextWeek = () => {
     const newWeekStart = new Date(weekStartDate);
     newWeekStart.setDate(weekStartDate.getDate() + 7);
     setWeekStartDate(newWeekStart);
+    setCurrentDate(newWeekStart); // Aktualizuj miesiąc
   };
 
   // Obsługa wyboru dnia w week slider
   const handleWeekDayPress = (date) => {
     setSelectedDate(date);
-    setCurrentDate(date); // Synchronizuj miesiąc kalendarza
   };
 
-  // Obsługa wyboru dnia w kalendarzu miesięcznym
-  const handleMonthDayPress = (date) => {
-    if (!date) return;
-    setSelectedDate(date);
-    setWeekStartDate(getWeekStart(date)); // Synchronizuj week slider
-  };
-
-  // Obsługa przycisku "Zaplanuj trening"
-  const handlePlanWorkout = () => {
+  // Obsługa przycisku "Dodaj trening"
+  const handleAddWorkout = () => {
     if (onGoToPlan) {
       onGoToPlan(formatDateToISO(selectedDate));
     }
+  };
+
+  // Formatuj czas treningu
+  const formatDuration = (seconds) => {
+    if (!seconds) return '0 min';
+    const mins = Math.floor(seconds / 60);
+    const hrs = Math.floor(mins / 60);
+    const remainingMins = mins % 60;
+
+    if (hrs > 0) {
+      return `${hrs}h ${remainingMins}min`;
+    }
+    return `${mins} min`;
   };
 
   return (
@@ -181,7 +171,7 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
         </View>
       </LinearGradient>
 
-      <ScrollView style={styles.scrollContainer}>
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {/* Week Slider */}
         <View style={styles.weekSliderContainer}>
           <View style={styles.weekNavigation}>
@@ -213,11 +203,12 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
                     styles.weekDayCircle,
                     isTodayDate && styles.weekDayToday,
                     isSelectedDate && styles.weekDaySelected,
-                    hasWorkout && styles.weekDayWithWorkout,
+                    hasWorkout && !isSelectedDate && styles.weekDayWithWorkout,
                   ]}>
                     <Text style={[
                       styles.weekDayNumber,
-                      (isTodayDate || isSelectedDate || hasWorkout) && styles.weekDayNumberActive,
+                      (isTodayDate || isSelectedDate) && styles.weekDayNumberActive,
+                      hasWorkout && !isSelectedDate && styles.weekDayNumberWorkout,
                     ]}>
                       {date.getDate()}
                     </Text>
@@ -231,89 +222,115 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
           </View>
         </View>
 
-        {/* Kalendarz miesięczny */}
-        <View style={styles.monthCalendarContainer}>
-          <Text style={styles.sectionTitle}>Kalendarz treningów</Text>
-
-          {/* Nagłówki dni tygodnia */}
-          <View style={styles.calendarHeader}>
-            {DAYS_SHORT_PL.map((day, index) => (
-              <View key={index} style={styles.calendarHeaderDay}>
-                <Text style={styles.calendarHeaderText}>{day}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Siatka dni */}
-          <View style={styles.calendarGrid}>
-            {monthDays.map((date, index) => {
-              if (!date) {
-                return <View key={`empty-${index}`} style={styles.calendarDay} />;
-              }
-
-              const hasWorkout = hasWorkoutOnDate(date);
-              const isTodayDate = isToday(date);
-              const isSelectedDate = isSelected(date);
-
-              return (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.calendarDay}
-                  onPress={() => handleMonthDayPress(date)}
-                >
-                  <View style={[
-                    styles.calendarDayCircle,
-                    isTodayDate && styles.calendarDayToday,
-                    isSelectedDate && styles.calendarDaySelected,
-                    hasWorkout && styles.calendarDayWithWorkout,
-                  ]}>
-                    <Text style={[
-                      styles.calendarDayNumber,
-                      (isTodayDate || isSelectedDate) && styles.calendarDayNumberActive,
-                      hasWorkout && !isSelectedDate && styles.calendarDayNumberWorkout,
-                    ]}>
-                      {date.getDate()}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
         {/* Informacja o wybranym dniu */}
-        <View style={styles.selectedDateInfo}>
+        <View style={styles.selectedDateHeader}>
           <Text style={styles.selectedDateText}>
-            Wybrana data: {selectedDate.toLocaleDateString('pl-PL', {
+            {selectedDate.toLocaleDateString('pl-PL', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',
               day: 'numeric'
             })}
           </Text>
+        </View>
 
-          {hasWorkoutOnDate(selectedDate) ? (
-            <View style={styles.workoutCompletedBadge}>
-              <Ionicons name="checkmark-circle" size={20} color="#10b981" />
-              <Text style={styles.workoutCompletedText}>Trening ukończony</Text>
-            </View>
-          ) : (
+        {/* Lista treningów lub przycisk dodaj */}
+        {selectedDayWorkouts.length === 0 ? (
+          // Brak treningów - pokaż przycisk "Dodaj Trening"
+          <View style={styles.emptyStateContainer}>
+            <Ionicons name="fitness-outline" size={64} color="#d1d5db" />
+            <Text style={styles.emptyStateTitle}>Brak treningów</Text>
+            <Text style={styles.emptyStateSubtitle}>
+              Zaplanuj trening na ten dzień
+            </Text>
+
             <TouchableOpacity
-              style={styles.planWorkoutButton}
-              onPress={handlePlanWorkout}
+              style={styles.addWorkoutButton}
+              onPress={handleAddWorkout}
             >
               <LinearGradient
                 colors={['#9333ea', '#7c3aed']}
-                style={styles.planWorkoutGradient}
+                style={styles.addWorkoutGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Ionicons name="add-circle-outline" size={20} color="#fff" />
-                <Text style={styles.planWorkoutText}>Zaplanuj trening</Text>
+                <Ionicons name="add-circle-outline" size={24} color="#fff" />
+                <Text style={styles.addWorkoutText}>Dodaj Trening</Text>
               </LinearGradient>
             </TouchableOpacity>
-          )}
-        </View>
+          </View>
+        ) : (
+          // Lista treningów
+          <View style={styles.workoutListContainer}>
+            {selectedDayWorkouts.map((workout, index) => (
+              <View key={index} style={styles.workoutCard}>
+                <View style={styles.workoutCardHeader}>
+                  <View style={styles.workoutTitleRow}>
+                    <Ionicons
+                      name={workout.scheduled ? "calendar" : "checkmark-circle"}
+                      size={24}
+                      color={workout.scheduled ? "#f59e0b" : "#10b981"}
+                    />
+                    <View style={styles.workoutTitleContainer}>
+                      <Text style={styles.workoutTitle}>
+                        {workout.title || workout.name || 'Trening'}
+                      </Text>
+                      <Text style={styles.workoutType}>
+                        {workout.type === 'custom' ? 'Własny' : 'Wygenerowany'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {workout.duration && (
+                    <View style={styles.workoutDuration}>
+                      <Ionicons name="time-outline" size={16} color="#6b7280" />
+                      <Text style={styles.durationText}>
+                        {formatDuration(workout.duration)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+
+                {workout.exercises && workout.exercises.length > 0 && (
+                  <View style={styles.exercisesSummary}>
+                    <Text style={styles.exercisesCount}>
+                      {workout.exercises.length} {workout.exercises.length === 1 ? 'ćwiczenie' : 'ćwiczeń'}
+                    </Text>
+
+                    <View style={styles.exercisesList}>
+                      {workout.exercises.slice(0, 3).map((exercise, idx) => (
+                        <View key={idx} style={styles.exerciseTag}>
+                          <Text style={styles.exerciseTagText} numberOfLines={1}>
+                            {exercise.name}
+                          </Text>
+                        </View>
+                      ))}
+                      {workout.exercises.length > 3 && (
+                        <View style={styles.exerciseTag}>
+                          <Text style={styles.exerciseTagText}>
+                            +{workout.exercises.length - 3}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                )}
+
+                <View style={styles.workoutStatus}>
+                  {workout.scheduled ? (
+                    <View style={styles.statusBadge}>
+                      <Text style={styles.statusBadgeTextScheduled}>Zaplanowany</Text>
+                    </View>
+                  ) : (
+                    <View style={[styles.statusBadge, styles.statusBadgeCompleted]}>
+                      <Text style={styles.statusBadgeTextCompleted}>Ukończony</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -415,6 +432,10 @@ const styles = StyleSheet.create({
   weekDayNumberActive: {
     color: '#fff',
   },
+  weekDayNumberWorkout: {
+    color: '#10b981',
+    fontWeight: '700',
+  },
   workoutDot: {
     width: 6,
     height: 6,
@@ -422,131 +443,165 @@ const styles = StyleSheet.create({
     backgroundColor: '#10b981',
     marginTop: 4,
   },
-  monthCalendarContainer: {
-    backgroundColor: '#fff',
+  selectedDateHeader: {
     marginHorizontal: 16,
     marginTop: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  selectedDateText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    textTransform: 'capitalize',
+  },
+  emptyStateContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: '#fff',
     borderRadius: 16,
-    padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  sectionTitle: {
-    fontSize: 18,
+  emptyStateTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#111827',
-    marginBottom: 16,
+    marginTop: 16,
   },
-  calendarHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  calendarHeaderDay: {
-    width: DAY_WIDTH,
-    alignItems: 'center',
-  },
-  calendarHeaderText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6b7280',
-  },
-  calendarGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  calendarDay: {
-    width: DAY_WIDTH,
-    height: DAY_WIDTH,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 4,
-  },
-  calendarDayCircle: {
-    width: DAY_WIDTH - 8,
-    height: DAY_WIDTH - 8,
-    borderRadius: (DAY_WIDTH - 8) / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-  },
-  calendarDayToday: {
-    backgroundColor: '#fef3c7',
-    borderWidth: 2,
-    borderColor: '#fbbf24',
-  },
-  calendarDaySelected: {
-    backgroundColor: '#9333ea',
-  },
-  calendarDayWithWorkout: {
-    backgroundColor: '#d1fae5',
-  },
-  calendarDayNumber: {
+  emptyStateSubtitle: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#111827',
+    color: '#6b7280',
+    marginTop: 8,
+    marginBottom: 24,
   },
-  calendarDayNumberActive: {
+  addWorkoutButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    width: '80%',
+  },
+  addWorkoutGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+  },
+  addWorkoutText: {
+    fontSize: 16,
+    fontWeight: '600',
     color: '#fff',
-    fontWeight: '700',
+    marginLeft: 8,
   },
-  calendarDayNumberWorkout: {
-    color: '#10b981',
-    fontWeight: '700',
-  },
-  selectedDateInfo: {
-    backgroundColor: '#fff',
+  workoutListContainer: {
     marginHorizontal: 16,
     marginTop: 16,
     marginBottom: 24,
+  },
+  workoutCard: {
+    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  selectedDateText: {
+  workoutCardHeader: {
+    marginBottom: 12,
+  },
+  workoutTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  workoutTitleContainer: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  workoutTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  workoutType: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  workoutDuration: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  durationText: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginLeft: 4,
+  },
+  exercisesSummary: {
+    marginBottom: 12,
+  },
+  exercisesCount: {
     fontSize: 14,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 12,
-    textTransform: 'capitalize',
+    marginBottom: 8,
   },
-  workoutCompletedBadge: {
+  exercisesList: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#d1fae5',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    flexWrap: 'wrap',
+    gap: 8,
   },
-  workoutCompletedText: {
-    fontSize: 14,
+  exerciseTag: {
+    backgroundColor: '#f3f4f6',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    maxWidth: '45%',
+  },
+  exerciseTagText: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '500',
+  },
+  workoutStatus: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#fef3c7',
+  },
+  statusBadgeCompleted: {
+    backgroundColor: '#d1fae5',
+  },
+  statusBadgeTextScheduled: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#f59e0b',
+  },
+  statusBadgeTextCompleted: {
+    fontSize: 12,
     fontWeight: '600',
     color: '#10b981',
-    marginLeft: 8,
-  },
-  planWorkoutButton: {
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  planWorkoutGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  planWorkoutText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
-    marginLeft: 8,
   },
 });
 
