@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../../utils/storage';
 import { getExercises } from '../../utils/apiHelpers';
 import { TRAINING_TYPES, CATEGORY_TO_AI_LABELS } from '../data/exercisesData';
 import GifModal from './GifModal';
@@ -106,7 +106,7 @@ function CustomWorkoutBuilder({
 
   const loadFavorites = async () => {
     try {
-      const saved = await AsyncStorage.getItem('favoriteExercises');
+      const saved = await storage.getItem('favoriteExercises');
       if (saved) setFavorites(JSON.parse(saved));
     } catch (error) {
       console.error('Error loading favorites:', error);
@@ -115,7 +115,7 @@ function CustomWorkoutBuilder({
 
   const loadSavedWorkouts = async () => {
     try {
-      const saved = await AsyncStorage.getItem('savedWorkouts');
+      const saved = await storage.getItem('savedWorkouts');
       if (saved) setSavedWorkouts(JSON.parse(saved));
     } catch (error) {
       console.error('Error loading saved workouts:', error);
@@ -134,7 +134,7 @@ function CustomWorkoutBuilder({
 
   const saveFavoritesToStorage = async (newFavorites) => {
     try {
-      await AsyncStorage.setItem('favoriteExercises', JSON.stringify(newFavorites));
+      await storage.setItem('favoriteExercises', JSON.stringify(newFavorites));
     } catch (error) {
       console.error('Error saving favorites:', error);
     }

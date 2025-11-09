@@ -5,7 +5,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } fr
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../../utils/storage';
 
 function ProfilePage() {
   const [profileImage, setProfileImage] = useState(null);
@@ -18,18 +18,23 @@ function ProfilePage() {
   // Save profile image to storage whenever it changes
   useEffect(() => {
     if (profileImage !== null) {
-      AsyncStorage.setItem('profileImage', profileImage);
+      console.log('💾 Saving profile image to storage');
+      storage.setItem('profileImage', profileImage);
     }
   }, [profileImage]);
 
   const loadProfileImage = async () => {
     try {
-      const savedImage = await AsyncStorage.getItem('profileImage');
+      console.log('🔍 Loading profile image from storage...');
+      const savedImage = await storage.getItem('profileImage');
       if (savedImage) {
+        console.log('✅ Profile image found in storage');
         setProfileImage(savedImage);
+      } else {
+        console.log('ℹ️ No profile image in storage');
       }
     } catch (error) {
-      console.error('Error loading profile image:', error);
+      console.error('❌ Error loading profile image:', error);
     }
   };
 

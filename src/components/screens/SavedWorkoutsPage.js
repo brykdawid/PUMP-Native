@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import storage from '../../utils/storage';
 import { normalizeWorkout, getTotalExercises as getExerciseCount } from '../../utils/workoutHelpers';
 import GifModal from '../workout/GifModal';
 import ExerciseCard from '../workout/ExerciseCard';
@@ -46,7 +46,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
 
   const loadSavedExercises = async () => {
     try {
-      const saved = await AsyncStorage.getItem('favoriteExercises');
+      const saved = await storage.getItem('favoriteExercises');
       if (saved) {
         setSavedExercises(JSON.parse(saved));
       }
@@ -57,7 +57,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
 
   const toggleFavorite = async (exercise) => {
     const exists = savedExercises.find(ex => ex.name === exercise.name);
-    
+
     let updated;
     if (exists) {
       updated = savedExercises.filter(ex => ex.name !== exercise.name);
@@ -72,9 +72,9 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
         savedAt: new Date().toISOString()
       }];
     }
-    
+
     try {
-      await AsyncStorage.setItem('favoriteExercises', JSON.stringify(updated));
+      await storage.setItem('favoriteExercises', JSON.stringify(updated));
       setSavedExercises(updated);
     } catch (error) {
       console.error('Error saving favorites:', error);
@@ -84,9 +84,9 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
   const removeSavedExercise = async (exerciseName) => {
     const updated = savedExercises.filter(ex => ex.name !== exerciseName);
     setSavedExercises(updated);
-    
+
     try {
-      await AsyncStorage.setItem('favoriteExercises', JSON.stringify(updated));
+      await storage.setItem('favoriteExercises', JSON.stringify(updated));
     } catch (error) {
       console.error('Error removing saved exercise:', error);
     }

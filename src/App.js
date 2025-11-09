@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import storage from './utils/storage';
 import StatsPage from './components/screens/StatsPage';
 import ProfilePage from './components/screens/ProfilePage';
 import SavedWorkoutsPage from './components/screens/SavedWorkoutsPage';
@@ -43,17 +43,25 @@ function App() {
 
   const loadData = async () => {
     try {
-      const savedWorkoutsData = await AsyncStorage.getItem('savedWorkouts');
-      const workoutHistoryData = await AsyncStorage.getItem('workoutHistory');
-      const targetDateData = await AsyncStorage.getItem('selectedTargetDate');
-      const userStatsData = await AsyncStorage.getItem('userStats');
+      console.log('🔍 Loading data from storage...');
+      const savedWorkoutsData = await storage.getItem('savedWorkouts');
+      const workoutHistoryData = await storage.getItem('workoutHistory');
+      const targetDateData = await storage.getItem('selectedTargetDate');
+      const userStatsData = await storage.getItem('userStats');
+
+      console.log('📦 Loaded data:', {
+        savedWorkouts: savedWorkoutsData ? 'found' : 'empty',
+        workoutHistory: workoutHistoryData ? 'found' : 'empty',
+        targetDate: targetDateData ? 'found' : 'empty',
+        userStats: userStatsData ? 'found' : 'empty'
+      });
 
       if (savedWorkoutsData) setSavedWorkouts(JSON.parse(savedWorkoutsData));
       if (workoutHistoryData) setWorkoutHistory(JSON.parse(workoutHistoryData));
       if (targetDateData) setTargetDate(targetDateData);
       if (userStatsData) setUserStats(JSON.parse(userStatsData));
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('❌ Error loading data:', error);
     }
   };
 
@@ -64,23 +72,26 @@ function App() {
   }, [currentTab, planScreen]);
 
   useEffect(() => {
-    AsyncStorage.setItem('savedWorkouts', JSON.stringify(savedWorkouts));
+    console.log('💾 Saving savedWorkouts:', savedWorkouts.length, 'workouts');
+    storage.setItem('savedWorkouts', JSON.stringify(savedWorkouts));
   }, [savedWorkouts]);
 
   useEffect(() => {
-    AsyncStorage.setItem('workoutHistory', JSON.stringify(workoutHistory));
+    console.log('💾 Saving workoutHistory:', workoutHistory.length, 'workouts');
+    storage.setItem('workoutHistory', JSON.stringify(workoutHistory));
   }, [workoutHistory]);
 
   useEffect(() => {
     if (targetDate) {
-      AsyncStorage.setItem('selectedTargetDate', targetDate);
+      storage.setItem('selectedTargetDate', targetDate);
     } else {
-      AsyncStorage.removeItem('selectedTargetDate');
+      storage.removeItem('selectedTargetDate');
     }
   }, [targetDate]);
 
   useEffect(() => {
-    AsyncStorage.setItem('userStats', JSON.stringify(userStats));
+    console.log('💾 Saving userStats:', userStats);
+    storage.setItem('userStats', JSON.stringify(userStats));
   }, [userStats]);
 
   const handleSaveWorkout = (workout) => {
@@ -138,13 +149,13 @@ function App() {
     if (existingWorkout) {
       return;
     }
-    
+
     setWorkoutHistory(prev => {
       const updated = [...prev, workoutData];
-      AsyncStorage.setItem('workoutHistory', JSON.stringify(updated));
+      storage.setItem('workoutHistory', JSON.stringify(updated));
       return updated;
     });
-    
+
     setPlanScreen('landing');
     setSelectedMuscleGroups([]);
     setPreloadedWorkout(null);
