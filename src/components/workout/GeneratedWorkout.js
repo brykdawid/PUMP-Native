@@ -488,8 +488,8 @@ function GeneratedWorkout({
             {expandedCategories[category] && workoutPlan[category] && (
               <View style={styles.exerciseList}>
                 {workoutPlan[category].map((exercise, idx) => (
-                  <View key={idx} style={styles.exerciseItem}>
                   <ExerciseCard
+                    key={idx}
                     exercise={{
                       ...exercise,
                       sets: '3-4 serie × 8-12 powtórzeń'
@@ -497,31 +497,11 @@ function GeneratedWorkout({
                     exerciseId={idx}
                     isExpanded={false}
                     onToggle={() => handleImageClick(exercise)}
+                    onFavorite={() => toggleFavorite(exercise)}
+                    isFavorite={isFavorite(exercise.name)}
+                    onReplace={() => replaceExercise(category, exercise)}
+                    replaceButtonText="Wymień"
                   />
-                  
-                  <View style={styles.exerciseActions}>
-                      <TouchableOpacity
-                        onPress={() => toggleFavorite(exercise)}
-                        style={styles.favoriteButton}
-                        activeOpacity={0.7}
-                      >
-                        <Ionicons
-                          name={isFavorite(exercise.name) ? 'star' : 'star-outline'}
-                          size={20}
-                          color={isFavorite(exercise.name) ? '#facc15' : '#9ca3af'}
-                        />
-                      </TouchableOpacity>
-                      
-                      <TouchableOpacity
-                        onPress={() => replaceExercise(category, exercise)}
-                        style={styles.replaceButton}
-                        activeOpacity={0.7}
-                      >
-                        <Ionicons name="refresh" size={16} color="#2563eb" />
-                        <Text style={styles.replaceButtonText}>Wymień</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
                 ))}
               </View>
             )}
@@ -699,48 +679,6 @@ const styles = StyleSheet.create({
   warmupSets: {
     fontSize: 14,
     color: '#6b7280',
-  },
-  exerciseItem: {
-    backgroundColor: '#f9fafb',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  exerciseContent: {
-    padding: 16,
-  },
-  exerciseName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  exerciseDesc: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  exerciseActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 12,
-    paddingTop: 0,
-  },
-  favoriteButton: {
-    padding: 8,
-  },
-  replaceButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#dbeafe',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-  },
-  replaceButtonText: {
-    color: '#2563eb',
-    fontSize: 14,
-    fontWeight: '500',
   },
 });
 
