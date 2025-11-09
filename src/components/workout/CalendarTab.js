@@ -409,9 +409,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
   },
   weekDayToday: {
-    backgroundColor: '#fef3c7',
+    backgroundColor: '#0891b2',
     borderWidth: 2,
-    borderColor: '#fbbf24',
+    borderColor: '#0e7490',
   },
   weekDaySelected: {
     backgroundColor: '#9333ea',
