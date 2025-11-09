@@ -47,7 +47,7 @@ function ProfilePage() {
     try {
       // Zapytaj o pozwolenia
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
+
       if (permissionResult.granted === false) {
         Alert.alert('Brak uprawnień', 'Musisz zezwolić na dostęp do zdjęć');
         return;
@@ -59,10 +59,36 @@ function ProfilePage() {
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.5,
+        base64: true, // Request base64 data
       });
 
       if (!result.canceled) {
-        setProfileImage(result.assets[0].uri);
+        const uri = result.assets[0].uri;
+
+        // In web environment, convert blob URL to base64 data URL for persistence
+        if (uri.startsWith('blob:') || uri.startsWith('http')) {
+          console.log('🔄 Converting image to base64 for web storage...');
+          try {
+            const response = await fetch(uri);
+            const blob = await response.blob();
+            const reader = new FileReader();
+
+            reader.onloadend = () => {
+              const base64data = reader.result;
+              console.log('✅ Image converted to base64, size:', Math.round(base64data.length / 1024), 'KB');
+              setProfileImage(base64data);
+            };
+
+            reader.readAsDataURL(blob);
+          } catch (conversionError) {
+            console.error('❌ Error converting image:', conversionError);
+            // Fallback to original URI if conversion fails
+            setProfileImage(uri);
+          }
+        } else {
+          // Native app or already a data URL
+          setProfileImage(uri);
+        }
       }
     } catch (error) {
       console.error('Error picking image:', error);
