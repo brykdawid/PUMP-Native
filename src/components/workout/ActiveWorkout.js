@@ -262,22 +262,18 @@ function ActiveWorkout({
     return icons[id] || '💪';
   };
 
-  const handleEndWorkout = async () => {
+  const handleEndWorkout = () => {
     console.log('handleEndWorkout called');
-    console.log('workoutExercises:', workoutExercises);
-    console.log('exerciseSets:', exerciseSets);
-    console.log('onEndWorkout:', onEndWorkout);
-    console.log('setWorkoutHistory:', setWorkoutHistory);
 
     Alert.alert(
       'Zakończ sesję',
       'Czy na pewno chcesz zakończyć trening?',
       [
-        { text: 'Anuluj', style: 'cancel', onPress: () => console.log('Alert cancelled') },
+        { text: 'Anuluj', style: 'cancel' },
         {
           text: 'Zakończ',
           style: 'destructive',
-          onPress: async () => {
+          onPress: () => {
             console.log('User confirmed end workout');
 
             const workoutData = {
@@ -289,23 +285,24 @@ function ActiveWorkout({
               }))
             };
 
-            console.log('Workout data created:', workoutData);
+            console.log('Workout data to save:', workoutData);
 
-            // Update the workout history state (will be auto-saved to AsyncStorage by App.js)
+            // Update workout history first
             if (setWorkoutHistory) {
-              console.log('Calling setWorkoutHistory');
-              setWorkoutHistory(prev => [...prev, workoutData]);
-            } else {
-              console.log('WARNING: setWorkoutHistory is not defined!');
+              setWorkoutHistory(prev => {
+                const updated = [...prev, workoutData];
+                console.log('Updated workout history:', updated);
+                return updated;
+              });
             }
 
-            // End the workout and navigate back
-            if (onEndWorkout) {
-              console.log('Calling onEndWorkout');
-              onEndWorkout();
-            } else {
-              console.log('WARNING: onEndWorkout is not defined!');
-            }
+            // Use setTimeout to ensure state update completes before navigation
+            setTimeout(() => {
+              if (onEndWorkout) {
+                console.log('Calling onEndWorkout - navigating back');
+                onEndWorkout();
+              }
+            }, 100);
           }
         }
       ]
