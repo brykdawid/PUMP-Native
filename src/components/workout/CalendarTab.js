@@ -433,7 +433,11 @@ function CalendarTab({ workoutHistory, onGoToPlan, onSaveWorkout }) {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalContent} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.modalContent}
+              contentContainerStyle={styles.modalContentContainer}
+              showsVerticalScrollIndicator={false}
+            >
               {/* Info o czasie */}
               {selectedWorkoutForView?.duration && (
                 <View style={styles.modalInfoCard}>
@@ -897,9 +901,13 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalContent: {
-    flex: 1,
+    flexGrow: 0,
+    flexShrink: 1,
+  },
+  modalContentContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
   modalInfoCard: {
     flexDirection: 'row',
@@ -931,7 +939,7 @@ const styles = StyleSheet.create({
   },
   modalExerciseImageContainer: {
     width: '100%',
-    height: 200,
+    height: 150,
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 12,
