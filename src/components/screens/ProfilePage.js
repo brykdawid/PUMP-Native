@@ -1,6 +1,6 @@
 // PLIK: components/ProfilePage.js - React Native
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import storage from '../../utils/storage';
 
 function ProfilePage() {
   const [profileImage, setProfileImage] = useState(null);
+  const isLoadedRef = useRef(false); // Flag to prevent saving before loading
 
   // Load profile image from storage on mount
   useEffect(() => {
@@ -17,6 +18,7 @@ function ProfilePage() {
 
   // Save profile image to storage whenever it changes
   useEffect(() => {
+    if (!isLoadedRef.current) return; // Don't save until data is loaded
     if (profileImage !== null) {
       console.log('💾 Saving profile image to storage');
       storage.setItem('profileImage', profileImage);
@@ -33,8 +35,11 @@ function ProfilePage() {
       } else {
         console.log('ℹ️ No profile image in storage');
       }
+      isLoadedRef.current = true;
+      console.log('✅ Profile data loaded, auto-save enabled');
     } catch (error) {
       console.error('❌ Error loading profile image:', error);
+      isLoadedRef.current = true; // Enable saving even on error
     }
   };
 

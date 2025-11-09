@@ -36,6 +36,7 @@ function App() {
   });
 
   const scrollViewRef = useRef(null);
+  const isLoadedRef = useRef(false); // Flag to prevent saving before loading
 
   useEffect(() => {
     loadData();
@@ -60,8 +61,13 @@ function App() {
       if (workoutHistoryData) setWorkoutHistory(JSON.parse(workoutHistoryData));
       if (targetDateData) setTargetDate(targetDateData);
       if (userStatsData) setUserStats(JSON.parse(userStatsData));
+
+      // Mark as loaded to enable saving
+      isLoadedRef.current = true;
+      console.log('✅ Data loaded, auto-save enabled');
     } catch (error) {
       console.error('❌ Error loading data:', error);
+      isLoadedRef.current = true; // Enable saving even on error
     }
   };
 
@@ -72,16 +78,19 @@ function App() {
   }, [currentTab, planScreen]);
 
   useEffect(() => {
+    if (!isLoadedRef.current) return; // Don't save until data is loaded
     console.log('💾 Saving savedWorkouts:', savedWorkouts.length, 'workouts');
     storage.setItem('savedWorkouts', JSON.stringify(savedWorkouts));
   }, [savedWorkouts]);
 
   useEffect(() => {
+    if (!isLoadedRef.current) return; // Don't save until data is loaded
     console.log('💾 Saving workoutHistory:', workoutHistory.length, 'workouts');
     storage.setItem('workoutHistory', JSON.stringify(workoutHistory));
   }, [workoutHistory]);
 
   useEffect(() => {
+    if (!isLoadedRef.current) return; // Don't save until data is loaded
     if (targetDate) {
       storage.setItem('selectedTargetDate', targetDate);
     } else {
@@ -90,6 +99,7 @@ function App() {
   }, [targetDate]);
 
   useEffect(() => {
+    if (!isLoadedRef.current) return; // Don't save until data is loaded
     console.log('💾 Saving userStats:', userStats);
     storage.setItem('userStats', JSON.stringify(userStats));
   }, [userStats]);
