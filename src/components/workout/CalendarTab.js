@@ -5,13 +5,9 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const DAY_WIDTH = (SCREEN_WIDTH - 32) / 7; // 7 dni w tygodniu, 16px padding z każdej strony
 
 const MONTHS_PL = [
   'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
@@ -391,22 +387,23 @@ const styles = StyleSheet.create({
   },
   weekDaysContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
+    alignItems: 'center',
   },
   weekDayItem: {
     alignItems: 'center',
-    width: DAY_WIDTH,
+    flex: 1,
   },
   weekDayLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
     color: '#6b7280',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   weekDayCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#f3f4f6',
