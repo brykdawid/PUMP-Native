@@ -129,6 +129,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 20,
   },
   backdrop: {
     position: 'absolute',
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     width: SCREEN_WIDTH * 0.92,
     maxWidth: 600,
-    maxHeight: SCREEN_HEIGHT * 0.9,
+    maxHeight: SCREEN_HEIGHT * 0.85,
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
@@ -164,8 +165,8 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     position: 'relative',
-    minHeight: SCREEN_HEIGHT * 0.4,
-    maxHeight: SCREEN_HEIGHT * 0.5,
+    height: SCREEN_HEIGHT * 0.35,
+    maxHeight: 400,
     backgroundColor: '#ffffff',
   },
   headerGradient: {
@@ -207,6 +208,7 @@ const styles = StyleSheet.create({
   exerciseImage: {
     width: '100%',
     height: '100%',
+    maxHeight: SCREEN_HEIGHT * 0.35,
   },
   placeholderContainer: {
     width: '100%',
