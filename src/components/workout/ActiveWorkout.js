@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import GifModal from './GifModal';
+import CalendarTab from './CalendarTab';
 import { getExercises } from '../../utils/apiHelpers';
 import { TRAINING_TYPES } from '../data/exercisesData';
 
@@ -307,11 +308,10 @@ function ActiveWorkout({
 
   if (!activeWorkout && !workoutStartTime) {
     return (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="calendar-outline" size={64} color="#9333ea" />
-        <Text style={styles.emptyTitle}>Kalendarz Treningów</Text>
-        <Text style={styles.emptySubtitle}>Tutaj będzie widok kalendarza z historią treningów</Text>
-      </View>
+      <CalendarTab
+        workoutHistory={workoutHistory}
+        onGoToPlan={onGoToPlan}
+      />
     );
   }
 
