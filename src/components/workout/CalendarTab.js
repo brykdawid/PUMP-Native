@@ -326,6 +326,22 @@ function CalendarTab({ workoutHistory, onGoToPlan }) {
                 </View>
               </View>
             ))}
+
+            {/* Przycisk dodawania kolejnego treningu */}
+            <TouchableOpacity
+              style={styles.addAnotherWorkoutButton}
+              onPress={handleAddWorkout}
+            >
+              <LinearGradient
+                colors={['#9333ea', '#7c3aed']}
+                style={styles.addWorkoutGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Ionicons name="add-circle-outline" size={24} color="#fff" />
+                <Text style={styles.addWorkoutText}>Dodaj Kolejny Trening</Text>
+              </LinearGradient>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -493,6 +509,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     width: '80%',
+  },
+  addAnotherWorkoutButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginTop: 12,
   },
   addWorkoutGradient: {
     flexDirection: 'row',
