@@ -318,17 +318,6 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
   const renderVolumeDetails = () => {
     const exercises = getExercisesWithSets(volumePeriod);
 
-    console.log('=== VOLUME DETAILS DEBUG ===');
-    console.log('Total exercises:', exercises.length);
-    exercises.forEach((ex, idx) => {
-      console.log(`Exercise ${idx}:`, {
-        name: ex.name,
-        image: ex.image,
-        hasImage: !!ex.image,
-        setsCount: ex.allSets.length
-      });
-    });
-
     return (
       <View style={styles.detailsContainer}>
         {exercises.map((exercise, idx) => {
@@ -347,12 +336,6 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
           // Get exercise image
           const exerciseImage = exercise.image;
           const hasImageError = imageErrors[exercise.name];
-
-          console.log(`Rendering exercise ${exercise.name}:`, {
-            image: exerciseImage,
-            hasImage: !!exerciseImage,
-            hasError: hasImageError
-          });
 
           return (
             <View key={idx} style={styles.exerciseCard}>

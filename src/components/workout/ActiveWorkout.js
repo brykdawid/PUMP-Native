@@ -162,18 +162,11 @@ function ActiveWorkout({
   };
 
   const addExerciseToWorkout = (exercise, category) => {
-    console.log('🔍 Adding exercise:', exercise.name);
-    console.log('  Has image:', !!exercise.image);
-    console.log('  Image URL:', exercise.image);
-    console.log('  All keys:', Object.keys(exercise));
-
     const newExercise = {
       ...exercise,
       category: category,
       id: `${exercise.name}-${Date.now()}`
     };
-
-    console.log('  After spread - has image:', !!newExercise.image);
 
     setWorkoutExercises(prev => [...prev, newExercise]);
     setExerciseSets(prev => ({
@@ -298,8 +291,6 @@ function ActiveWorkout({
       });
     });
 
-    console.log('📊 Calculated total volume:', totalVolume, 'kg');
-
     const workoutData = {
       date: getLocalISOString(),
       duration: elapsedTime,
@@ -314,13 +305,10 @@ function ActiveWorkout({
       }))
     };
 
-    console.log('Workout data to save:', workoutData);
-
     // Update workout history first
     if (setWorkoutHistory) {
       setWorkoutHistory(prev => {
         const updated = [...prev, workoutData];
-        console.log('Updated workout history:', updated);
         return updated;
       });
     }
@@ -328,7 +316,6 @@ function ActiveWorkout({
     // Use setTimeout to ensure state update completes before navigation
     setTimeout(() => {
       if (onEndWorkout) {
-        console.log('Calling onEndWorkout - navigating back');
         onEndWorkout();
       }
     }, 100);
