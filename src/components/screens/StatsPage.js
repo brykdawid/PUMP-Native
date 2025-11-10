@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import CompletedWorkoutDetails from '../workout/CompletedWorkoutDetails';
 
 function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
   const [editingField, setEditingField] = useState(null);
@@ -24,6 +25,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
   const [workoutPeriod, setWorkoutPeriod] = useState('weekly'); // 'weekly' or 'monthly'
   const [expandedExercises, setExpandedExercises] = useState({});
   const [imageErrors, setImageErrors] = useState({});
+  const [selectedWorkout, setSelectedWorkout] = useState(null);
 
   const startEdit = (field, currentValue) => {
     setEditingField(field);
@@ -508,7 +510,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
           return (
             <View key={idx} style={styles.workoutCard}>
               <View style={styles.workoutCardHeader}>
-                <View>
+                <View style={styles.workoutCardHeaderLeft}>
                   <Text style={styles.workoutTitle}>{workout.title}</Text>
                   <Text style={styles.workoutDate}>
                     {dateStr} o {timeStr}
@@ -542,6 +544,14 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
                   );
                 })}
               </View>
+              <TouchableOpacity
+                onPress={() => setSelectedWorkout(workout)}
+                style={styles.workoutDetailsButton}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="list-outline" size={18} color="#9333ea" />
+                <Text style={styles.workoutDetailsButtonText}>Szczegóły</Text>
+              </TouchableOpacity>
             </View>
           );
         })}
@@ -628,6 +638,16 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
       )}
     </>
   );
+
+  // Show workout details if a workout is selected
+  if (selectedWorkout) {
+    return (
+      <CompletedWorkoutDetails
+        workout={selectedWorkout}
+        onClose={() => setSelectedWorkout(null)}
+      />
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -1031,6 +1051,9 @@ const styles = StyleSheet.create({
   workoutCardHeader: {
     marginBottom: 12,
   },
+  workoutCardHeaderLeft: {
+    flex: 1,
+  },
   workoutTitle: {
     fontSize: 16,
     fontWeight: '600',
@@ -1058,10 +1081,29 @@ const styles = StyleSheet.create({
   },
   workoutExercisesList: {
     gap: 4,
+    marginBottom: 12,
   },
   workoutExerciseItem: {
     fontSize: 14,
     color: '#4b5563',
+  },
+  workoutDetailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#faf5ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e9d5ff',
+    marginTop: 8,
+  },
+  workoutDetailsButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9333ea',
   },
 });
 
