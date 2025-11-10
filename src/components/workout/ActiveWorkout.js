@@ -847,22 +847,23 @@ const styles = StyleSheet.create({
   setRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
+    paddingVertical: 4,
   },
   setNumber: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#6b7280',
-    width: 24,
+    width: 20,
   },
   setInput: {
-    flex: 1,
+    width: 60,
     backgroundColor: '#f9fafb',
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 8,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -875,8 +876,8 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   checkButton: {
-    padding: 8,
-    marginLeft: 4,
+    padding: 4,
+    marginLeft: 2,
   },
   checkButtonActive: {
     backgroundColor: '#f0fdf4',
@@ -884,6 +885,7 @@ const styles = StyleSheet.create({
   },
   deleteSetButton: {
     padding: 4,
+    marginLeft: 2,
   },
   addSetButton: {
     flexDirection: 'row',
