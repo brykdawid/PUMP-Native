@@ -76,6 +76,9 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
     let monthlyVolume = 0;
 
     workoutHistory.forEach((workout) => {
+      // Skip scheduled workouts - only count completed workouts
+      if (workout.scheduled) return;
+
       const workoutDate = new Date(workout.date);
       const volume = workout.totalVolume || 0;
 
@@ -105,6 +108,9 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
     let monthlyCount = 0;
 
     workoutHistory.forEach((workout) => {
+      // Skip scheduled workouts - only count completed workouts
+      if (workout.scheduled) return;
+
       const workoutDate = new Date(workout.date);
 
       if (workoutDate >= weekAgo) {
@@ -130,7 +136,8 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
     } else {
       cutoffDate.setMonth(cutoffDate.getMonth() - 1);
     }
-    return workoutHistory.filter(workout => new Date(workout.date) >= cutoffDate);
+    // Skip scheduled workouts - only return completed workouts
+    return workoutHistory.filter(workout => !workout.scheduled && new Date(workout.date) >= cutoffDate);
   };
 
   // Get all exercises with their sets from filtered workouts
