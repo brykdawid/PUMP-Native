@@ -324,6 +324,11 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
             return sum + (weight * reps);
           }, 0);
 
+          // Only show exercises with volume > 0
+          if (totalVolume === 0) {
+            return null;
+          }
+
           return (
             <View key={idx} style={styles.exerciseCard}>
               <TouchableOpacity
