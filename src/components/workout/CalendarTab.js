@@ -23,7 +23,7 @@ const MONTHS_PL = [
 
 const DAYS_SHORT_PL = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
 
-function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWorkout, onSaveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
+function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWorkout, onSaveCompletedWorkoutAsTemplate, onRemoveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekStartDate, setWeekStartDate] = useState(getWeekStart(new Date()));
@@ -169,30 +169,45 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
     return allExercises.find(ex => ex.name === exerciseName) || null;
   };
 
-  // Zapisywanie treningu do zakładki zapisane
+  // Zapisywanie treningu do zakładki zapisane (toggle - dodaj lub usuń)
   const handleSaveCompletedWorkout = () => {
     if (!selectedWorkoutForView) return;
 
-    // Use new function if available, otherwise fallback to old method
-    if (onSaveCompletedWorkoutAsTemplate) {
-      const result = onSaveCompletedWorkoutAsTemplate(selectedWorkoutForView);
-      if (result.success) {
-        Alert.alert('Sukces', result.message);
-      } else {
-        Alert.alert('Informacja', result.message);
+    // Check if workout is already saved
+    const isSaved = isWorkoutSavedAsTemplate && isWorkoutSavedAsTemplate(selectedWorkoutForView);
+
+    if (isSaved) {
+      // Remove from saved workouts
+      if (onRemoveCompletedWorkoutAsTemplate) {
+        const result = onRemoveCompletedWorkoutAsTemplate(selectedWorkoutForView);
+        if (result.success) {
+          Alert.alert('Sukces', result.message);
+        } else {
+          Alert.alert('Błąd', result.message);
+        }
       }
-    } else if (onSaveWorkout) {
-      // Fallback to old method
-      const workoutToSave = {
-        id: Date.now(),
-        title: selectedWorkoutForView.title || 'Trening',
-        type: selectedWorkoutForView.type || 'custom',
-        exercises: selectedWorkoutForView.exercises || [],
-        date: formatDateToISO(selectedDate),
-        savedAt: getLocalISOString()
-      };
-      onSaveWorkout(workoutToSave);
-      Alert.alert('Sukces', 'Trening został zapisany w zakładce Zapisane!');
+    } else {
+      // Add to saved workouts
+      if (onSaveCompletedWorkoutAsTemplate) {
+        const result = onSaveCompletedWorkoutAsTemplate(selectedWorkoutForView);
+        if (result.success) {
+          Alert.alert('Sukces', result.message);
+        } else {
+          Alert.alert('Informacja', result.message);
+        }
+      } else if (onSaveWorkout) {
+        // Fallback to old method
+        const workoutToSave = {
+          id: Date.now(),
+          title: selectedWorkoutForView.title || 'Trening',
+          type: selectedWorkoutForView.type || 'custom',
+          exercises: selectedWorkoutForView.exercises || [],
+          date: formatDateToISO(selectedDate),
+          savedAt: getLocalISOString()
+        };
+        onSaveWorkout(workoutToSave);
+        Alert.alert('Sukces', 'Trening został zapisany w zakładce Zapisane!');
+      }
     }
   };
 
@@ -349,24 +364,32 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
         ) : (
           // Lista treningów
           <View style={styles.workoutListContainer}>
-            {selectedDayWorkouts.map((workout, index) => (
-              <View key={index} style={styles.workoutCard}>
-                <View style={styles.workoutCardHeader}>
-                  <View style={styles.workoutTitleRow}>
-                    <Ionicons
-                      name={workout.scheduled ? "calendar" : "checkmark-circle"}
-                      size={24}
-                      color={workout.scheduled ? "#f59e0b" : "#10b981"}
-                    />
-                    <View style={styles.workoutTitleContainer}>
-                      <Text style={styles.workoutTitle} numberOfLines={1} ellipsizeMode="tail">
-                        {workout.title || workout.name || 'Trening'}
-                      </Text>
-                      <Text style={styles.workoutType}>
-                        {workout.type === 'custom' ? 'Własny' : 'Wygenerowany'}
-                      </Text>
+            {selectedDayWorkouts.map((workout, index) => {
+              const isSaved = isWorkoutSavedAsTemplate && isWorkoutSavedAsTemplate(workout);
+
+              return (
+                <View key={index} style={styles.workoutCard}>
+                  <View style={styles.workoutCardHeader}>
+                    <View style={styles.workoutTitleRow}>
+                      <Ionicons
+                        name={workout.scheduled ? "calendar" : "checkmark-circle"}
+                        size={24}
+                        color={workout.scheduled ? "#f59e0b" : "#10b981"}
+                      />
+                      <View style={styles.workoutTitleContainer}>
+                        <View style={styles.titleWithStar}>
+                          <Text style={styles.workoutTitle} numberOfLines={1} ellipsizeMode="tail">
+                            {workout.title || workout.name || 'Trening'}
+                          </Text>
+                          {isSaved && (
+                            <Ionicons name="star" size={16} color="#facc15" style={styles.savedStar} />
+                          )}
+                        </View>
+                        <Text style={styles.workoutType}>
+                          {workout.type === 'custom' ? 'Własny' : 'Wygenerowany'}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
 
                   {workout.duration && (
                     <View style={styles.workoutDuration}>
@@ -436,7 +459,8 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
                   </View>
                 </View>
               </View>
-            ))}
+              );
+            })}
 
             {/* Przycisk dodawania kolejnego treningu */}
             <TouchableOpacity
@@ -805,10 +829,19 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     flex: 1,
   },
+  titleWithStar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   workoutTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#111827',
+    flex: 1,
+  },
+  savedStar: {
+    marginLeft: 4,
   },
   workoutType: {
     fontSize: 12,

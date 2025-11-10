@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import CompletedWorkoutDetails from '../workout/CompletedWorkoutDetails';
 
-function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
+function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveCompletedWorkoutAsTemplate, onRemoveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
   const [editingField, setEditingField] = useState(null);
   const [tempValue, setTempValue] = useState('');
   const [activeTab, setActiveTab] = useState('body'); // 'body', 'volume', 'workouts'
@@ -176,9 +176,19 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
   };
 
   const handleSaveWorkout = (workout) => {
-    if (onSaveCompletedWorkoutAsTemplate) {
-      const result = onSaveCompletedWorkoutAsTemplate(workout);
-      // Result is handled silently - icon will update to show saved state
+    // Check if workout is already saved
+    const isSaved = isWorkoutSavedAsTemplate && isWorkoutSavedAsTemplate(workout);
+
+    if (isSaved) {
+      // Remove from saved workouts
+      if (onRemoveCompletedWorkoutAsTemplate) {
+        onRemoveCompletedWorkoutAsTemplate(workout);
+      }
+    } else {
+      // Add to saved workouts
+      if (onSaveCompletedWorkoutAsTemplate) {
+        onSaveCompletedWorkoutAsTemplate(workout);
+      }
     }
   };
 
@@ -666,6 +676,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
         workout={selectedWorkout}
         onClose={() => setSelectedWorkout(null)}
         onSaveCompletedWorkoutAsTemplate={onSaveCompletedWorkoutAsTemplate}
+        onRemoveCompletedWorkoutAsTemplate={onRemoveCompletedWorkoutAsTemplate}
         isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
       />
     );

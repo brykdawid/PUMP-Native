@@ -29,6 +29,7 @@ function ActiveWorkout({
   setWorkoutHistory,
   onSaveWorkout,
   onSaveCompletedWorkoutAsTemplate,
+  onRemoveCompletedWorkoutAsTemplate,
   isWorkoutSavedAsTemplate
 }) {
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -303,7 +304,10 @@ function ActiveWorkout({
       exercises: workoutExercises.map(ex => ({
         name: ex.name,
         category: ex.category,
-        image: ex.image, // Save exercise image for stats
+        image: ex.image,
+        description: ex.description || '',
+        tips: ex.tips || [],
+        labels: ex.labels || [],
         sets: exerciseSets[ex.name] || []
       }))
     };
@@ -338,6 +342,7 @@ function ActiveWorkout({
         onGoToPlan={onGoToPlan}
         onSaveWorkout={onSaveWorkout}
         onSaveCompletedWorkoutAsTemplate={onSaveCompletedWorkoutAsTemplate}
+        onRemoveCompletedWorkoutAsTemplate={onRemoveCompletedWorkoutAsTemplate}
         isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
       />
     );
