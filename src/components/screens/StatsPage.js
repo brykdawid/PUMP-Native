@@ -16,6 +16,11 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
   const [editingField, setEditingField] = useState(null);
   const [tempValue, setTempValue] = useState('');
   const [activeTab, setActiveTab] = useState('body'); // 'body', 'volume', 'workouts'
+  const [showVolumeDetails, setShowVolumeDetails] = useState(false);
+  const [showWorkoutDetails, setShowWorkoutDetails] = useState(false);
+  const [volumePeriod, setVolumePeriod] = useState('weekly'); // 'weekly' or 'monthly'
+  const [workoutPeriod, setWorkoutPeriod] = useState('weekly'); // 'weekly' or 'monthly'
+  const [expandedExercises, setExpandedExercises] = useState({});
 
   const startEdit = (field, currentValue) => {
     setEditingField(field);
@@ -111,7 +116,55 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
     };
   }, [workoutHistory]);
 
+  // Filter workouts by period
+  const getFilteredWorkouts = (period) => {
+    const now = new Date();
+    const cutoffDate = new Date(now);
+    if (period === 'weekly') {
+      cutoffDate.setDate(cutoffDate.getDate() - 7);
+    } else {
+      cutoffDate.setMonth(cutoffDate.getMonth() - 1);
+    }
+    return workoutHistory.filter(workout => new Date(workout.date) >= cutoffDate);
+  };
+
+  // Get all exercises with their sets from filtered workouts
+  const getExercisesWithSets = (period) => {
+    const filtered = getFilteredWorkouts(period);
+    const exerciseMap = {};
+
+    filtered.forEach(workout => {
+      workout.exercises?.forEach(exercise => {
+        if (!exerciseMap[exercise.name]) {
+          exerciseMap[exercise.name] = {
+            name: exercise.name,
+            category: exercise.category,
+            allSets: []
+          };
+        }
+        exercise.sets?.forEach(set => {
+          if (set.completed) {
+            exerciseMap[exercise.name].allSets.push({
+              ...set,
+              workoutDate: workout.date,
+              workoutTitle: workout.title
+            });
+          }
+        });
+      });
+    });
+
+    return Object.values(exerciseMap);
+  };
+
   const bmiCategory = getBMICategory(userStats.bmi);
+
+  const toggleExerciseExpand = (exerciseName) => {
+    setExpandedExercises(prev => ({
+      ...prev,
+      [exerciseName]: !prev[exerciseName]
+    }));
+  };
 
   const renderTabButton = (tab, icon, label) => (
     <TouchableOpacity
@@ -258,76 +311,280 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
     </>
   );
 
+  const renderVolumeDetails = () => {
+    const exercises = getExercisesWithSets(volumePeriod);
+
+    return (
+      <View style={styles.detailsContainer}>
+        {exercises.map((exercise, idx) => {
+          const isExpanded = expandedExercises[exercise.name];
+          const totalVolume = exercise.allSets.reduce((sum, set) => {
+            const weight = parseFloat(set.weight) || 0;
+            const reps = parseFloat(set.reps) || 0;
+            return sum + (weight * reps);
+          }, 0);
+
+          return (
+            <View key={idx} style={styles.exerciseCard}>
+              <TouchableOpacity
+                onPress={() => toggleExerciseExpand(exercise.name)}
+                style={styles.exerciseHeader}
+                activeOpacity={0.7}
+              >
+                <View style={styles.exerciseHeaderLeft}>
+                  <Text style={styles.exerciseName}>{exercise.name}</Text>
+                  <Text style={styles.exerciseVolume}>
+                    {totalVolume.toLocaleString()} kg total
+                  </Text>
+                </View>
+                <Ionicons
+                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={20}
+                  color="#6b7280"
+                />
+              </TouchableOpacity>
+
+              {isExpanded && (
+                <View style={styles.setsContainer}>
+                  {exercise.allSets.map((set, setIdx) => (
+                    <View key={setIdx} style={styles.detailSetRow}>
+                      <Text style={styles.detailSetNumber}>{setIdx + 1}</Text>
+                      <View style={styles.detailSetInput}>
+                        <Text style={styles.detailSetText}>{set.weight} kg</Text>
+                      </View>
+                      <Text style={styles.setX}>×</Text>
+                      <View style={styles.detailSetInput}>
+                        <Text style={styles.detailSetText}>{set.reps} reps</Text>
+                      </View>
+                      <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
   const renderTrainingVolume = () => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Ionicons name="barbell" size={20} color="#9333ea" />
-        <Text style={styles.sectionTitle}>Training Volume</Text>
-      </View>
-      <Text style={styles.sectionDescription}>
-        Total weight lifted (weight × reps)
-      </Text>
+    <>
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="barbell" size={20} color="#9333ea" />
+          <Text style={styles.sectionTitle}>Training Volume</Text>
+        </View>
+        <Text style={styles.sectionDescription}>
+          Total weight lifted (weight × reps)
+        </Text>
 
-      <View style={styles.statsGrid}>
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Ionicons name="calendar" size={24} color="#3b82f6" />
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Ionicons name="calendar" size={24} color="#3b82f6" />
+            </View>
+            <Text style={styles.statLabel}>Weekly</Text>
+            <Text style={styles.statValue}>
+              {calculateTrainingVolume.weekly.toLocaleString()}
+            </Text>
+            <Text style={styles.statUnit}>kg</Text>
           </View>
-          <Text style={styles.statLabel}>Weekly</Text>
-          <Text style={styles.statValue}>
-            {calculateTrainingVolume.weekly.toLocaleString()}
-          </Text>
-          <Text style={styles.statUnit}>kg</Text>
+
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Ionicons name="calendar-outline" size={24} color="#8b5cf6" />
+            </View>
+            <Text style={styles.statLabel}>Monthly</Text>
+            <Text style={styles.statValue}>
+              {calculateTrainingVolume.monthly.toLocaleString()}
+            </Text>
+            <Text style={styles.statUnit}>kg</Text>
+          </View>
         </View>
 
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Ionicons name="calendar-outline" size={24} color="#8b5cf6" />
-          </View>
-          <Text style={styles.statLabel}>Monthly</Text>
-          <Text style={styles.statValue}>
-            {calculateTrainingVolume.monthly.toLocaleString()}
+        <TouchableOpacity
+          onPress={() => setShowVolumeDetails(!showVolumeDetails)}
+          style={styles.detailsButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={showVolumeDetails ? 'eye-off-outline' : 'eye-outline'}
+            size={18}
+            color="#9333ea"
+          />
+          <Text style={styles.detailsButtonText}>
+            {showVolumeDetails ? 'Hide Details' : 'Show Details'}
           </Text>
-          <Text style={styles.statUnit}>kg</Text>
-        </View>
+        </TouchableOpacity>
       </View>
-    </View>
+
+      {showVolumeDetails && (
+        <View style={styles.section}>
+          <View style={styles.periodToggle}>
+            <TouchableOpacity
+              onPress={() => setVolumePeriod('weekly')}
+              style={[styles.periodButton, volumePeriod === 'weekly' && styles.periodButtonActive]}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.periodButtonText, volumePeriod === 'weekly' && styles.periodButtonTextActive]}>
+                Weekly
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setVolumePeriod('monthly')}
+              style={[styles.periodButton, volumePeriod === 'monthly' && styles.periodButtonActive]}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.periodButtonText, volumePeriod === 'monthly' && styles.periodButtonTextActive]}>
+                Monthly
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {renderVolumeDetails()}
+        </View>
+      )}
+    </>
   );
 
+  const renderWorkoutDetails = () => {
+    const workouts = getFilteredWorkouts(workoutPeriod);
+
+    return (
+      <View style={styles.detailsContainer}>
+        {workouts.map((workout, idx) => {
+          const date = new Date(workout.date);
+          const dateStr = date.toLocaleDateString('pl-PL', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+          const timeStr = date.toLocaleTimeString('pl-PL', {
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          const duration = Math.floor(workout.duration / 60);
+
+          return (
+            <View key={idx} style={styles.workoutCard}>
+              <View style={styles.workoutCardHeader}>
+                <View>
+                  <Text style={styles.workoutTitle}>{workout.title}</Text>
+                  <Text style={styles.workoutDate}>
+                    {dateStr} at {timeStr}
+                  </Text>
+                </View>
+                <View style={styles.workoutStats}>
+                  <View style={styles.workoutStatItem}>
+                    <Ionicons name="time-outline" size={16} color="#6b7280" />
+                    <Text style={styles.workoutStatText}>{duration} min</Text>
+                  </View>
+                  {workout.totalVolume > 0 && (
+                    <View style={styles.workoutStatItem}>
+                      <Ionicons name="barbell-outline" size={16} color="#6b7280" />
+                      <Text style={styles.workoutStatText}>
+                        {workout.totalVolume.toLocaleString()} kg
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+              <View style={styles.workoutExercisesList}>
+                {workout.exercises?.map((ex, exIdx) => {
+                  const completedSets = ex.sets?.filter(s => s.completed).length || 0;
+                  return (
+                    <Text key={exIdx} style={styles.workoutExerciseItem}>
+                      • {ex.name} ({completedSets} sets)
+                    </Text>
+                  );
+                })}
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+
   const renderWorkoutCount = () => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Ionicons name="checkmark-done" size={20} color="#16a34a" />
-        <Text style={styles.sectionTitle}>Completed Workouts</Text>
-      </View>
-      <Text style={styles.sectionDescription}>
-        Total number of completed training sessions
-      </Text>
+    <>
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Ionicons name="checkmark-done" size={20} color="#16a34a" />
+          <Text style={styles.sectionTitle}>Completed Workouts</Text>
+        </View>
+        <Text style={styles.sectionDescription}>
+          Total number of completed training sessions
+        </Text>
 
-      <View style={styles.statsGrid}>
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Ionicons name="flame" size={24} color="#f59e0b" />
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Ionicons name="flame" size={24} color="#f59e0b" />
+            </View>
+            <Text style={styles.statLabel}>Weekly</Text>
+            <Text style={styles.statValue}>
+              {calculateWorkoutCount.weekly}
+            </Text>
+            <Text style={styles.statUnit}>workouts</Text>
           </View>
-          <Text style={styles.statLabel}>Weekly</Text>
-          <Text style={styles.statValue}>
-            {calculateWorkoutCount.weekly}
-          </Text>
-          <Text style={styles.statUnit}>workouts</Text>
+
+          <View style={styles.statCard}>
+            <View style={styles.statHeader}>
+              <Ionicons name="trophy" size={24} color="#facc15" />
+            </View>
+            <Text style={styles.statLabel}>Monthly</Text>
+            <Text style={styles.statValue}>
+              {calculateWorkoutCount.monthly}
+            </Text>
+            <Text style={styles.statUnit}>workouts</Text>
+          </View>
         </View>
 
-        <View style={styles.statCard}>
-          <View style={styles.statHeader}>
-            <Ionicons name="trophy" size={24} color="#facc15" />
-          </View>
-          <Text style={styles.statLabel}>Monthly</Text>
-          <Text style={styles.statValue}>
-            {calculateWorkoutCount.monthly}
+        <TouchableOpacity
+          onPress={() => setShowWorkoutDetails(!showWorkoutDetails)}
+          style={styles.detailsButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={showWorkoutDetails ? 'eye-off-outline' : 'eye-outline'}
+            size={18}
+            color="#16a34a"
+          />
+          <Text style={styles.detailsButtonText}>
+            {showWorkoutDetails ? 'Hide Details' : 'Show Details'}
           </Text>
-          <Text style={styles.statUnit}>workouts</Text>
-        </View>
+        </TouchableOpacity>
       </View>
-    </View>
+
+      {showWorkoutDetails && (
+        <View style={styles.section}>
+          <View style={styles.periodToggle}>
+            <TouchableOpacity
+              onPress={() => setWorkoutPeriod('weekly')}
+              style={[styles.periodButton, workoutPeriod === 'weekly' && styles.periodButtonActive]}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.periodButtonText, workoutPeriod === 'weekly' && styles.periodButtonTextActive]}>
+                Weekly
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setWorkoutPeriod('monthly')}
+              style={[styles.periodButton, workoutPeriod === 'monthly' && styles.periodButtonActive]}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.periodButtonText, workoutPeriod === 'monthly' && styles.periodButtonTextActive]}>
+                Monthly
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {renderWorkoutDetails()}
+        </View>
+      )}
+    </>
   );
 
   return (
@@ -580,6 +837,158 @@ const styles = StyleSheet.create({
   statUnit: {
     fontSize: 12,
     color: '#6b7280',
+  },
+  detailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  detailsButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  periodToggle: {
+    flexDirection: 'row',
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    padding: 4,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  periodButton: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  periodButtonActive: {
+    backgroundColor: '#9333ea',
+  },
+  periodButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  periodButtonTextActive: {
+    color: '#ffffff',
+  },
+  detailsContainer: {
+    gap: 12,
+  },
+  exerciseCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    overflow: 'hidden',
+  },
+  exerciseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+  },
+  exerciseHeaderLeft: {
+    flex: 1,
+  },
+  exerciseName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  exerciseVolume: {
+    fontSize: 14,
+    color: '#9333ea',
+    fontWeight: '500',
+  },
+  setsContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    gap: 8,
+  },
+  detailSetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 4,
+  },
+  detailSetNumber: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#6b7280',
+    width: 20,
+  },
+  detailSetInput: {
+    width: 70,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+  },
+  detailSetText: {
+    fontSize: 14,
+    color: '#111827',
+    fontWeight: '500',
+  },
+  workoutCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    padding: 16,
+  },
+  workoutCardHeader: {
+    marginBottom: 12,
+  },
+  workoutTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  workoutDate: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 8,
+  },
+  workoutStats: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 4,
+  },
+  workoutStatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  workoutStatText: {
+    fontSize: 13,
+    color: '#6b7280',
+  },
+  workoutExercisesList: {
+    gap: 4,
+  },
+  workoutExerciseItem: {
+    fontSize: 14,
+    color: '#4b5563',
   },
 });
 
