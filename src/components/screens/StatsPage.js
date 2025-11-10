@@ -342,11 +342,16 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
                     {totalVolume.toLocaleString()} kg total
                   </Text>
                 </View>
-                <Ionicons
-                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                  size={20}
-                  color="#6b7280"
-                />
+                <View style={styles.exerciseExpandButton}>
+                  <Text style={styles.exerciseExpandText}>
+                    {isExpanded ? 'Hide' : 'View'} sets
+                  </Text>
+                  <Ionicons
+                    name={isExpanded ? 'chevron-up-circle' : 'chevron-down-circle'}
+                    size={24}
+                    color="#9333ea"
+                  />
+                </View>
               </TouchableOpacity>
 
               {isExpanded && (
@@ -917,6 +922,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9333ea',
     fontWeight: '500',
+  },
+  exerciseExpandButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingLeft: 12,
+  },
+  exerciseExpandText: {
+    fontSize: 13,
+    color: '#9333ea',
+    fontWeight: '600',
   },
   setsContainer: {
     paddingHorizontal: 16,
