@@ -278,37 +278,19 @@ function ActiveWorkout({
     const title = categories.map(cat => getCategoryName(cat)).join('+');
 
     // Calculate total training volume (weight × reps for all completed sets)
-    console.log('=== CALCULATING VOLUME ===');
-    console.log('workoutExercises:', workoutExercises);
-    console.log('exerciseSets:', exerciseSets);
-
     let totalVolume = 0;
-    workoutExercises.forEach((ex, idx) => {
+    workoutExercises.forEach(ex => {
       const sets = exerciseSets[ex.name] || [];
-      console.log(`\nExercise ${idx}: ${ex.name}`);
-      console.log(`  Sets count: ${sets.length}`);
-
-      sets.forEach((set, setIdx) => {
-        console.log(`  Set ${setIdx}:`, {
-          weight: set.weight,
-          reps: set.reps,
-          completed: set.completed,
-          type: typeof set.completed
-        });
-
+      sets.forEach(set => {
         if (set.completed) {
           const weight = parseFloat(set.weight) || 0;
           const reps = parseFloat(set.reps) || 0;
-          const volume = weight * reps;
-          console.log(`    ✓ Completed - adding ${volume}kg (${weight} × ${reps})`);
-          totalVolume += volume;
-        } else {
-          console.log(`    ✗ Not completed - skipping`);
+          totalVolume += weight * reps;
         }
       });
     });
 
-    console.log('\n📊 Calculated total volume:', totalVolume, 'kg');
+    console.log('📊 Calculated total volume:', totalVolume, 'kg');
 
     const workoutData = {
       date: getLocalISOString(),
@@ -319,6 +301,7 @@ function ActiveWorkout({
       exercises: workoutExercises.map(ex => ({
         name: ex.name,
         category: ex.category,
+        image: ex.image, // Save exercise image for stats
         sets: exerciseSets[ex.name] || []
       }))
     };
