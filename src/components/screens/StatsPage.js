@@ -531,7 +531,10 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
               </View>
               <View style={styles.workoutExercisesList}>
                 {workout.exercises?.map((ex, exIdx) => {
-                  const completedSets = ex.sets?.filter(s => s.completed).length || 0;
+                  // Handle both array and number types for exercise.sets
+                  const completedSets = Array.isArray(ex.sets)
+                    ? ex.sets.filter(s => s.completed).length
+                    : (typeof ex.sets === 'number' ? ex.sets : 0);
                   return (
                     <Text key={exIdx} style={styles.workoutExerciseItem}>
                       • {ex.name} ({completedSets} serii)
