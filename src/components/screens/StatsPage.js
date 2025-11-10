@@ -56,24 +56,48 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
 
   // Calculate training volume (weight × reps)
   const calculateTrainingVolume = useMemo(() => {
+    console.log('=== CALCULATING TRAINING VOLUME ===');
+    console.log('workoutHistory:', workoutHistory);
+    console.log('workoutHistory length:', workoutHistory.length);
+
     const now = new Date();
     const weekAgo = new Date(now);
     weekAgo.setDate(weekAgo.getDate() - 7);
     const monthAgo = new Date(now);
     monthAgo.setMonth(monthAgo.getMonth() - 1);
 
+    console.log('Date ranges:', { now, weekAgo, monthAgo });
+
     let weeklyVolume = 0;
     let monthlyVolume = 0;
 
-    workoutHistory.forEach((workout) => {
+    workoutHistory.forEach((workout, workoutIdx) => {
       const workoutDate = new Date(workout.date);
+      console.log(`\nWorkout ${workoutIdx}:`, {
+        date: workout.date,
+        parsedDate: workoutDate,
+        title: workout.title,
+        exercisesCount: workout.exercises?.length
+      });
 
-      workout.exercises?.forEach((exercise) => {
-        exercise.sets?.forEach((set) => {
+      workout.exercises?.forEach((exercise, exIdx) => {
+        console.log(`  Exercise ${exIdx}: ${exercise.name}, sets:`, exercise.sets?.length);
+
+        exercise.sets?.forEach((set, setIdx) => {
+          console.log(`    Set ${setIdx}:`, {
+            weight: set.weight,
+            reps: set.reps,
+            completed: set.completed,
+            weightParsed: parseFloat(set.weight),
+            repsParsed: parseFloat(set.reps)
+          });
+
           if (set.completed) {
             const weight = parseFloat(set.weight) || 0;
             const reps = parseFloat(set.reps) || 0;
             const volume = weight * reps;
+
+            console.log(`    -> Volume calculated: ${volume}kg (${weight}kg × ${reps} reps)`);
 
             if (workoutDate >= weekAgo) {
               weeklyVolume += volume;
@@ -81,10 +105,16 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
             if (workoutDate >= monthAgo) {
               monthlyVolume += volume;
             }
+          } else {
+            console.log(`    -> Set not completed, skipping`);
           }
         });
       });
     });
+
+    console.log('\n=== FINAL VOLUMES ===');
+    console.log('Weekly volume:', weeklyVolume);
+    console.log('Monthly volume:', monthlyVolume);
 
     return {
       weekly: Math.round(weeklyVolume),
