@@ -8,6 +8,8 @@ import {
   StyleSheet,
   Platform,
   KeyboardAvoidingView,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,6 +23,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
   const [volumePeriod, setVolumePeriod] = useState('weekly'); // 'weekly' or 'monthly'
   const [workoutPeriod, setWorkoutPeriod] = useState('weekly'); // 'weekly' or 'monthly'
   const [expandedExercises, setExpandedExercises] = useState({});
+  const [imageErrors, setImageErrors] = useState({});
 
   const startEdit = (field, currentValue) => {
     setEditingField(field);
@@ -139,6 +142,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
           exerciseMap[exercise.name] = {
             name: exercise.name,
             category: exercise.category,
+            image: exercise.image, // Store exercise image
             allSets: []
           };
         }
@@ -329,6 +333,10 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
             return null;
           }
 
+          // Get exercise image
+          const exerciseImage = exercise.image;
+          const hasImageError = imageErrors[exercise.name];
+
           return (
             <View key={idx} style={styles.exerciseCard}>
               <TouchableOpacity
@@ -336,6 +344,24 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
                 style={styles.exerciseHeader}
                 activeOpacity={0.7}
               >
+                {/* Exercise GIF/Image */}
+                <View style={styles.exerciseImageContainer}>
+                  {exerciseImage && !hasImageError ? (
+                    <Image
+                      source={{ uri: exerciseImage }}
+                      style={styles.exerciseImage}
+                      resizeMode="cover"
+                      onError={() => {
+                        setImageErrors(prev => ({ ...prev, [exercise.name]: true }));
+                      }}
+                    />
+                  ) : (
+                    <View style={styles.exerciseImagePlaceholder}>
+                      <Ionicons name="barbell-outline" size={28} color="#d1d5db" />
+                    </View>
+                  )}
+                </View>
+
                 <View style={styles.exerciseHeaderLeft}>
                   <Text style={styles.exerciseName}>{exercise.name}</Text>
                   <Text style={styles.exerciseVolume}>
@@ -908,6 +934,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
+    gap: 12,
+  },
+  exerciseImageContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#f3f4f6',
+    flexShrink: 0,
+  },
+  exerciseImage: {
+    width: '100%',
+    height: '100%',
+  },
+  exerciseImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
   },
   exerciseHeaderLeft: {
     flex: 1,
