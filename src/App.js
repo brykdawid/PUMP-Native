@@ -255,6 +255,7 @@ function App() {
         <StatsPage
           userStats={userStats}
           setUserStats={setUserStats}
+          workoutHistory={workoutHistory}
         />
       );
     }
