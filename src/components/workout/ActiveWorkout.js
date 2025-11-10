@@ -167,6 +167,7 @@ function ActiveWorkout({
       category: category,
       id: `${exercise.name}-${Date.now()}`
     };
+
     setWorkoutExercises(prev => [...prev, newExercise]);
     setExerciseSets(prev => ({
       ...prev,
@@ -277,25 +278,37 @@ function ActiveWorkout({
     const categories = Object.keys(exercisesByCategory);
     const title = categories.map(cat => getCategoryName(cat)).join('+');
 
+    // Calculate total training volume (weight × reps for all completed sets)
+    let totalVolume = 0;
+    workoutExercises.forEach(ex => {
+      const sets = exerciseSets[ex.name] || [];
+      sets.forEach(set => {
+        if (set.completed) {
+          const weight = parseFloat(set.weight) || 0;
+          const reps = parseFloat(set.reps) || 0;
+          totalVolume += weight * reps;
+        }
+      });
+    });
+
     const workoutData = {
       date: getLocalISOString(),
       duration: elapsedTime,
       title: title || 'Trening',
       type: workoutType,
+      totalVolume: Math.round(totalVolume),
       exercises: workoutExercises.map(ex => ({
         name: ex.name,
         category: ex.category,
+        image: ex.image, // Save exercise image for stats
         sets: exerciseSets[ex.name] || []
       }))
     };
-
-    console.log('Workout data to save:', workoutData);
 
     // Update workout history first
     if (setWorkoutHistory) {
       setWorkoutHistory(prev => {
         const updated = [...prev, workoutData];
-        console.log('Updated workout history:', updated);
         return updated;
       });
     }
@@ -303,7 +316,6 @@ function ActiveWorkout({
     // Use setTimeout to ensure state update completes before navigation
     setTimeout(() => {
       if (onEndWorkout) {
-        console.log('Calling onEndWorkout - navigating back');
         onEndWorkout();
       }
     }, 100);
@@ -442,8 +454,8 @@ function ActiveWorkout({
                           >
                             <Ionicons
                               name={set.completed ? 'checkmark-circle' : 'checkmark-circle-outline'}
-                              size={24}
-                              color={set.completed ? '#10b981' : '#6b7280'}
+                              size={32}
+                              color={set.completed ? '#10b981' : '#3b82f6'}
                             />
                           </TouchableOpacity>
 
@@ -813,22 +825,23 @@ const styles = StyleSheet.create({
   setRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
+    paddingVertical: 4,
   },
   setNumber: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#6b7280',
-    width: 24,
+    width: 20,
   },
   setInput: {
-    flex: 1,
+    width: 60,
     backgroundColor: '#f9fafb',
     borderWidth: 1,
     borderColor: '#e5e7eb',
     borderRadius: 8,
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     fontSize: 16,
     textAlign: 'center',
   },
@@ -842,13 +855,15 @@ const styles = StyleSheet.create({
   },
   checkButton: {
     padding: 4,
+    marginLeft: 2,
   },
   checkButtonActive: {
     backgroundColor: '#f0fdf4',
-    borderRadius: 8,
+    borderRadius: 12,
   },
   deleteSetButton: {
     padding: 4,
+    marginLeft: 2,
   },
   addSetButton: {
     flexDirection: 'row',
