@@ -510,20 +510,30 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
                       <View style={styles.exerciseInfo}>
                         <Text style={styles.modalExerciseName}>{exercise.name}</Text>
 
-                        {/* Serie (tylko dla ukończonych treningów) */}
-                        {exercise.sets && exercise.sets.length > 0 && (
+                        {/* Serie - różne wyświetlanie dla zaplanowanych i ukończonych treningów */}
+                        {exercise.sets && (
                           <View style={styles.modalSetsContainer}>
-                            {exercise.sets.map((set, setIdx) => (
-                              <View key={setIdx} style={styles.modalSetRow}>
-                                <Text style={styles.modalSetNumber}>{setIdx + 1}.</Text>
+                            {Array.isArray(exercise.sets) ? (
+                              // Ukończony trening - szczegóły każdej serii
+                              exercise.sets.map((set, setIdx) => (
+                                <View key={setIdx} style={styles.modalSetRow}>
+                                  <Text style={styles.modalSetNumber}>{setIdx + 1}.</Text>
+                                  <Text style={styles.modalSetDetails}>
+                                    {set.weight || '—'} kg × {set.reps || '—'} powtórzeń
+                                  </Text>
+                                  {set.completed && (
+                                    <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+                                  )}
+                                </View>
+                              ))
+                            ) : (
+                              // Zaplanowany trening - pokaż ilość serii i powtórzeń
+                              <View style={styles.modalSetRow}>
                                 <Text style={styles.modalSetDetails}>
-                                  {set.weight || '—'} kg × {set.reps || '—'} powtórzeń
+                                  {exercise.sets} {exercise.sets === 1 ? 'seria' : 'serie'} × {exercise.reps || '—'} powtórzeń
                                 </Text>
-                                {set.completed && (
-                                  <Ionicons name="checkmark-circle" size={16} color="#10b981" />
-                                )}
                               </View>
-                            ))}
+                            )}
                           </View>
                         )}
                       </View>
