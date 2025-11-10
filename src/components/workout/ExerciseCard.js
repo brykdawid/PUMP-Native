@@ -16,6 +16,26 @@ function ExerciseCard({
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
+  // Format sets display - handle string, number, or array
+  const formatSets = (sets) => {
+    if (!sets) return '';
+
+    // If it's already a string, return it
+    if (typeof sets === 'string') return sets;
+
+    // If it's a number, format it as "X serii"
+    if (typeof sets === 'number') {
+      return `${sets} ${sets === 1 ? 'seria' : 'serie'}`;
+    }
+
+    // If it's an array (completed workout with detailed sets)
+    if (Array.isArray(sets)) {
+      return `${sets.length} ${sets.length === 1 ? 'seria' : 'serie'}`;
+    }
+
+    return '';
+  };
+
   return (
     <View style={styles.container}>
       {/* Favorite star - Top right corner */}
@@ -72,7 +92,7 @@ function ExerciseCard({
               style={styles.chevronIcon}
             />
           </View>
-          <Text style={styles.exerciseSets}>{exercise.sets}</Text>
+          <Text style={styles.exerciseSets}>{formatSets(exercise.sets)}</Text>
         </View>
       </TouchableOpacity>
 

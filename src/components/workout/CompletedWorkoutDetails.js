@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import GifModal from './GifModal';
 
-function CompletedWorkoutDetails({ workout, onClose, onSaveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
+function CompletedWorkoutDetails({ workout, onClose, onSaveCompletedWorkoutAsTemplate, onRemoveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
   const [expandedExercises, setExpandedExercises] = useState({});
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
@@ -61,9 +61,21 @@ function CompletedWorkoutDetails({ workout, onClose, onSaveCompletedWorkoutAsTem
   };
 
   const handleSaveWorkout = () => {
-    if (onSaveCompletedWorkoutAsTemplate && workout) {
-      const result = onSaveCompletedWorkoutAsTemplate(workout);
-      // Result is handled silently - icon will update to show saved state
+    if (!workout) return;
+
+    // Check if workout is already saved
+    const isSaved = isWorkoutSavedAsTemplate && isWorkoutSavedAsTemplate(workout);
+
+    if (isSaved) {
+      // Remove from saved workouts
+      if (onRemoveCompletedWorkoutAsTemplate) {
+        onRemoveCompletedWorkoutAsTemplate(workout);
+      }
+    } else {
+      // Add to saved workouts
+      if (onSaveCompletedWorkoutAsTemplate) {
+        onSaveCompletedWorkoutAsTemplate(workout);
+      }
     }
   };
 

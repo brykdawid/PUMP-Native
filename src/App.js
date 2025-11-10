@@ -195,6 +195,31 @@ function App() {
     );
   };
 
+  const handleRemoveCompletedWorkoutAsTemplate = (completedWorkout) => {
+    // Validate input
+    if (!completedWorkout || !completedWorkout.title || !completedWorkout.exercises) {
+      return { success: false, message: 'Nieprawidłowe dane treningu' };
+    }
+
+    // Find and remove the matching workout
+    const updatedWorkouts = savedWorkouts.filter(saved =>
+      !(saved &&
+        saved.title === completedWorkout.title &&
+        saved.exercises &&
+        saved.exercises.length === completedWorkout.exercises.length &&
+        saved.exercises.every((ex, idx) =>
+          ex && ex.name === completedWorkout.exercises[idx]?.name
+        ))
+    );
+
+    if (updatedWorkouts.length === savedWorkouts.length) {
+      return { success: false, message: 'Trening nie został znaleziony' };
+    }
+
+    setSavedWorkouts(updatedWorkouts);
+    return { success: true, message: 'Trening usunięty z zapisanych' };
+  };
+
   const handleDeleteWorkout = (workoutId) => {
     console.log('🗑️ Deleting workout with ID:', workoutId);
     setSavedWorkouts(prev => {
@@ -312,6 +337,7 @@ function App() {
           setWorkoutHistory={setWorkoutHistory}
           onSaveWorkout={handleSaveWorkout}
           onSaveCompletedWorkoutAsTemplate={handleSaveCompletedWorkoutAsTemplate}
+          onRemoveCompletedWorkoutAsTemplate={handleRemoveCompletedWorkoutAsTemplate}
           isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
         />
       );
@@ -329,6 +355,7 @@ function App() {
           workoutHistory={workoutHistory}
           setWorkoutHistory={setWorkoutHistory}
           onSaveCompletedWorkoutAsTemplate={handleSaveCompletedWorkoutAsTemplate}
+          onRemoveCompletedWorkoutAsTemplate={handleRemoveCompletedWorkoutAsTemplate}
           isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
         />
       );
@@ -341,6 +368,7 @@ function App() {
           setUserStats={setUserStats}
           workoutHistory={workoutHistory}
           onSaveCompletedWorkoutAsTemplate={handleSaveCompletedWorkoutAsTemplate}
+          onRemoveCompletedWorkoutAsTemplate={handleRemoveCompletedWorkoutAsTemplate}
           isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
         />
       );
