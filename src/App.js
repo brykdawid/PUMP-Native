@@ -6,6 +6,7 @@ import storage from './utils/storage';
 import StatsPage from './components/screens/StatsPage';
 import ProfilePage from './components/screens/ProfilePage';
 import SavedWorkoutsPage from './components/screens/SavedWorkoutsPage';
+import LibraryPage from './components/screens/LibraryPage';
 import LandingPage from './components/screens/LandingPage';
 import MuscleGroupSelector from './components/screens/MuscleGroupSelector';
 import GeneratedWorkout from './components/workout/GeneratedWorkout';
@@ -249,13 +250,17 @@ function App() {
       );
     }
 
-    if (currentTab === 'body') {
+    if (currentTab === 'statistics') {
       return (
-        <StatsPage 
-          userStats={userStats} 
+        <StatsPage
+          userStats={userStats}
           setUserStats={setUserStats}
         />
       );
+    }
+
+    if (currentTab === 'library') {
+      return <LibraryPage />;
     }
 
     if (currentTab === 'profile') {
@@ -341,48 +346,15 @@ function App() {
       </ScrollView>
 
       <View style={styles.bottomNav}>
-        <TouchableOpacity
-          onPress={() => handleTabChange('calendar')}
-          style={styles.navButton}
-        >
-          <Ionicons 
-            name="calendar-outline" 
-            size={24} 
-            color={currentTab === 'calendar' || currentTab === 'workout-active' ? '#9333ea' : '#9ca3af'} 
-          />
-          <Text style={[
-            styles.navText,
-            (currentTab === 'calendar' || currentTab === 'workout-active') && styles.navTextActive
-          ]}>
-            Kalendarz
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => handleTabChange('workout-builder')}
-          style={styles.navButton}
-        >
-          <Ionicons 
-            name="barbell-outline" 
-            size={24} 
-            color={currentTab === 'workout-builder' ? '#9333ea' : '#9ca3af'} 
-          />
-          <Text style={[
-            styles.navText,
-            currentTab === 'workout-builder' && styles.navTextActive
-          ]}>
-            Trening
-          </Text>
-        </TouchableOpacity>
-
+        {/* Saved Tab - Leftmost */}
         <TouchableOpacity
           onPress={() => handleTabChange('saved')}
           style={styles.navButton}
         >
-          <Ionicons 
-            name="bookmark-outline" 
-            size={24} 
-            color={currentTab === 'saved' ? '#9333ea' : '#9ca3af'} 
+          <Ionicons
+            name="bookmark-outline"
+            size={24}
+            color={currentTab === 'saved' ? '#9333ea' : '#9ca3af'}
           />
           <Text style={[
             styles.navText,
@@ -392,31 +364,69 @@ function App() {
           </Text>
         </TouchableOpacity>
 
+        {/* Library Tab - Replaces Workout */}
         <TouchableOpacity
-          onPress={() => handleTabChange('body')}
+          onPress={() => handleTabChange('library')}
           style={styles.navButton}
         >
-          <Ionicons 
-            name="body-outline" 
-            size={24} 
-            color={currentTab === 'body' ? '#9333ea' : '#9ca3af'} 
+          <Ionicons
+            name="library-outline"
+            size={24}
+            color={currentTab === 'library' ? '#9333ea' : '#9ca3af'}
           />
           <Text style={[
             styles.navText,
-            currentTab === 'body' && styles.navTextActive
+            currentTab === 'library' && styles.navTextActive
           ]}>
-            Ciało
+            Biblioteka
           </Text>
         </TouchableOpacity>
 
+        {/* Calendar Tab - Middle, Larger */}
+        <TouchableOpacity
+          onPress={() => handleTabChange('calendar')}
+          style={styles.navButtonLarge}
+        >
+          <Ionicons
+            name="calendar-outline"
+            size={28}
+            color={currentTab === 'calendar' || currentTab === 'workout-active' ? '#9333ea' : '#9ca3af'}
+          />
+          <Text style={[
+            styles.navText,
+            (currentTab === 'calendar' || currentTab === 'workout-active') && styles.navTextActive
+          ]}>
+            Kalendarz
+          </Text>
+        </TouchableOpacity>
+
+        {/* Statistics Tab - Renamed from Body */}
+        <TouchableOpacity
+          onPress={() => handleTabChange('statistics')}
+          style={styles.navButton}
+        >
+          <Ionicons
+            name="stats-chart-outline"
+            size={24}
+            color={currentTab === 'statistics' ? '#9333ea' : '#9ca3af'}
+          />
+          <Text style={[
+            styles.navText,
+            currentTab === 'statistics' && styles.navTextActive
+          ]}>
+            Statystyki
+          </Text>
+        </TouchableOpacity>
+
+        {/* Profile Tab - Rightmost */}
         <TouchableOpacity
           onPress={() => handleTabChange('profile')}
           style={styles.navButton}
         >
-          <Ionicons 
-            name="person-outline" 
-            size={24} 
-            color={currentTab === 'profile' ? '#9333ea' : '#9ca3af'} 
+          <Ionicons
+            name="person-outline"
+            size={24}
+            color={currentTab === 'profile' ? '#9333ea' : '#9ca3af'}
           />
           <Text style={[
             styles.navText,
@@ -469,6 +479,12 @@ const styles = StyleSheet.create({
   },
   navButton: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  navButtonLarge: {
+    flex: 1.3,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
