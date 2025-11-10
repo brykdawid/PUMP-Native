@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 function ExerciseCard({
@@ -13,61 +13,80 @@ function ExerciseCard({
   onReplace,
   replaceButtonText = 'Wymień'
 }) {
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
   return (
     <View style={styles.container}>
+      {/* Favorite star - Top right corner */}
+      {onFavorite && (
+        <TouchableOpacity
+          onPress={onFavorite}
+          style={styles.favoriteButtonTop}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={isFavorite ? 'star' : 'star-outline'}
+            size={24}
+            color={isFavorite ? '#facc15' : '#9ca3af'}
+          />
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
         onPress={onToggle}
         style={styles.button}
         activeOpacity={0.7}
       >
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: exercise.image }}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          {imageLoading && !imageError && (
+            <View style={styles.imagePlaceholder}>
+              <ActivityIndicator size="small" color="#9333ea" />
+            </View>
+          )}
+          {imageError ? (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="image-outline" size={32} color="#d1d5db" />
+            </View>
+          ) : (
+            <Image
+              source={{ uri: exercise.image }}
+              style={styles.image}
+              resizeMode="cover"
+              onLoad={() => setImageLoading(false)}
+              onError={() => {
+                setImageLoading(false);
+                setImageError(true);
+              }}
+            />
+          )}
         </View>
 
         <View style={styles.textContainer}>
-          <Text style={styles.exerciseName}>{exercise.name}</Text>
+          <View style={styles.textRow}>
+            <Text style={styles.exerciseName}>{exercise.name}</Text>
+            <Ionicons
+              name={isExpanded ? 'chevron-up' : 'chevron-down'}
+              size={16}
+              color="#9333ea"
+              style={styles.chevronIcon}
+            />
+          </View>
           <Text style={styles.exerciseSets}>{exercise.sets}</Text>
         </View>
-
-        <Ionicons
-          name={isExpanded ? 'chevron-up' : 'chevron-down'}
-          size={16}
-          color="#9333ea"
-          style={styles.icon}
-        />
       </TouchableOpacity>
 
-      {/* Action buttons (star and swap) */}
-      {(onFavorite || onReplace) && (
+      {/* Replace button (if provided) */}
+      {onReplace && (
         <View style={styles.exerciseActions}>
-          {onFavorite && (
-            <TouchableOpacity
-              onPress={onFavorite}
-              style={styles.favoriteButton}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={isFavorite ? 'star' : 'star-outline'}
-                size={20}
-                color={isFavorite ? '#facc15' : '#9ca3af'}
-              />
-            </TouchableOpacity>
-          )}
-
-          {onReplace && (
-            <TouchableOpacity
-              onPress={onReplace}
-              style={styles.replaceButton}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="refresh" size={16} color="#2563eb" />
-              <Text style={styles.replaceButtonText}>{replaceButtonText}</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            onPress={onReplace}
+            style={styles.replaceButton}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="refresh" size={16} color="#2563eb" />
+            <Text style={styles.replaceButtonText}>{replaceButtonText}</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -84,16 +103,36 @@ function ExerciseCard({
 
 const styles = StyleSheet.create({
   container: {
+    position: 'relative',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
     backgroundColor: '#ffffff',
   },
   button: {
     width: '100%',
-    padding: 16,
+    paddingLeft: 16,
+    paddingRight: 52,
+    paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+  },
+  favoriteButtonTop: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
+    padding: 6,
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   imageContainer: {
     width: 80,
@@ -102,6 +141,18 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flexShrink: 0,
     backgroundColor: '#f3f4f6',
+    position: 'relative',
+  },
+  imagePlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    zIndex: 1,
   },
   image: {
     width: '100%',
@@ -110,7 +161,13 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
   },
+  textRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   exerciseName: {
+    flex: 1,
     color: '#111827',
     fontWeight: '600',
     fontSize: 16,
@@ -120,7 +177,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
-  icon: {
+  chevronIcon: {
     flexShrink: 0,
   },
   descriptionContainer: {
@@ -136,15 +193,12 @@ const styles = StyleSheet.create({
   exerciseActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
-  },
-  favoriteButton: {
-    padding: 8,
   },
   replaceButton: {
     flexDirection: 'row',
