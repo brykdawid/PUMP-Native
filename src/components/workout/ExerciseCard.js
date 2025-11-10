@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 function ExerciseCard({
@@ -13,6 +13,9 @@ function ExerciseCard({
   onReplace,
   replaceButtonText = 'Wymień'
 }) {
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -21,11 +24,27 @@ function ExerciseCard({
         activeOpacity={0.7}
       >
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: exercise.image }}
-            style={styles.image}
-            resizeMode="cover"
-          />
+          {imageLoading && !imageError && (
+            <View style={styles.imagePlaceholder}>
+              <ActivityIndicator size="small" color="#9333ea" />
+            </View>
+          )}
+          {imageError ? (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="image-outline" size={32} color="#d1d5db" />
+            </View>
+          ) : (
+            <Image
+              source={{ uri: exercise.image }}
+              style={styles.image}
+              resizeMode="cover"
+              onLoad={() => setImageLoading(false)}
+              onError={() => {
+                setImageLoading(false);
+                setImageError(true);
+              }}
+            />
+          )}
         </View>
 
         <View style={styles.textContainer}>
@@ -102,6 +121,18 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flexShrink: 0,
     backgroundColor: '#f3f4f6',
+    position: 'relative',
+  },
+  imagePlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    zIndex: 1,
   },
   image: {
     width: '100%',

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
+  FlatList,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
@@ -15,10 +16,15 @@ import { TRAINING_TYPES } from '../data/exercisesData';
 import ExerciseCard from '../workout/ExerciseCard';
 import storage from '../../utils/storage';
 
+const ITEMS_PER_PAGE = 20;
+
 function LibraryPage() {
   const [allExercises, setAllExercises] = useState([]);
   const [filteredExercises, setFilteredExercises] = useState([]);
+  const [displayedExercises, setDisplayedExercises] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedExercise, setExpandedExercise] = useState(null);
@@ -77,6 +83,12 @@ function LibraryPage() {
     filterExercises();
   }, [selectedCategory, searchQuery, allExercises]);
 
+  useEffect(() => {
+    // Reset pagination when filters change
+    setCurrentPage(1);
+    loadPage(1, filteredExercises);
+  }, [filteredExercises]);
+
   const filterExercises = () => {
     let filtered = allExercises;
 
@@ -100,6 +112,28 @@ function LibraryPage() {
     }
 
     setFilteredExercises(filtered);
+  };
+
+  const loadPage = (page, exercises = filteredExercises) => {
+    const startIndex = 0;
+    const endIndex = page * ITEMS_PER_PAGE;
+    const paginatedData = exercises.slice(startIndex, endIndex);
+    setDisplayedExercises(paginatedData);
+  };
+
+  const loadMore = () => {
+    if (loadingMore || displayedExercises.length >= filteredExercises.length) {
+      return;
+    }
+
+    setLoadingMore(true);
+    const nextPage = currentPage + 1;
+    setCurrentPage(nextPage);
+
+    setTimeout(() => {
+      loadPage(nextPage);
+      setLoadingMore(false);
+    }, 300); // Small delay for better UX
   };
 
   const getCategoryCount = (categoryId) => {
@@ -195,31 +229,66 @@ function LibraryPage() {
       </ScrollView>
 
       {/* Exercise List */}
-      <ScrollView style={styles.exerciseList}>
-        {filteredExercises.length === 0 ? (
+      <FlatList
+        data={displayedExercises}
+        keyExtractor={(item, index) => `${item.id || item.name}-${index}`}
+        renderItem={({ item, index }) => {
+          const uniqueId = `${item.id || item.name}-${index}`;
+          return (
+            <ExerciseCard
+              exercise={item}
+              exerciseId={uniqueId}
+              isExpanded={expandedExercise === uniqueId}
+              onToggle={() => handleToggleExpand(uniqueId)}
+              onFavorite={() => toggleFavorite(item.id || item.name)}
+              isFavorite={favorites.includes(item.id || item.name)}
+            />
+          );
+        }}
+        ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
             <Ionicons name="fitness-outline" size={64} color="#d1d5db" />
             <Text style={styles.emptyText}>
               {searchQuery ? 'Nie znaleziono ćwiczeń' : 'Brak ćwiczeń w tej kategorii'}
             </Text>
           </View>
-        ) : (
-          filteredExercises.map((exercise, index) => {
-            const uniqueId = `${exercise.id || exercise.name}-${index}`;
-            return (
-              <ExerciseCard
-                key={uniqueId}
-                exercise={exercise}
-                exerciseId={uniqueId}
-                isExpanded={expandedExercise === uniqueId}
-                onToggle={() => handleToggleExpand(uniqueId)}
-                onFavorite={() => toggleFavorite(exercise.id || exercise.name)}
-                isFavorite={favorites.includes(exercise.id || exercise.name)}
-              />
-            );
-          })
         )}
-      </ScrollView>
+        ListFooterComponent={() => {
+          if (displayedExercises.length >= filteredExercises.length) {
+            return displayedExercises.length > 0 ? (
+              <View style={styles.footerContainer}>
+                <Text style={styles.footerText}>
+                  Wszystkie ćwiczenia załadowane ({displayedExercises.length})
+                </Text>
+              </View>
+            ) : null;
+          }
+
+          if (loadingMore) {
+            return (
+              <View style={styles.footerContainer}>
+                <ActivityIndicator size="small" color="#9333ea" />
+              </View>
+            );
+          }
+
+          return (
+            <TouchableOpacity onPress={loadMore} style={styles.loadMoreButton}>
+              <Text style={styles.loadMoreText}>
+                Załaduj więcej ({displayedExercises.length} z {filteredExercises.length})
+              </Text>
+              <Ionicons name="chevron-down" size={16} color="#9333ea" />
+            </TouchableOpacity>
+          );
+        }}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        initialNumToRender={10}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
+        style={styles.exerciseList}
+      />
     </View>
   );
 }
@@ -315,6 +384,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#9ca3af',
     textAlign: 'center',
+  },
+  footerContainer: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  loadMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    marginVertical: 16,
+    marginHorizontal: 16,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+    gap: 8,
+  },
+  loadMoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9333ea',
   },
 });
 
