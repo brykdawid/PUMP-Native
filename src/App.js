@@ -346,25 +346,7 @@ function App() {
       </ScrollView>
 
       <View style={styles.bottomNav}>
-        {/* Saved Tab - Leftmost */}
-        <TouchableOpacity
-          onPress={() => handleTabChange('saved')}
-          style={styles.navButton}
-        >
-          <Ionicons
-            name="bookmark-outline"
-            size={24}
-            color={currentTab === 'saved' ? '#9333ea' : '#9ca3af'}
-          />
-          <Text style={[
-            styles.navText,
-            currentTab === 'saved' && styles.navTextActive
-          ]}>
-            Zapisane
-          </Text>
-        </TouchableOpacity>
-
-        {/* Library Tab - Replaces Workout */}
+        {/* Library Tab - Leftmost */}
         <TouchableOpacity
           onPress={() => handleTabChange('library')}
           style={styles.navButton}
@@ -379,6 +361,24 @@ function App() {
             currentTab === 'library' && styles.navTextActive
           ]}>
             Biblioteka
+          </Text>
+        </TouchableOpacity>
+
+        {/* Saved Tab */}
+        <TouchableOpacity
+          onPress={() => handleTabChange('saved')}
+          style={styles.navButton}
+        >
+          <Ionicons
+            name="bookmark-outline"
+            size={24}
+            color={currentTab === 'saved' ? '#9333ea' : '#9ca3af'}
+          />
+          <Text style={[
+            styles.navText,
+            currentTab === 'saved' && styles.navTextActive
+          ]}>
+            Zapisane
           </Text>
         </TouchableOpacity>
 
