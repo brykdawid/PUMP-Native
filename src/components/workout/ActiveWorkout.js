@@ -292,6 +292,7 @@ function ActiveWorkout({
     });
 
     const workoutData = {
+      id: Date.now(),
       date: getLocalISOString(),
       duration: elapsedTime,
       title: title || 'Trening',
