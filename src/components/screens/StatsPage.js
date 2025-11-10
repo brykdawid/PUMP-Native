@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import CompletedWorkoutDetails from '../workout/CompletedWorkoutDetails';
 
-function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
+function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
   const [editingField, setEditingField] = useState(null);
   const [tempValue, setTempValue] = useState('');
   const [activeTab, setActiveTab] = useState('body'); // 'body', 'volume', 'workouts'
@@ -173,6 +173,13 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
       ...prev,
       [exerciseName]: !prev[exerciseName]
     }));
+  };
+
+  const handleSaveWorkout = (workout) => {
+    if (onSaveCompletedWorkoutAsTemplate) {
+      const result = onSaveCompletedWorkoutAsTemplate(workout);
+      // Result is handled silently - icon will update to show saved state
+    }
   };
 
   const renderTabButton = (tab, icon, label) => (
@@ -544,14 +551,27 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
                   );
                 })}
               </View>
-              <TouchableOpacity
-                onPress={() => setSelectedWorkout(workout)}
-                style={styles.workoutDetailsButton}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="list-outline" size={18} color="#9333ea" />
-                <Text style={styles.workoutDetailsButtonText}>Szczegóły</Text>
-              </TouchableOpacity>
+              <View style={styles.workoutActions}>
+                <TouchableOpacity
+                  onPress={() => handleSaveWorkout(workout)}
+                  style={styles.starIconButton}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={isWorkoutSavedAsTemplate && isWorkoutSavedAsTemplate(workout) ? "star" : "star-outline"}
+                    size={24}
+                    color={isWorkoutSavedAsTemplate && isWorkoutSavedAsTemplate(workout) ? "#fbbf24" : "#9ca3af"}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setSelectedWorkout(workout)}
+                  style={styles.workoutDetailsButton}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="list-outline" size={18} color="#9333ea" />
+                  <Text style={styles.workoutDetailsButtonText}>Szczegóły</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           );
         })}
@@ -645,6 +665,8 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
       <CompletedWorkoutDetails
         workout={selectedWorkout}
         onClose={() => setSelectedWorkout(null)}
+        onSaveCompletedWorkoutAsTemplate={onSaveCompletedWorkoutAsTemplate}
+        isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
       />
     );
   }
@@ -1087,6 +1109,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#4b5563',
   },
+  workoutActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 8,
+  },
+  starIconButton: {
+    padding: 8,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
   workoutDetailsButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1098,7 +1134,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e9d5ff',
-    marginTop: 8,
+    flex: 1,
   },
   workoutDetailsButtonText: {
     fontSize: 14,

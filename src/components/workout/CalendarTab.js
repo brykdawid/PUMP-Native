@@ -23,7 +23,7 @@ const MONTHS_PL = [
 
 const DAYS_SHORT_PL = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
 
-function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWorkout }) {
+function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWorkout, onSaveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekStartDate, setWeekStartDate] = useState(getWeekStart(new Date()));
@@ -171,20 +171,29 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
 
   // Zapisywanie treningu do zakładki zapisane
   const handleSaveCompletedWorkout = () => {
-    if (!selectedWorkoutForView || !onSaveWorkout) return;
+    if (!selectedWorkoutForView) return;
 
-    const workoutToSave = {
-      id: Date.now(),
-      title: selectedWorkoutForView.title || 'Trening',
-      type: selectedWorkoutForView.type || 'custom',
-      exercises: selectedWorkoutForView.exercises || [],
-      date: formatDateToISO(selectedDate),
-      savedAt: getLocalISOString()
-    };
-
-    onSaveWorkout(workoutToSave);
-    setShowWorkoutModal(false);
-    Alert.alert('Sukces', 'Trening został zapisany w zakładce Zapisane!');
+    // Use new function if available, otherwise fallback to old method
+    if (onSaveCompletedWorkoutAsTemplate) {
+      const result = onSaveCompletedWorkoutAsTemplate(selectedWorkoutForView);
+      if (result.success) {
+        Alert.alert('Sukces', result.message);
+      } else {
+        Alert.alert('Informacja', result.message);
+      }
+    } else if (onSaveWorkout) {
+      // Fallback to old method
+      const workoutToSave = {
+        id: Date.now(),
+        title: selectedWorkoutForView.title || 'Trening',
+        type: selectedWorkoutForView.type || 'custom',
+        exercises: selectedWorkoutForView.exercises || [],
+        date: formatDateToISO(selectedDate),
+        savedAt: getLocalISOString()
+      };
+      onSaveWorkout(workoutToSave);
+      Alert.alert('Sukces', 'Trening został zapisany w zakładce Zapisane!');
+    }
   };
 
   // Usuwanie treningu z kalendarza
@@ -458,9 +467,22 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
         <View style={styles.modalOverlay}>
           <View style={styles.workoutModal}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {selectedWorkoutForView?.title || 'Szczegóły treningu'}
-              </Text>
+              <View style={styles.modalTitleRow}>
+                <Text style={styles.modalTitle}>
+                  {selectedWorkoutForView?.title || 'Szczegóły treningu'}
+                </Text>
+                <TouchableOpacity
+                  onPress={handleSaveCompletedWorkout}
+                  style={styles.starButton}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={isWorkoutSavedAsTemplate && isWorkoutSavedAsTemplate(selectedWorkoutForView) ? "star" : "star-outline"}
+                    size={24}
+                    color={isWorkoutSavedAsTemplate && isWorkoutSavedAsTemplate(selectedWorkoutForView) ? "#fbbf24" : "#9ca3af"}
+                  />
+                </TouchableOpacity>
+              </View>
               <TouchableOpacity
                 onPress={() => setShowWorkoutModal(false)}
                 style={styles.modalCloseButton}
@@ -915,11 +937,20 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
   },
+  modalTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#111827',
     flex: 1,
+  },
+  starButton: {
+    padding: 4,
   },
   modalCloseButton: {
     padding: 4,

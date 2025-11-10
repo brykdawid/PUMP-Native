@@ -27,7 +27,9 @@ function ActiveWorkout({
   onBeginWorkout,
   workoutHistory,
   setWorkoutHistory,
-  onSaveWorkout
+  onSaveWorkout,
+  onSaveCompletedWorkoutAsTemplate,
+  isWorkoutSavedAsTemplate
 }) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [exerciseSets, setExerciseSets] = useState({});
@@ -335,6 +337,8 @@ function ActiveWorkout({
         setWorkoutHistory={setWorkoutHistory}
         onGoToPlan={onGoToPlan}
         onSaveWorkout={onSaveWorkout}
+        onSaveCompletedWorkoutAsTemplate={onSaveCompletedWorkoutAsTemplate}
+        isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
       />
     );
   }

@@ -115,6 +115,62 @@ function App() {
     setSavedWorkouts(prev => [normalized, ...prev]);
   };
 
+  const handleSaveCompletedWorkoutAsTemplate = (completedWorkout) => {
+    // Check if a workout with the same title and exercises already exists
+    const alreadyExists = savedWorkouts.some(saved =>
+      saved.title === completedWorkout.title &&
+      saved.exercises.length === completedWorkout.exercises.length &&
+      saved.exercises.every((ex, idx) =>
+        ex.name === completedWorkout.exercises[idx]?.name
+      )
+    );
+
+    if (alreadyExists) {
+      return { success: false, message: 'Ten trening jest już zapisany' };
+    }
+
+    // Convert completed workout to template format
+    const template = {
+      id: Date.now(),
+      title: completedWorkout.title,
+      type: completedWorkout.type || 'custom',
+      exercises: completedWorkout.exercises.map(ex => ({
+        name: ex.name,
+        category: ex.category,
+        image: ex.image,
+        description: ex.description || '',
+        tips: ex.tips || '',
+        labels: ex.labels || [],
+        // Convert sets to template format (number or keep structure without completed status)
+        sets: Array.isArray(ex.sets)
+          ? ex.sets.map(set => ({
+              weight: set.weight || '',
+              reps: set.reps || '',
+              completed: false
+            }))
+          : (typeof ex.sets === 'number' ? ex.sets : 3)
+      })),
+      savedAt: getLocalISOString(),
+      metadata: {
+        isFavorite: false
+      }
+    };
+
+    const normalized = normalizeWorkout(template);
+    setSavedWorkouts(prev => [normalized, ...prev]);
+    return { success: true, message: 'Trening zapisany!' };
+  };
+
+  const isWorkoutSavedAsTemplate = (completedWorkout) => {
+    return savedWorkouts.some(saved =>
+      saved.title === completedWorkout.title &&
+      saved.exercises.length === completedWorkout.exercises.length &&
+      saved.exercises.every((ex, idx) =>
+        ex.name === completedWorkout.exercises[idx]?.name
+      )
+    );
+  };
+
   const handleDeleteWorkout = (workoutId) => {
     console.log('🗑️ Deleting workout with ID:', workoutId);
     setSavedWorkouts(prev => {
@@ -231,6 +287,8 @@ function App() {
           workoutHistory={workoutHistory}
           setWorkoutHistory={setWorkoutHistory}
           onSaveWorkout={handleSaveWorkout}
+          onSaveCompletedWorkoutAsTemplate={handleSaveCompletedWorkoutAsTemplate}
+          isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
         />
       );
     }
@@ -246,6 +304,8 @@ function App() {
           onBeginWorkout={handleBeginWorkout}
           workoutHistory={workoutHistory}
           setWorkoutHistory={setWorkoutHistory}
+          onSaveCompletedWorkoutAsTemplate={handleSaveCompletedWorkoutAsTemplate}
+          isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
         />
       );
     }
@@ -256,6 +316,8 @@ function App() {
           userStats={userStats}
           setUserStats={setUserStats}
           workoutHistory={workoutHistory}
+          onSaveCompletedWorkoutAsTemplate={handleSaveCompletedWorkoutAsTemplate}
+          isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
         />
       );
     }
