@@ -12,7 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import GifModal from './GifModal';
 
-function CompletedWorkoutDetails({ workout, onClose }) {
+function CompletedWorkoutDetails({ workout, onClose, onSaveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
   const [expandedExercises, setExpandedExercises] = useState({});
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
@@ -58,6 +58,13 @@ function CompletedWorkoutDetails({ workout, onClose }) {
       ...prev,
       [exerciseName]: !prev[exerciseName]
     }));
+  };
+
+  const handleSaveWorkout = () => {
+    if (onSaveCompletedWorkoutAsTemplate && workout) {
+      const result = onSaveCompletedWorkoutAsTemplate(workout);
+      // Result is handled silently - icon will update to show saved state
+    }
   };
 
   const getCategoryName = (id) => {
@@ -117,7 +124,17 @@ function CompletedWorkoutDetails({ workout, onClose }) {
             <Ionicons name="arrow-back" size={24} color="#ffffff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Szczegóły treningu</Text>
-          <View style={styles.backButton} />
+          <TouchableOpacity
+            onPress={handleSaveWorkout}
+            style={styles.backButton}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={isWorkoutSavedAsTemplate && isWorkoutSavedAsTemplate(workout) ? "star" : "star-outline"}
+              size={24}
+              color={isWorkoutSavedAsTemplate && isWorkoutSavedAsTemplate(workout) ? "#fbbf24" : "#ffffff"}
+            />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.headerContent}>
