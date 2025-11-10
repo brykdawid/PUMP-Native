@@ -304,7 +304,10 @@ function ActiveWorkout({
       exercises: workoutExercises.map(ex => ({
         name: ex.name,
         category: ex.category,
-        image: ex.image, // Save exercise image for stats
+        image: ex.image,
+        description: ex.description || '',
+        tips: ex.tips || [],
+        labels: ex.labels || [],
         sets: exerciseSets[ex.name] || []
       }))
     };
