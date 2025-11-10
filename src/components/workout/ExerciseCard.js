@@ -18,6 +18,21 @@ function ExerciseCard({
 
   return (
     <View style={styles.container}>
+      {/* Favorite star - Top right corner */}
+      {onFavorite && (
+        <TouchableOpacity
+          onPress={onFavorite}
+          style={styles.favoriteButtonTop}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name={isFavorite ? 'star' : 'star-outline'}
+            size={24}
+            color={isFavorite ? '#facc15' : '#9ca3af'}
+          />
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
         onPress={onToggle}
         style={styles.button}
@@ -60,33 +75,17 @@ function ExerciseCard({
         />
       </TouchableOpacity>
 
-      {/* Action buttons (star and swap) */}
-      {(onFavorite || onReplace) && (
+      {/* Replace button (if provided) */}
+      {onReplace && (
         <View style={styles.exerciseActions}>
-          {onFavorite && (
-            <TouchableOpacity
-              onPress={onFavorite}
-              style={styles.favoriteButton}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={isFavorite ? 'star' : 'star-outline'}
-                size={20}
-                color={isFavorite ? '#facc15' : '#9ca3af'}
-              />
-            </TouchableOpacity>
-          )}
-
-          {onReplace && (
-            <TouchableOpacity
-              onPress={onReplace}
-              style={styles.replaceButton}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="refresh" size={16} color="#2563eb" />
-              <Text style={styles.replaceButtonText}>{replaceButtonText}</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            onPress={onReplace}
+            style={styles.replaceButton}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="refresh" size={16} color="#2563eb" />
+            <Text style={styles.replaceButtonText}>{replaceButtonText}</Text>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -103,6 +102,7 @@ function ExerciseCard({
 
 const styles = StyleSheet.create({
   container: {
+    position: 'relative',
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
     backgroundColor: '#ffffff',
@@ -113,6 +113,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+  },
+  favoriteButtonTop: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 10,
+    padding: 8,
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   imageContainer: {
     width: 80,
@@ -167,15 +184,12 @@ const styles = StyleSheet.create({
   exerciseActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
-  },
-  favoriteButton: {
-    padding: 8,
   },
   replaceButton: {
     flexDirection: 'row',
