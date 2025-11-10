@@ -146,15 +146,18 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
             allSets: []
           };
         }
-        exercise.sets?.forEach(set => {
-          if (set.completed) {
-            exerciseMap[exercise.name].allSets.push({
-              ...set,
-              workoutDate: workout.date,
-              workoutTitle: workout.title
-            });
-          }
-        });
+        // Check if sets is an array before iterating
+        if (Array.isArray(exercise.sets)) {
+          exercise.sets.forEach(set => {
+            if (set.completed) {
+              exerciseMap[exercise.name].allSets.push({
+                ...set,
+                workoutDate: workout.date,
+                workoutTitle: workout.title
+              });
+            }
+          });
+        }
       });
     });
 
