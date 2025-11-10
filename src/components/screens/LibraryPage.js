@@ -204,17 +204,20 @@ function LibraryPage() {
             </Text>
           </View>
         ) : (
-          filteredExercises.map((exercise) => (
-            <ExerciseCard
-              key={exercise.id}
-              exercise={exercise}
-              exerciseId={exercise.id}
-              isExpanded={expandedExercise === exercise.id}
-              onToggle={() => handleToggleExpand(exercise.id)}
-              onFavorite={() => toggleFavorite(exercise.id)}
-              isFavorite={favorites.includes(exercise.id)}
-            />
-          ))
+          filteredExercises.map((exercise, index) => {
+            const uniqueId = `${exercise.id || exercise.name}-${index}`;
+            return (
+              <ExerciseCard
+                key={uniqueId}
+                exercise={exercise}
+                exerciseId={uniqueId}
+                isExpanded={expandedExercise === uniqueId}
+                onToggle={() => handleToggleExpand(uniqueId)}
+                onFavorite={() => toggleFavorite(exercise.id || exercise.name)}
+                isFavorite={favorites.includes(exercise.id || exercise.name)}
+              />
+            );
+          })
         )}
       </ScrollView>
     </View>
