@@ -277,11 +277,27 @@ function ActiveWorkout({
     const categories = Object.keys(exercisesByCategory);
     const title = categories.map(cat => getCategoryName(cat)).join('+');
 
+    // Calculate total training volume (weight × reps for all completed sets)
+    let totalVolume = 0;
+    workoutExercises.forEach(ex => {
+      const sets = exerciseSets[ex.name] || [];
+      sets.forEach(set => {
+        if (set.completed) {
+          const weight = parseFloat(set.weight) || 0;
+          const reps = parseFloat(set.reps) || 0;
+          totalVolume += weight * reps;
+        }
+      });
+    });
+
+    console.log('📊 Calculated total volume:', totalVolume, 'kg');
+
     const workoutData = {
       date: getLocalISOString(),
       duration: elapsedTime,
       title: title || 'Trening',
       type: workoutType,
+      totalVolume: Math.round(totalVolume),
       exercises: workoutExercises.map(ex => ({
         name: ex.name,
         category: ex.category,
