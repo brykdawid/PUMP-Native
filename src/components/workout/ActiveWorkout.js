@@ -476,8 +476,8 @@ function ActiveWorkout({
                           >
                             <Ionicons
                               name={set.completed ? 'checkmark-circle' : 'checkmark-circle-outline'}
-                              size={24}
-                              color={set.completed ? '#10b981' : '#6b7280'}
+                              size={32}
+                              color={set.completed ? '#10b981' : '#3b82f6'}
                             />
                           </TouchableOpacity>
 
@@ -875,11 +875,12 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   checkButton: {
-    padding: 4,
+    padding: 8,
+    marginLeft: 4,
   },
   checkButtonActive: {
     backgroundColor: '#f0fdf4',
-    borderRadius: 8,
+    borderRadius: 12,
   },
   deleteSetButton: {
     padding: 4,
