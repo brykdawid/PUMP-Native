@@ -58,8 +58,18 @@ function App() {
         userStats: userStatsData ? 'found' : 'empty'
       });
 
-      if (savedWorkoutsData) setSavedWorkouts(JSON.parse(savedWorkoutsData));
-      if (workoutHistoryData) setWorkoutHistory(JSON.parse(workoutHistoryData));
+      if (savedWorkoutsData) {
+        const parsed = JSON.parse(savedWorkoutsData);
+        // Filter out null/invalid workouts
+        const validWorkouts = Array.isArray(parsed) ? parsed.filter(w => w && w.title && w.exercises) : [];
+        setSavedWorkouts(validWorkouts);
+      }
+      if (workoutHistoryData) {
+        const parsed = JSON.parse(workoutHistoryData);
+        // Filter out null/invalid workouts
+        const validHistory = Array.isArray(parsed) ? parsed.filter(w => w && w.title && w.exercises) : [];
+        setWorkoutHistory(validHistory);
+      }
       if (targetDateData) setTargetDate(targetDateData);
       if (userStatsData) setUserStats(JSON.parse(userStatsData));
 
@@ -116,12 +126,19 @@ function App() {
   };
 
   const handleSaveCompletedWorkoutAsTemplate = (completedWorkout) => {
+    // Validate input
+    if (!completedWorkout || !completedWorkout.title || !completedWorkout.exercises) {
+      return { success: false, message: 'Nieprawidłowe dane treningu' };
+    }
+
     // Check if a workout with the same title and exercises already exists
     const alreadyExists = savedWorkouts.some(saved =>
+      saved &&
       saved.title === completedWorkout.title &&
+      saved.exercises &&
       saved.exercises.length === completedWorkout.exercises.length &&
       saved.exercises.every((ex, idx) =>
-        ex.name === completedWorkout.exercises[idx]?.name
+        ex && ex.name === completedWorkout.exercises[idx]?.name
       )
     );
 
@@ -162,11 +179,18 @@ function App() {
   };
 
   const isWorkoutSavedAsTemplate = (completedWorkout) => {
+    // Validate input
+    if (!completedWorkout || !completedWorkout.title || !completedWorkout.exercises) {
+      return false;
+    }
+
     return savedWorkouts.some(saved =>
+      saved &&
       saved.title === completedWorkout.title &&
+      saved.exercises &&
       saved.exercises.length === completedWorkout.exercises.length &&
       saved.exercises.every((ex, idx) =>
-        ex.name === completedWorkout.exercises[idx]?.name
+        ex && ex.name === completedWorkout.exercises[idx]?.name
       )
     );
   };
