@@ -63,16 +63,17 @@ function ExerciseCard({
         </View>
 
         <View style={styles.textContainer}>
-          <Text style={styles.exerciseName}>{exercise.name}</Text>
+          <View style={styles.textRow}>
+            <Text style={styles.exerciseName}>{exercise.name}</Text>
+            <Ionicons
+              name={isExpanded ? 'chevron-up' : 'chevron-down'}
+              size={16}
+              color="#9333ea"
+              style={styles.chevronIcon}
+            />
+          </View>
           <Text style={styles.exerciseSets}>{exercise.sets}</Text>
         </View>
-
-        <Ionicons
-          name={isExpanded ? 'chevron-up' : 'chevron-down'}
-          size={16}
-          color="#9333ea"
-          style={styles.icon}
-        />
       </TouchableOpacity>
 
       {/* Replace button (if provided) */}
@@ -109,17 +110,19 @@ const styles = StyleSheet.create({
   },
   button: {
     width: '100%',
-    padding: 16,
+    paddingLeft: 16,
+    paddingRight: 52,
+    paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
   },
   favoriteButtonTop: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 12,
+    right: 12,
     zIndex: 10,
-    padding: 8,
+    padding: 6,
     backgroundColor: '#ffffff',
     borderRadius: 20,
     shadowColor: '#000',
@@ -158,7 +161,13 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
   },
+  textRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   exerciseName: {
+    flex: 1,
     color: '#111827',
     fontWeight: '600',
     fontSize: 16,
@@ -168,7 +177,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
-  icon: {
+  chevronIcon: {
     flexShrink: 0,
   },
   descriptionContainer: {
