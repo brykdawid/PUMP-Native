@@ -106,7 +106,7 @@ function ProfilePage() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Text style={styles.logo}>PUMP</Text>
-        <Text style={styles.subtitle}>Profile</Text>
+        <Text style={styles.subtitle}>Profil</Text>
       </View>
 
       {/* Profile Picture Section */}
@@ -126,7 +126,7 @@ function ProfilePage() {
 
         <TouchableOpacity onPress={handleImagePick} style={styles.changePhotoButton}>
           <Ionicons name="camera" size={20} color="white" />
-          <Text style={styles.changePhotoText}>Change Photo</Text>
+          <Text style={styles.changePhotoText}>Zmień zdjęcie</Text>
         </TouchableOpacity>
       </View>
 

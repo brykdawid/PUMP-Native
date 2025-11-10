@@ -56,10 +56,10 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
   };
 
   const getBMICategory = (bmi) => {
-    if (bmi < 18.5) return { text: 'Underweight', color: '#2563eb' };
-    if (bmi < 25) return { text: 'Normal', color: '#16a34a' };
-    if (bmi < 30) return { text: 'Overweight', color: '#ca8a04' };
-    return { text: 'Obese', color: '#dc2626' };
+    if (bmi < 18.5) return { text: 'Niedowaga', color: '#2563eb' };
+    if (bmi < 25) return { text: 'Normalna', color: '#16a34a' };
+    if (bmi < 30) return { text: 'Nadwaga', color: '#ca8a04' };
+    return { text: 'Otyłość', color: '#dc2626' };
   };
 
   // Calculate training volume from pre-calculated totalVolume field
@@ -146,15 +146,18 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
             allSets: []
           };
         }
-        exercise.sets?.forEach(set => {
-          if (set.completed) {
-            exerciseMap[exercise.name].allSets.push({
-              ...set,
-              workoutDate: workout.date,
-              workoutTitle: workout.title
-            });
-          }
-        });
+        // Check if sets is an array before iterating
+        if (Array.isArray(exercise.sets)) {
+          exercise.sets.forEach(set => {
+            if (set.completed) {
+              exerciseMap[exercise.name].allSets.push({
+                ...set,
+                workoutDate: workout.date,
+                workoutTitle: workout.title
+              });
+            }
+          });
+        }
       });
     });
 
@@ -193,13 +196,13 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Ionicons name="trending-up" size={20} color="#9333ea" />
-          <Text style={styles.sectionTitle}>Body Metrics</Text>
+          <Text style={styles.sectionTitle}>Parametry ciała</Text>
         </View>
 
         <View style={styles.metricsGrid}>
           {/* Weight */}
           <View style={styles.metricCard}>
-            <Text style={styles.metricLabel}>Weight</Text>
+            <Text style={styles.metricLabel}>Waga</Text>
             {editingField === 'weight' ? (
               <View style={styles.editContainer}>
                 <TextInput
@@ -228,7 +231,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
 
           {/* Height */}
           <View style={styles.metricCard}>
-            <Text style={styles.metricLabel}>Height</Text>
+            <Text style={styles.metricLabel}>Wzrost</Text>
             {editingField === 'height' ? (
               <View style={styles.editContainer}>
                 <TextInput
@@ -270,7 +273,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Ionicons name="trophy" size={20} color="#facc15" />
-          <Text style={styles.sectionTitle}>Personal Records</Text>
+          <Text style={styles.sectionTitle}>Rekordy osobiste</Text>
         </View>
 
         <View style={styles.recordsList}>
@@ -278,7 +281,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
             <View key={idx} style={styles.recordCard}>
               <View style={styles.recordInfo}>
                 <Text style={styles.recordExercise}>{record.exercise}</Text>
-                <Text style={styles.recordLabel}>Personal best</Text>
+                <Text style={styles.recordLabel}>Najlepszy wynik</Text>
               </View>
 
               <View style={styles.recordValueContainer}>
@@ -370,7 +373,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
                 </View>
                 <View style={styles.exerciseExpandButton}>
                   <Text style={styles.exerciseExpandText}>
-                    {isExpanded ? 'Hide' : 'View'} sets
+                    {isExpanded ? 'Ukryj' : 'Pokaż'} serie
                   </Text>
                   <Ionicons
                     name={isExpanded ? 'chevron-up-circle' : 'chevron-down-circle'}
@@ -390,7 +393,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
                       </View>
                       <Text style={styles.setX}>×</Text>
                       <View style={styles.detailSetInput}>
-                        <Text style={styles.detailSetText}>{set.reps} reps</Text>
+                        <Text style={styles.detailSetText}>{set.reps} powt.</Text>
                       </View>
                       <Ionicons name="checkmark-circle" size={20} color="#10b981" />
                     </View>
@@ -409,10 +412,10 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Ionicons name="barbell" size={20} color="#9333ea" />
-          <Text style={styles.sectionTitle}>Training Volume</Text>
+          <Text style={styles.sectionTitle}>Objętość treningu</Text>
         </View>
         <Text style={styles.sectionDescription}>
-          Total weight lifted (weight × reps)
+          Całkowity podniesiony ciężar (ciężar × powtórzenia)
         </Text>
 
         <View style={styles.statsGrid}>
@@ -420,7 +423,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
             <View style={styles.statHeader}>
               <Ionicons name="calendar" size={24} color="#3b82f6" />
             </View>
-            <Text style={styles.statLabel}>Weekly</Text>
+            <Text style={styles.statLabel}>Tygodniowo</Text>
             <Text style={styles.statValue}>
               {calculateTrainingVolume.weekly.toLocaleString()}
             </Text>
@@ -431,7 +434,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
             <View style={styles.statHeader}>
               <Ionicons name="calendar-outline" size={24} color="#8b5cf6" />
             </View>
-            <Text style={styles.statLabel}>Monthly</Text>
+            <Text style={styles.statLabel}>Miesięcznie</Text>
             <Text style={styles.statValue}>
               {calculateTrainingVolume.monthly.toLocaleString()}
             </Text>
@@ -450,7 +453,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
             color="#9333ea"
           />
           <Text style={styles.detailsButtonText}>
-            {showVolumeDetails ? 'Hide Details' : 'Show Details'}
+            {showVolumeDetails ? 'Ukryj szczegóły' : 'Pokaż szczegóły'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -464,7 +467,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
               activeOpacity={0.7}
             >
               <Text style={[styles.periodButtonText, volumePeriod === 'weekly' && styles.periodButtonTextActive]}>
-                Weekly
+                Tygodniowo
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -473,7 +476,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
               activeOpacity={0.7}
             >
               <Text style={[styles.periodButtonText, volumePeriod === 'monthly' && styles.periodButtonTextActive]}>
-                Monthly
+                Miesięcznie
               </Text>
             </TouchableOpacity>
           </View>
@@ -508,7 +511,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
                 <View>
                   <Text style={styles.workoutTitle}>{workout.title}</Text>
                   <Text style={styles.workoutDate}>
-                    {dateStr} at {timeStr}
+                    {dateStr} o {timeStr}
                   </Text>
                 </View>
                 <View style={styles.workoutStats}>
@@ -528,10 +531,13 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
               </View>
               <View style={styles.workoutExercisesList}>
                 {workout.exercises?.map((ex, exIdx) => {
-                  const completedSets = ex.sets?.filter(s => s.completed).length || 0;
+                  // Handle both array and number types for exercise.sets
+                  const completedSets = Array.isArray(ex.sets)
+                    ? ex.sets.filter(s => s.completed).length
+                    : (typeof ex.sets === 'number' ? ex.sets : 0);
                   return (
                     <Text key={exIdx} style={styles.workoutExerciseItem}>
-                      • {ex.name} ({completedSets} sets)
+                      • {ex.name} ({completedSets} serii)
                     </Text>
                   );
                 })}
@@ -548,10 +554,10 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Ionicons name="checkmark-done" size={20} color="#16a34a" />
-          <Text style={styles.sectionTitle}>Completed Workouts</Text>
+          <Text style={styles.sectionTitle}>Ukończone treningi</Text>
         </View>
         <Text style={styles.sectionDescription}>
-          Total number of completed training sessions
+          Całkowita liczba ukończonych sesji treningowych
         </Text>
 
         <View style={styles.statsGrid}>
@@ -559,22 +565,22 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
             <View style={styles.statHeader}>
               <Ionicons name="flame" size={24} color="#f59e0b" />
             </View>
-            <Text style={styles.statLabel}>Weekly</Text>
+            <Text style={styles.statLabel}>Tygodniowo</Text>
             <Text style={styles.statValue}>
               {calculateWorkoutCount.weekly}
             </Text>
-            <Text style={styles.statUnit}>workouts</Text>
+            <Text style={styles.statUnit}>treningi</Text>
           </View>
 
           <View style={styles.statCard}>
             <View style={styles.statHeader}>
               <Ionicons name="trophy" size={24} color="#facc15" />
             </View>
-            <Text style={styles.statLabel}>Monthly</Text>
+            <Text style={styles.statLabel}>Miesięcznie</Text>
             <Text style={styles.statValue}>
               {calculateWorkoutCount.monthly}
             </Text>
-            <Text style={styles.statUnit}>workouts</Text>
+            <Text style={styles.statUnit}>treningi</Text>
           </View>
         </View>
 
@@ -589,7 +595,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
             color="#16a34a"
           />
           <Text style={styles.detailsButtonText}>
-            {showWorkoutDetails ? 'Hide Details' : 'Show Details'}
+            {showWorkoutDetails ? 'Ukryj szczegóły' : 'Pokaż szczegóły'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -603,7 +609,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
               activeOpacity={0.7}
             >
               <Text style={[styles.periodButtonText, workoutPeriod === 'weekly' && styles.periodButtonTextActive]}>
-                Weekly
+                Tygodniowo
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -612,7 +618,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
               activeOpacity={0.7}
             >
               <Text style={[styles.periodButtonText, workoutPeriod === 'monthly' && styles.periodButtonTextActive]}>
-                Monthly
+                Miesięcznie
               </Text>
             </TouchableOpacity>
           </View>
@@ -635,14 +641,14 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [] }) {
       >
         <View style={styles.header}>
           <Text style={styles.title}>PUMP</Text>
-          <Text style={styles.subtitle}>Your Stats</Text>
+          <Text style={styles.subtitle}>Twoje statystyki</Text>
         </View>
 
         {/* Tab Navigation */}
         <View style={styles.tabContainer}>
-          {renderTabButton('body', 'body', 'Body')}
-          {renderTabButton('volume', 'barbell', 'Volume')}
-          {renderTabButton('workouts', 'fitness', 'Workouts')}
+          {renderTabButton('body', 'body', 'Ciało')}
+          {renderTabButton('volume', 'barbell', 'Objętość')}
+          {renderTabButton('workouts', 'fitness', 'Treningi')}
         </View>
 
         {/* Tab Content */}
