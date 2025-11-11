@@ -744,69 +744,8 @@ function CustomWorkoutBuilder({
         <View style={styles.selectedSection}>
           <Text style={styles.selectedTitle}>Plan treningowy</Text>
 
-          {/* Stare ćwiczenia (dla kompatybilności) */}
-          {selectedExercises.length > 0 && (
-              <View style={styles.legacyExercisesSection}>
-                {Object.entries(exercisesByCategory).map(([category, exercises]) => (
-                  <View key={category} style={styles.categorySection}>
-                    <TouchableOpacity
-                      onPress={() => toggleCategory(category)}
-                      style={styles.categoryHeader}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.categoryHeaderLeft}>
-                        <Text style={styles.categoryIcon}>{getCategoryIcon(category)}</Text>
-                        <Text style={styles.categoryTitle}>{getCategoryName(category)}</Text>
-                        <Text style={styles.categoryCount}>({exercises.length})</Text>
-                      </View>
-                      <Ionicons
-                        name={expandedCategories[category] ? 'chevron-up' : 'chevron-down'}
-                        size={20}
-                        color="#4b5563"
-                      />
-                    </TouchableOpacity>
-
-                    {expandedCategories[category] && (
-                      <View style={styles.categoryExercises}>
-                        {exercises.map((exercise) => (
-                          <View key={exercise.id} style={styles.selectedExerciseItem}>
-                            <ExerciseCard
-                              exercise={exercise}
-                              exerciseId={exercise.id}
-                              isExpanded={expandedExercise === exercise.id}
-                              onToggle={() => toggleExerciseDetails(exercise.id)}
-                            />
-                            <View style={styles.selectedExerciseActions}>
-                              <TouchableOpacity
-                                onPress={() => toggleFavorite(exercise)}
-                                style={styles.smallButton}
-                                activeOpacity={0.7}
-                              >
-                                <Ionicons
-                                  name={isFavoriteExercise(exercise.name) ? 'star' : 'star-outline'}
-                                  size={20}
-                                  color={isFavoriteExercise(exercise.name) ? '#facc15' : '#9ca3af'}
-                                />
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                onPress={() => removeExercise(exercise.id)}
-                                style={styles.removeButton}
-                                activeOpacity={0.7}
-                              >
-                                <Ionicons name="close-circle" size={20} color="#ef4444" />
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Nowa struktura z grupami mięśniowymi */}
-            {workoutPlan.map((group) => (
+          {/* Nowa struktura z grupami mięśniowymi */}
+          {workoutPlan.map((group) => (
               <View key={group.id} style={styles.muscleGroupSection}>
                 <View style={styles.muscleGroupHeader}>
                   {group.muscleGroup ? (
