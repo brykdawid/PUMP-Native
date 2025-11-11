@@ -380,7 +380,13 @@ function App() {
     }
 
     if (currentTab === 'profile') {
-      return <ProfilePage />;
+      return (
+        <ProfilePage
+          userStats={userStats}
+          workoutHistory={workoutHistory}
+          onUpdateUserStats={setUserStats}
+        />
+      );
     }
 
     if (currentTab === 'saved') {
