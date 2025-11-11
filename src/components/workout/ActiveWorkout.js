@@ -136,10 +136,23 @@ function ActiveWorkout({
 
       // Jeśli próbujemy oznaczyć serię jako ukończoną (currently not completed)
       if (!currentSet.completed) {
-        const weight = parseFloat(currentSet.weight);
-        const reps = parseFloat(currentSet.reps);
+        const weightStr = String(currentSet.weight || '').trim();
+        const repsStr = String(currentSet.reps || '').trim();
 
-        // Walidacja: kg i reps muszą być większe od 0
+        // Sprawdź czy pola są puste
+        if (!weightStr || !repsStr) {
+          Alert.alert(
+            'Nieprawidłowe dane',
+            'Musisz wypełnić wagę i liczbę powtórzeń.',
+            [{ text: 'OK' }]
+          );
+          return prev;
+        }
+
+        const weight = parseFloat(weightStr);
+        const reps = parseFloat(repsStr);
+
+        // Walidacja: kg i reps muszą być liczbami większymi od 0
         if (isNaN(weight) || weight <= 0 || isNaN(reps) || reps <= 0) {
           Alert.alert(
             'Nieprawidłowe dane',
