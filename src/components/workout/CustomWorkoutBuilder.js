@@ -586,7 +586,7 @@ function CustomWorkoutBuilder({
         </TouchableOpacity>
       </View>
 
-      {selectedExercises.length > 0 && (
+      {(selectedExercises.length > 0 || workoutPlan.some(group => group.exercises.length > 0)) && (
         <View style={styles.actionButtons}>
           {dateType === 'today' && (
             <TouchableOpacity
