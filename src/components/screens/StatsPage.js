@@ -28,6 +28,9 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
   const [imageErrors, setImageErrors] = useState({});
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [showWeightHistoryModal, setShowWeightHistoryModal] = useState(false);
+  const [showAddRecordModal, setShowAddRecordModal] = useState(false);
+  const [newRecordExercise, setNewRecordExercise] = useState('');
+  const [newRecordWeight, setNewRecordWeight] = useState('');
 
   const startEdit = (field, currentValue) => {
     setEditingField(field);
@@ -67,6 +70,37 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
       newRecords[index].weight = numValue;
       setUserStats({ ...userStats, records: newRecords });
     }
+  };
+
+  const addRecord = () => {
+    if (newRecordExercise.trim() === '' || newRecordWeight.trim() === '') {
+      return;
+    }
+
+    const numValue = parseFloat(newRecordWeight);
+    if (isNaN(numValue) || numValue <= 0) {
+      return;
+    }
+
+    const newRecord = {
+      exercise: newRecordExercise.trim(),
+      weight: numValue
+    };
+
+    setUserStats({
+      ...userStats,
+      records: [...userStats.records, newRecord]
+    });
+
+    // Reset form
+    setNewRecordExercise('');
+    setNewRecordWeight('');
+    setShowAddRecordModal(false);
+  };
+
+  const deleteRecord = (index) => {
+    const newRecords = userStats.records.filter((_, idx) => idx !== index);
+    setUserStats({ ...userStats, records: newRecords });
   };
 
   const getBMICategory = (bmi) => {
@@ -346,44 +380,53 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
           <Text style={styles.sectionTitle}>Rekordy osobiste</Text>
         </View>
 
-        <View style={styles.recordsList}>
-          {userStats.records.map((record, idx) => (
-            <View key={idx} style={styles.recordCard}>
-              <View style={styles.recordInfo}>
-                <Text style={styles.recordExercise}>{record.exercise}</Text>
-                <Text style={styles.recordLabel}>Najlepszy wynik</Text>
-              </View>
+        {/* Informacja i przycisk */}
+        <View style={styles.recordsInfoContainer}>
+          <Ionicons name="information-circle-outline" size={48} color="#9333ea" />
+          <Text style={styles.recordsInfoTitle}>Śledź swoje rekordy</Text>
+          <Text style={styles.recordsInfoText}>
+            Dodaj własne ćwiczenia i zapisuj swoje najlepsze wyniki w kilogramach.
+            Śledź postępy i miej zawsze pod ręką swoje osiągnięcia!
+          </Text>
+        </View>
 
-              <View style={styles.recordValueContainer}>
-                {editingField === `record-${idx}` ? (
-                  <View style={styles.editContainer}>
-                    <TextInput
-                      style={styles.recordEditInput}
-                      value={tempValue}
-                      onChangeText={setTempValue}
-                      keyboardType="decimal-pad"
-                      autoFocus
-                      onBlur={() => {
-                        updateRecord(idx, tempValue);
-                        setEditingField(null);
-                      }}
-                    />
-                    <Text style={styles.recordUnit}>kg</Text>
-                  </View>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => startEdit(`record-${idx}`, record.weight)}
-                    style={styles.recordValueButton}
-                    activeOpacity={0.7}
-                  >
+        {/* Lista dodanych rekordów */}
+        {userStats.records.length > 0 && (
+          <View style={styles.recordsList}>
+            {userStats.records.map((record, idx) => (
+              <View key={idx} style={styles.recordCard}>
+                <View style={styles.recordInfo}>
+                  <Text style={styles.recordExercise}>{record.exercise}</Text>
+                  <Text style={styles.recordLabel}>Najlepszy wynik</Text>
+                </View>
+
+                <View style={styles.recordActions}>
+                  <View style={styles.recordValueContainer}>
                     <Text style={styles.recordValue}>{record.weight}</Text>
                     <Text style={styles.recordUnit}>kg</Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => deleteRecord(idx)}
+                    style={styles.deleteRecordButton}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={20} color="#dc2626" />
                   </TouchableOpacity>
-                )}
+                </View>
               </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        )}
+
+        {/* Przycisk dodawania */}
+        <TouchableOpacity
+          onPress={() => setShowAddRecordModal(true)}
+          style={styles.addRecordButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="add-circle" size={22} color="#ffffff" />
+          <Text style={styles.addRecordButtonText}>Dodaj rekord osobisty</Text>
+        </TouchableOpacity>
       </View>
     </>
   );
@@ -809,6 +852,68 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
               <Text style={styles.modalInfoText}>
                 Statystyki są automatycznie obliczane na podstawie historii pomiarów wagi
               </Text>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal dodawania rekordu */}
+      <Modal
+        visible={showAddRecordModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowAddRecordModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Dodaj rekord osobisty</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowAddRecordModal(false);
+                  setNewRecordExercise('');
+                  setNewRecordWeight('');
+                }}
+                style={styles.modalCloseButton}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close-circle" size={28} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.formContainer}>
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Nazwa ćwiczenia</Text>
+                <TextInput
+                  style={styles.formInput}
+                  value={newRecordExercise}
+                  onChangeText={setNewRecordExercise}
+                  placeholder="np. Wyciskanie sztangi"
+                  placeholderTextColor="#9ca3af"
+                  autoCapitalize="words"
+                />
+              </View>
+
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Rekord (kg)</Text>
+                <TextInput
+                  style={styles.formInput}
+                  value={newRecordWeight}
+                  onChangeText={setNewRecordWeight}
+                  placeholder="np. 100"
+                  placeholderTextColor="#9ca3af"
+                  keyboardType="decimal-pad"
+                />
+              </View>
+
+              <TouchableOpacity
+                onPress={addRecord}
+                style={styles.submitButton}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="checkmark-circle" size={22} color="#ffffff" />
+                <Text style={styles.submitButtonText}>Dodaj rekord</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -1360,6 +1465,99 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     fontWeight: '600',
+  },
+  // Styles dla sekcji informacyjnej o rekordach
+  recordsInfoContainer: {
+    alignItems: 'center',
+    padding: 24,
+    backgroundColor: '#faf5ff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e9d5ff',
+    marginBottom: 16,
+  },
+  recordsInfoTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 12,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  recordsInfoText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  // Styles dla akcji w karcie rekordu
+  recordActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  deleteRecordButton: {
+    padding: 8,
+    backgroundColor: '#fee2e2',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+  },
+  // Styles dla przycisku dodawania rekordu
+  addRecordButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: '#9333ea',
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  addRecordButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  // Styles dla formularza
+  formContainer: {
+    gap: 20,
+  },
+  formGroup: {
+    gap: 8,
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 4,
+  },
+  formInput: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: '#111827',
+  },
+  submitButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: '#9333ea',
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
   },
 });
 
