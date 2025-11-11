@@ -305,7 +305,6 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
   const genderLabels = {
     'male': 'Mężczyzna',
     'female': 'Kobieta',
-    'other': 'Inna',
     '': 'Nie podano'
   };
 
@@ -594,7 +593,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
             {/* Gender picker */}
             {currentEditField === 'gender' && (
               <View style={styles.pickerContainer}>
-                {['male', 'female', 'other'].map(option => (
+                {['male', 'female'].map(option => (
                   <TouchableOpacity
                     key={option}
                     style={[styles.pickerOption, tempValue === option && styles.pickerOptionSelected]}
