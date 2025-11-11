@@ -262,17 +262,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
         <View style={styles.metricsGrid}>
           {/* Weight */}
           <View style={styles.metricCard}>
-            <View style={styles.metricLabelRow}>
-              <Text style={styles.metricLabel}>Waga</Text>
-              <TouchableOpacity
-                onPress={() => setShowWeightHistoryModal(true)}
-                style={styles.historyButton}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="time-outline" size={14} color="#9333ea" />
-                <Text style={styles.historyButtonText}>Historia</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.metricLabel}>Waga</Text>
             {editingField === 'weight' ? (
               <View style={styles.editContainer}>
                 <TextInput
@@ -337,6 +327,16 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
             </Text>
           </View>
         </View>
+
+        {/* Przycisk Historia */}
+        <TouchableOpacity
+          onPress={() => setShowWeightHistoryModal(true)}
+          style={styles.historyButton}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="time-outline" size={18} color="#9333ea" />
+          <Text style={styles.historyButtonText}>Historia wagi</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Personal Records */}
@@ -1257,26 +1257,23 @@ const styles = StyleSheet.create({
     color: '#9333ea',
   },
   // Styles dla przycisku historii
-  metricLabelRow: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
   historyButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    backgroundColor: '#f3e8ff',
-    borderRadius: 6,
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   historyButtonText: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#9333ea',
+    color: '#111827',
   },
   // Styles dla modalu
   modalOverlay: {
