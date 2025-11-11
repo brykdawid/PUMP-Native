@@ -138,6 +138,55 @@ function GeneratedWorkout({
 
   const isFavorite = (exerciseName) => favorites.some(ex => ex.name === exerciseName);
 
+  const removeExercise = (category, exerciseToRemove) => {
+    setWorkoutPlan(prev => ({
+      ...prev,
+      [category]: prev[category].filter(ex => ex.name !== exerciseToRemove.name)
+    }));
+  };
+
+  const addNewExercise = (category) => {
+    const categoryLabels = {
+      'barki': 'shoulders',
+      'biceps': 'biceps',
+      'brzuch': 'abs',
+      'klatka': 'chest',
+      'nogi': 'legs',
+      'plecy': 'back',
+      'posladki': 'glutes',
+      'przedramiona': 'forearms',
+      'triceps': 'triceps'
+    };
+
+    const targetLabel = categoryLabels[category];
+    const usedNames = workoutPlan[category].map(ex => ex.name);
+
+    const availableExercises = allExercises.filter(ex =>
+      ex.labels &&
+      ex.labels.includes(targetLabel) &&
+      !usedNames.includes(ex.name)
+    );
+
+    if (availableExercises.length === 0) {
+      Alert.alert('Info', 'Brak innych ćwiczeń w tej kategorii!');
+      return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * availableExercises.length);
+    const selectedExercise = availableExercises[randomIndex];
+
+    const newExercise = {
+      ...selectedExercise,
+      count: workoutPlan[category].length + 1,
+      category: category,
+    };
+
+    setWorkoutPlan(prev => ({
+      ...prev,
+      [category]: [...prev[category], newExercise]
+    }));
+  };
+
   const replaceExercise = async (category, exerciseToReplace) => {
     const categoryLabels = {
       'barki': 'shoulders',
@@ -150,34 +199,34 @@ function GeneratedWorkout({
       'przedramiona': 'forearms',
       'triceps': 'triceps'
     };
-    
+
     const targetLabel = categoryLabels[category];
     const usedNames = workoutPlan[category].map(ex => ex.name);
-    
-    const availableExercises = allExercises.filter(ex => 
-      ex.labels && 
+
+    const availableExercises = allExercises.filter(ex =>
+      ex.labels &&
       ex.labels.includes(targetLabel) &&
       !usedNames.includes(ex.name)
     );
-    
+
     if (availableExercises.length === 0) {
       Alert.alert('Info', 'Brak innych ćwiczeń w tej kategorii do wymiany!');
       return;
     }
-    
+
     const randomIndex = Math.floor(Math.random() * availableExercises.length);
     const selectedExercise = availableExercises[randomIndex];
-    
+
     // POPRAWKA: Zachowaj kategorię podczas wymiany
     const newExercise = {
       ...selectedExercise,
       count: exerciseToReplace.count,
       category: category, // WAŻNE: Ustaw kategorię
     };
-    
+
     setWorkoutPlan(prev => ({
       ...prev,
-      [category]: prev[category].map(ex => 
+      [category]: prev[category].map(ex =>
         ex.name === exerciseToReplace.name ? newExercise : ex
       )
     }));
@@ -227,9 +276,9 @@ function GeneratedWorkout({
       console.log(`Found ${categoryExercises.length} exercises for ${category} (label: ${targetLabel})`);
       
       const shuffled = [...categoryExercises].sort(() => Math.random() - 0.5);
-      
+
       // POPRAWKA: Dodaj kategorię do każdego ćwiczenia
-      plan[category] = shuffled.slice(0, 5).map((ex, idx) => ({
+      plan[category] = shuffled.slice(0, 3).map((ex, idx) => ({
         ...ex,
         count: idx + 1,
         category: category // WAŻNE: Ustaw kategorię wybrana przez użytkownika
@@ -567,10 +616,19 @@ function GeneratedWorkout({
                     onToggle={() => handleImageClick(exercise)}
                     onFavorite={() => toggleFavorite(exercise)}
                     isFavorite={isFavorite(exercise.name)}
+                    onRemove={() => removeExercise(category, exercise)}
                     onReplace={() => replaceExercise(category, exercise)}
                     replaceButtonText="Wymień"
                   />
                 ))}
+                <TouchableOpacity
+                  onPress={() => addNewExercise(category)}
+                  style={styles.addExerciseButton}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add-circle" size={24} color="#9333ea" />
+                  <Text style={styles.addExerciseButtonText}>Wygeneruj nowe ćwiczenie (AI)</Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -747,6 +805,21 @@ const styles = StyleSheet.create({
   warmupSets: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  addExerciseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 16,
+    backgroundColor: '#f3e8ff',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  addExerciseButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#9333ea',
   },
 });
 
