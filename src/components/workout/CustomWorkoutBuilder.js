@@ -211,18 +211,27 @@ function CustomWorkoutBuilder({
   }, {});
 
   const addExercise = (exercise) => {
-    const newExercise = {
-      ...exercise,
-      id: `${exercise.name}-${Date.now()}-${Math.random()}`,
-    };
-
     // Określ kategorię i grupę mięśniową
-    const category = getPrimaryCategory(newExercise);
+    const category = getPrimaryCategory(exercise);
     const muscleGroup = categoryToMuscleGroup(category);
 
     if (muscleGroup) {
       // Sprawdź czy grupa już istnieje
       const existingGroup = workoutPlan.find(g => g.muscleGroup === muscleGroup);
+
+      // Sprawdź czy ćwiczenie już istnieje w tej grupie
+      if (existingGroup) {
+        const exerciseExists = existingGroup.exercises.some(ex => ex.name === exercise.name);
+        if (exerciseExists) {
+          Alert.alert('Info', `${exercise.name} jest już w tej grupie mięśniowej`, [{ text: 'OK' }]);
+          return;
+        }
+      }
+
+      const newExercise = {
+        ...exercise,
+        id: `${exercise.name}-${Date.now()}-${Math.random()}`,
+      };
 
       if (existingGroup) {
         // Dodaj do istniejącej grupy
@@ -240,17 +249,34 @@ function CustomWorkoutBuilder({
         };
         setWorkoutPlan(prev => [...prev, newGroup]);
       }
+
+      // Zamknij search bar i wyniki
+      setSearchQuery('');
+      setShowExerciseList(false);
+
+      // Pokaż informację o dodaniu
+      Alert.alert('Dodano', `${exercise.name} został dodany do planu treningowego`, [{ text: 'OK' }], { cancelable: true });
     } else {
-      // Jeśli nie można określić grupy, dodaj do selectedExercises (zapasowo)
+      // Jeśli nie można określić grupy, sprawdź duplikaty w selectedExercises
+      const exerciseExists = selectedExercises.some(ex => ex.name === exercise.name);
+      if (exerciseExists) {
+        Alert.alert('Info', `${exercise.name} jest już w planie treningowym`, [{ text: 'OK' }]);
+        return;
+      }
+
+      const newExercise = {
+        ...exercise,
+        id: `${exercise.name}-${Date.now()}-${Math.random()}`,
+      };
       setSelectedExercises(prev => [...prev, newExercise]);
+
+      // Zamknij search bar i wyniki
+      setSearchQuery('');
+      setShowExerciseList(false);
+
+      // Pokaż informację o dodaniu
+      Alert.alert('Dodano', `${exercise.name} został dodany do planu treningowego`, [{ text: 'OK' }], { cancelable: true });
     }
-
-    // Zamknij search bar i wyniki
-    setSearchQuery('');
-    setShowExerciseList(false);
-
-    // Pokaż informację o dodaniu
-    Alert.alert('Dodano', `${exercise.name} został dodany do planu treningowego`, [{ text: 'OK' }], { cancelable: true });
   };
 
   const removeExercise = (exerciseId) => {
@@ -277,6 +303,16 @@ function CustomWorkoutBuilder({
   };
 
   const addExerciseToGroup = (groupId, exercise) => {
+    // Znajdź grupę i sprawdź czy ćwiczenie już istnieje
+    const group = workoutPlan.find(g => g.id === groupId);
+    if (group) {
+      const exerciseExists = group.exercises.some(ex => ex.name === exercise.name);
+      if (exerciseExists) {
+        Alert.alert('Info', `${exercise.name} jest już w tej grupie`, [{ text: 'OK' }]);
+        return;
+      }
+    }
+
     const newExercise = {
       ...exercise,
       id: `${exercise.name}-${Date.now()}-${Math.random()}`,
