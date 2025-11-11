@@ -131,12 +131,33 @@ function ActiveWorkout({
   };
 
   const toggleSetComplete = (exerciseName, setIndex) => {
-    setExerciseSets(prev => ({
-      ...prev,
-      [exerciseName]: prev[exerciseName].map((set, idx) =>
-        idx === setIndex ? { ...set, completed: !set.completed } : set
-      )
-    }));
+    setExerciseSets(prev => {
+      const currentSet = prev[exerciseName][setIndex];
+
+      // Jeśli próbujemy oznaczyć serię jako ukończoną (currently not completed)
+      if (!currentSet.completed) {
+        const weight = parseFloat(currentSet.weight);
+        const reps = parseFloat(currentSet.reps);
+
+        // Walidacja: kg i reps muszą być większe od 0
+        if (isNaN(weight) || weight <= 0 || isNaN(reps) || reps <= 0) {
+          Alert.alert(
+            'Nieprawidłowe dane',
+            'Waga i liczba powtórzeń muszą być większe od 0.',
+            [{ text: 'OK' }]
+          );
+          return prev; // Nie zmieniaj stanu
+        }
+      }
+
+      // Walidacja przeszła lub odznaczamy serię - zmień stan
+      return {
+        ...prev,
+        [exerciseName]: prev[exerciseName].map((set, idx) =>
+          idx === setIndex ? { ...set, completed: !set.completed } : set
+        )
+      };
+    });
   };
 
   const removeSet = (exerciseName, setIndex) => {
