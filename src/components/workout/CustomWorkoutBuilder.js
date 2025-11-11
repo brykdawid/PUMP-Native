@@ -903,7 +903,10 @@ function CustomWorkoutBuilder({
                     ))}
 
                     {/* Lokalny search bar dla grupy */}
-                    <View style={styles.groupSearchSection}>
+                    <View style={[
+                      styles.groupSearchSection,
+                      groupSearchQueries[group.id] && groupSearchQueries[group.id].length > 0 && styles.groupSearchSectionExpanded
+                    ]}>
                       <TextInput
                         style={styles.groupSearchInput}
                         value={groupSearchQueries[group.id] || ''}
@@ -1134,10 +1137,10 @@ const styles = StyleSheet.create({
   },
   searchBackdrop: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: -1000,
+    left: -1000,
+    right: -1000,
+    height: 10000,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     zIndex: 50,
   },
@@ -1484,6 +1487,9 @@ const styles = StyleSheet.create({
     borderTopColor: '#e5e7eb',
     zIndex: 5,
   },
+  groupSearchSectionExpanded: {
+    minHeight: 450,
+  },
   groupSearchInput: {
     padding: 12,
     backgroundColor: '#ffffff',
@@ -1495,10 +1501,10 @@ const styles = StyleSheet.create({
   },
   groupSearchBackdrop: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    top: -1000,
+    left: -1000,
+    right: -1000,
+    height: 10000,
     backgroundColor: 'rgba(0, 0, 0, 0.3)',
     zIndex: 25,
   },
