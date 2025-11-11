@@ -10,6 +10,8 @@ function ExerciseCard({
   // Optional action buttons
   onFavorite,
   isFavorite,
+  onAdd,
+  onRemove,
   onReplace,
   replaceButtonText = 'Wymień'
 }) {
@@ -38,63 +40,85 @@ function ExerciseCard({
 
   return (
     <View style={styles.container}>
-      {/* Favorite star - Top right corner */}
-      {onFavorite && (
+      <View style={styles.cardContent}>
         <TouchableOpacity
-          onPress={onFavorite}
-          style={styles.favoriteButtonTop}
+          onPress={onToggle}
+          style={styles.clickableArea}
           activeOpacity={0.7}
         >
-          <Ionicons
-            name={isFavorite ? 'star' : 'star-outline'}
-            size={24}
-            color={isFavorite ? '#facc15' : '#9ca3af'}
-          />
-        </TouchableOpacity>
-      )}
-
-      <TouchableOpacity
-        onPress={onToggle}
-        style={styles.button}
-        activeOpacity={0.7}
-      >
-        <View style={styles.imageContainer}>
-          {imageLoading && !imageError && (
-            <View style={styles.imagePlaceholder}>
-              <ActivityIndicator size="small" color="#9333ea" />
-            </View>
-          )}
-          {imageError ? (
-            <View style={styles.imagePlaceholder}>
-              <Ionicons name="image-outline" size={32} color="#d1d5db" />
-            </View>
-          ) : (
-            <Image
-              source={{ uri: exercise.image }}
-              style={styles.image}
-              resizeMode="cover"
-              onLoad={() => setImageLoading(false)}
-              onError={() => {
-                setImageLoading(false);
-                setImageError(true);
-              }}
-            />
-          )}
-        </View>
-
-        <View style={styles.textContainer}>
-          <View style={styles.textRow}>
-            <Text style={styles.exerciseName}>{exercise.name}</Text>
-            <Ionicons
-              name={isExpanded ? 'chevron-up' : 'chevron-down'}
-              size={16}
-              color="#9333ea"
-              style={styles.chevronIcon}
-            />
+          <View style={styles.imageContainer}>
+            {imageLoading && !imageError && (
+              <View style={styles.imagePlaceholder}>
+                <ActivityIndicator size="small" color="#9333ea" />
+              </View>
+            )}
+            {imageError ? (
+              <View style={styles.imagePlaceholder}>
+                <Ionicons name="image-outline" size={32} color="#d1d5db" />
+              </View>
+            ) : (
+              <Image
+                source={{ uri: exercise.image }}
+                style={styles.image}
+                resizeMode="cover"
+                onLoad={() => setImageLoading(false)}
+                onError={() => {
+                  setImageLoading(false);
+                  setImageError(true);
+                }}
+              />
+            )}
           </View>
-          <Text style={styles.exerciseSets}>{formatSets(exercise.sets)}</Text>
+
+          <View style={styles.textContainer}>
+            <Text style={styles.exerciseName}>{exercise.name}</Text>
+            <Text style={styles.exerciseSets}>{formatSets(exercise.sets)}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* Action buttons - Right edge, centered vertically */}
+        <View style={styles.actionButtonsContainer}>
+          {onFavorite && (
+            <TouchableOpacity
+              onPress={onFavorite}
+              style={styles.actionButton}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={isFavorite ? 'star' : 'star-outline'}
+                size={32}
+                color={isFavorite ? '#facc15' : '#9ca3af'}
+              />
+            </TouchableOpacity>
+          )}
+          {onAdd && (
+            <TouchableOpacity
+              onPress={onAdd}
+              style={styles.actionButton}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name="add-circle"
+                size={32}
+                color="#9333ea"
+              />
+            </TouchableOpacity>
+          )}
+          {onRemove && (
+            <TouchableOpacity
+              onPress={onRemove}
+              style={styles.actionButton}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name="close-circle"
+                size={32}
+                color="#ef4444"
+              />
+            </TouchableOpacity>
+          )}
         </View>
-      </TouchableOpacity>
+      </View>
 
       {/* Replace button (if provided) */}
       {onReplace && (
@@ -128,31 +152,18 @@ const styles = StyleSheet.create({
     borderBottomColor: '#e5e7eb',
     backgroundColor: '#ffffff',
   },
-  button: {
-    width: '100%',
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  clickableArea: {
+    flex: 1,
     paddingLeft: 16,
-    paddingRight: 52,
     paddingVertical: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-  },
-  favoriteButtonTop: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    zIndex: 10,
-    padding: 6,
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
   },
   imageContainer: {
     width: 80,
@@ -181,13 +192,7 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
   },
-  textRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
   exerciseName: {
-    flex: 1,
     color: '#111827',
     fontWeight: '600',
     fontSize: 16,
@@ -197,8 +202,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
-  chevronIcon: {
-    flexShrink: 0,
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingRight: 16,
+    gap: 12,
+  },
+  actionButton: {
+    padding: 4,
   },
   descriptionContainer: {
     paddingHorizontal: 16,
