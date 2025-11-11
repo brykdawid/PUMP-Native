@@ -29,6 +29,7 @@ function App() {
     weight: 70,
     height: 175,
     bmi: 22.9,
+    weightHistory: [], // Historia pomiarów wagi: { date: ISO string, weight: number }
     records: [
       { exercise: 'Bench Press', weight: 80 },
       { exercise: 'Squat', weight: 120 },
