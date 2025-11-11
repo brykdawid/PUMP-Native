@@ -475,15 +475,17 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
           <Text style={styles.sectionTitle}>Rekordy osobiste</Text>
         </View>
 
-        {/* Informacja i przycisk */}
-        <View style={styles.recordsInfoContainer}>
-          <Ionicons name="information-circle-outline" size={48} color="#9333ea" />
-          <Text style={styles.recordsInfoTitle}>Śledź swoje rekordy</Text>
-          <Text style={styles.recordsInfoText}>
-            Dodaj własne ćwiczenia i zapisuj swoje najlepsze wyniki w kilogramach.
-            Śledź postępy i miej zawsze pod ręką swoje osiągnięcia!
-          </Text>
-        </View>
+        {/* Informacja - pokazuj tylko gdy brak rekordów */}
+        {userStats.records.length === 0 && (
+          <View style={styles.recordsInfoContainer}>
+            <Ionicons name="information-circle-outline" size={48} color="#9333ea" />
+            <Text style={styles.recordsInfoTitle}>Śledź swoje rekordy</Text>
+            <Text style={styles.recordsInfoText}>
+              Dodaj własne ćwiczenia i zapisuj swoje najlepsze wyniki w kilogramach.
+              Śledź postępy i miej zawsze pod ręką swoje osiągnięcia!
+            </Text>
+          </View>
+        )}
 
         {/* Lista dodanych rekordów */}
         {userStats.records.length > 0 && (
