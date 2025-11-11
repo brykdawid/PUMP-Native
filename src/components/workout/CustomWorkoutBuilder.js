@@ -61,7 +61,6 @@ function CustomWorkoutBuilder({
   const [groupSearchQueries, setGroupSearchQueries] = useState({});
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [activeTab, setActiveTab] = useState('search');
-  const [expandedExercise, setExpandedExercise] = useState(null);
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [savedWorkouts, setSavedWorkouts] = useState([]);
@@ -368,10 +367,6 @@ function CustomWorkoutBuilder({
       ...prev,
       [category]: !prev[category]
     }));
-  };
-
-  const toggleExerciseDetails = (exerciseId) => {
-    setExpandedExercise(prev => prev === exerciseId ? null : exerciseId);
   };
 
   const handleImageClick = (exercise) => {
@@ -724,21 +719,10 @@ function CustomWorkoutBuilder({
                             <ExerciseCard
                               exercise={exercise}
                               exerciseId={idx}
-                              isExpanded={false}
                               onToggle={() => handleImageClick(exercise)}
+                              onAdd={() => addExercise(exercise)}
                             />
                           </View>
-                          <TouchableOpacity
-                            onPress={() => addExercise(exercise)}
-                            style={styles.addButton}
-                            activeOpacity={0.7}
-                          >
-                            <Ionicons
-                              name={inPlan ? "add-circle-outline" : "add-circle"}
-                              size={24}
-                              color={inPlan ? "#9ca3af" : "#9333ea"}
-                            />
-                          </TouchableOpacity>
                         </View>
                       );
                     })}
@@ -774,21 +758,10 @@ function CustomWorkoutBuilder({
                       <ExerciseCard
                         exercise={exercise}
                         exerciseId={idx}
-                        isExpanded={false}
                         onToggle={() => handleImageClick(exercise)}
+                        onAdd={() => addExercise(exercise)}
                       />
                     </View>
-                    <TouchableOpacity
-                      onPress={() => addExercise(exercise)}
-                      style={styles.addButton}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons
-                        name={inPlan ? "add-circle-outline" : "add-circle"}
-                        size={24}
-                        color={inPlan ? "#9ca3af" : "#9333ea"}
-                      />
-                    </TouchableOpacity>
                   </View>
                 );
               })
@@ -876,29 +849,11 @@ function CustomWorkoutBuilder({
                         <ExerciseCard
                           exercise={exercise}
                           exerciseId={exercise.id}
-                          isExpanded={expandedExercise === exercise.id}
-                          onToggle={() => toggleExerciseDetails(exercise.id)}
+                          onToggle={() => handleImageClick(exercise)}
+                          onFavorite={() => toggleFavorite(exercise)}
+                          isFavorite={isFavoriteExercise(exercise.name)}
+                          onRemove={() => removeExerciseFromGroup(group.id, exercise.id)}
                         />
-                        <View style={styles.selectedExerciseActions}>
-                          <TouchableOpacity
-                            onPress={() => toggleFavorite(exercise)}
-                            style={styles.smallButton}
-                            activeOpacity={0.7}
-                          >
-                            <Ionicons
-                              name={isFavoriteExercise(exercise.name) ? 'star' : 'star-outline'}
-                              size={20}
-                              color={isFavoriteExercise(exercise.name) ? '#facc15' : '#9ca3af'}
-                            />
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            onPress={() => removeExerciseFromGroup(group.id, exercise.id)}
-                            style={styles.removeButton}
-                            activeOpacity={0.7}
-                          >
-                            <Ionicons name="close-circle" size={20} color="#ef4444" />
-                          </TouchableOpacity>
-                        </View>
                       </View>
                     ))}
 
@@ -958,27 +913,16 @@ function CustomWorkoutBuilder({
                                       <ExerciseCard
                                         exercise={exercise}
                                         exerciseId={`group-${group.id}-${idx}`}
-                                        isExpanded={false}
                                         onToggle={() => handleImageClick(exercise)}
+                                        onAdd={() => {
+                                          addExerciseToGroup(group.id, exercise);
+                                          setGroupSearchQueries(prev => ({
+                                            ...prev,
+                                            [group.id]: ''
+                                          }));
+                                        }}
                                       />
                                     </View>
-                                    <TouchableOpacity
-                                      onPress={() => {
-                                        addExerciseToGroup(group.id, exercise);
-                                        setGroupSearchQueries(prev => ({
-                                          ...prev,
-                                          [group.id]: ''
-                                        }));
-                                      }}
-                                      style={styles.addButton}
-                                      activeOpacity={0.7}
-                                    >
-                                      <Ionicons
-                                        name={inPlan ? "add-circle-outline" : "add-circle"}
-                                        size={24}
-                                        color={inPlan ? "#9ca3af" : "#9333ea"}
-                                      />
-                                    </TouchableOpacity>
                                   </View>
                                 );
                               })}
@@ -1211,14 +1155,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
   },
-  addButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: '#ffffff',
-    borderRadius: 20,
-    padding: 4,
-  },
   emptyText: {
     textAlign: 'center',
     color: '#6b7280',
@@ -1316,18 +1252,6 @@ const styles = StyleSheet.create({
   },
   selectedExerciseItem: {
     backgroundColor: '#f9fafb',
-  },
-  selectedExerciseActions: {
-    flexDirection: 'row',
-    padding: 12,
-    gap: 8,
-    justifyContent: 'flex-end',
-  },
-  smallButton: {
-    padding: 8,
-  },
-  removeButton: {
-    padding: 8,
   },
   legacyExercisesSection: {
     marginBottom: 16,

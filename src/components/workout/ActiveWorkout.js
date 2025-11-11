@@ -9,6 +9,7 @@ import {
   Platform,
   Modal,
   Image,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -388,48 +389,45 @@ function ActiveWorkout({
 
               return (
                 <View key={exercise.id || exercise.name} style={styles.exerciseCard}>
-                  <TouchableOpacity
-                    onPress={() => toggleExpandExercise(exercise.name)}
-                    style={styles.exerciseHeader}
-                    activeOpacity={0.7}
-                  >
-                    {/* Exercise Image/GIF */}
+                  <View style={styles.exerciseHeader}>
                     <TouchableOpacity
-                      onPress={() => setSelectedExercise(exercise)}
-                      style={styles.exerciseImageContainer}
-                      activeOpacity={0.8}
+                      onPress={() => toggleExpandExercise(exercise.name)}
+                      style={styles.exerciseClickableArea}
+                      activeOpacity={0.7}
                     >
-                      <Image
-                        source={{ uri: exercise.image }}
-                        style={styles.exerciseImage}
-                        resizeMode="cover"
-                      />
+                      {/* Exercise Image/GIF */}
+                      <TouchableOpacity
+                        onPress={() => setSelectedExercise(exercise)}
+                        style={styles.exerciseImageContainer}
+                        activeOpacity={0.8}
+                      >
+                        <Image
+                          source={{ uri: exercise.image }}
+                          style={styles.exerciseImage}
+                          resizeMode="cover"
+                        />
+                      </TouchableOpacity>
+
+                      {/* Exercise Info */}
+                      <View style={styles.exerciseHeaderLeft}>
+                        <Text style={styles.exerciseName}>{exercise.name}</Text>
+                        <Text style={styles.exerciseSets}>
+                          {completedSets}/{sets.length} serie
+                        </Text>
+                      </View>
                     </TouchableOpacity>
 
-                    {/* Exercise Info */}
-                    <View style={styles.exerciseHeaderLeft}>
-                      <Text style={styles.exerciseName}>{exercise.name}</Text>
-                      <Text style={styles.exerciseSets}>
-                        {completedSets}/{sets.length} serie
-                      </Text>
-                    </View>
-
-                    {/* Controls */}
+                    {/* Remove button - Right edge, centered vertically */}
                     <View style={styles.exerciseHeaderRight}>
                       <TouchableOpacity
                         onPress={() => removeExercise(exercise.name)}
                         style={styles.removeButton}
                         activeOpacity={0.7}
                       >
-                        <Ionicons name="close-circle" size={20} color="#ef4444" />
+                        <Ionicons name="close-circle" size={32} color="#ef4444" />
                       </TouchableOpacity>
-                      <Ionicons
-                        name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                        size={20}
-                        color="#6b7280"
-                      />
                     </View>
-                  </TouchableOpacity>
+                  </View>
 
                   {isExpanded && (
                     <View style={styles.setsContainer}>
@@ -790,6 +788,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  exerciseClickableArea: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
     gap: 16,
   },
@@ -819,9 +822,7 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   exerciseHeaderRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    paddingRight: 16,
   },
   removeButton: {
     padding: 4,

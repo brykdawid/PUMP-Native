@@ -19,7 +19,6 @@ import ExerciseCard from '../workout/ExerciseCard';
 function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onUpdateWorkout }) {
   const [activeTab, setActiveTab] = useState('workouts');
   const [expandedWorkout, setExpandedWorkout] = useState(null);
-  const [expandedExercise, setExpandedExercise] = useState(null);
   const [selectedGif, setSelectedGif] = useState(null);
   const [savedExercises, setSavedExercises] = useState([]);
   const [editingWorkoutId, setEditingWorkoutId] = useState(null);
@@ -377,7 +376,6 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
                                   key={idx}
                                   exercise={ex}
                                   exerciseId={idx}
-                                  isExpanded={expandedExercise === `${workout.id}-${idx}`}
                                   onToggle={() => setSelectedGif(ex)}
                                 />
                               ))}
@@ -411,7 +409,6 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
                     <ExerciseCard
                       exercise={exercise}
                       exerciseId={idx}
-                      isExpanded={false}
                       onToggle={() => setSelectedGif(exercise)}
                     />
                     <View style={styles.exerciseCardFooter}>
