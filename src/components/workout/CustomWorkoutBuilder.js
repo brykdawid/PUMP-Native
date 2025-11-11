@@ -9,6 +9,7 @@ import {
   Alert,
   Platform,
   KeyboardAvoidingView,
+  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -34,6 +35,13 @@ const translateCategory = (category) => {
   return translations[category?.toLowerCase()] || category;
 };
 
+const categoryToMuscleGroup = (category) => {
+  // TRAINING_TYPES używa polskich ID, więc zwracamy kategorię bezpośrednio
+  // jeśli jest zgodna z TRAINING_TYPES
+  const validGroups = ['barki', 'biceps', 'brzuch', 'klatka', 'nogi', 'plecy', 'posladki', 'przedramiona', 'triceps'];
+  return validGroups.includes(category?.toLowerCase()) ? category.toLowerCase() : null;
+};
+
 function CustomWorkoutBuilder({ 
   onBack, 
   onSaveWorkout, 
@@ -47,13 +55,17 @@ function CustomWorkoutBuilder({
   const [workoutTitle, setWorkoutTitle] = useState('Mój Trening');
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedExercises, setSelectedExercises] = useState([]);
+  const [workoutPlan, setWorkoutPlan] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState({});
+  const [addingExerciseToGroup, setAddingExerciseToGroup] = useState(null);
+  const [groupSearchQueries, setGroupSearchQueries] = useState({});
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [activeTab, setActiveTab] = useState('search');
   const [expandedExercise, setExpandedExercise] = useState(null);
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [savedWorkouts, setSavedWorkouts] = useState([]);
+  const [showExerciseList, setShowExerciseList] = useState(false);
   const [customDate, setCustomDate] = useState(() => {
     if (targetDate) return targetDate;
     const today = new Date();
@@ -74,24 +86,31 @@ function CustomWorkoutBuilder({
   useEffect(() => {
     if (preloadedWorkout) {
       setWorkoutTitle(preloadedWorkout.title || 'Mój Trening');
-      const exercisesToLoad = preloadedWorkout.exercises.map(ex => ({
-        ...ex,
-        id: ex.id || `${ex.name}-${Date.now()}-${Math.random()}`
-      }));
-      setSelectedExercises(exercisesToLoad);
       setIsFavorite(preloadedWorkout.isFavorite || false);
-      
-      const categories = {};
-      exercisesToLoad.forEach(ex => {
-        let category = 'inne';
-        if (ex.category) {
-          category = translateCategory(ex.category);
-        } else if (ex.labels && ex.labels.length > 0) {
-          category = translateCategory(ex.labels[0]);
-        }
-        categories[category] = true;
-      });
-      setExpandedCategories(categories);
+
+      // Załaduj workoutPlan jeśli istnieje, w przeciwnym razie użyj starej struktury
+      if (preloadedWorkout.workoutPlan && preloadedWorkout.workoutPlan.length > 0) {
+        setWorkoutPlan(preloadedWorkout.workoutPlan);
+        setSelectedExercises([]);
+      } else {
+        const exercisesToLoad = preloadedWorkout.exercises.map(ex => ({
+          ...ex,
+          id: ex.id || `${ex.name}-${Date.now()}-${Math.random()}`
+        }));
+        setSelectedExercises(exercisesToLoad);
+
+        const categories = {};
+        exercisesToLoad.forEach(ex => {
+          let category = 'inne';
+          if (ex.category) {
+            category = translateCategory(ex.category);
+          } else if (ex.labels && ex.labels.length > 0) {
+            category = translateCategory(ex.labels[0]);
+          }
+          categories[category] = true;
+        });
+        setExpandedCategories(categories);
+      }
     }
   }, [preloadedWorkout]);
 
@@ -193,21 +212,134 @@ function CustomWorkoutBuilder({
   }, {});
 
   const addExercise = (exercise) => {
-    const newExercise = {
-      ...exercise,
-      id: `${exercise.name}-${Date.now()}-${Math.random()}`,
-    };
-    setSelectedExercises(prev => [...prev, newExercise]);
-    
-    const category = getPrimaryCategory(newExercise);
-    setExpandedCategories(prev => ({
-      ...prev,
-      [category]: true
-    }));
+    // Określ kategorię i grupę mięśniową
+    const category = getPrimaryCategory(exercise);
+    const muscleGroup = categoryToMuscleGroup(category);
+
+    if (muscleGroup) {
+      // Sprawdź czy grupa już istnieje
+      const existingGroup = workoutPlan.find(g => g.muscleGroup === muscleGroup);
+
+      // Sprawdź czy ćwiczenie już istnieje w tej grupie
+      if (existingGroup) {
+        const exerciseExists = existingGroup.exercises.some(ex => ex.name === exercise.name);
+        if (exerciseExists) {
+          Alert.alert('Info', `${exercise.name} jest już w tej grupie mięśniowej`, [{ text: 'OK' }]);
+          return;
+        }
+      }
+
+      const newExercise = {
+        ...exercise,
+        id: `${exercise.name}-${Date.now()}-${Math.random()}`,
+      };
+
+      if (existingGroup) {
+        // Dodaj do istniejącej grupy
+        setWorkoutPlan(prev => prev.map(group =>
+          group.muscleGroup === muscleGroup
+            ? { ...group, exercises: [...group.exercises, newExercise] }
+            : group
+        ));
+      } else {
+        // Utwórz nową grupę
+        const newGroup = {
+          id: `group-${Date.now()}`,
+          muscleGroup: muscleGroup,
+          exercises: [newExercise]
+        };
+        setWorkoutPlan(prev => [...prev, newGroup]);
+      }
+
+      // Zamknij search bar i wyniki
+      setSearchQuery('');
+      setShowExerciseList(false);
+
+      // Pokaż informację o dodaniu
+      Alert.alert('Dodano', `${exercise.name} został dodany do planu treningowego`, [{ text: 'OK' }], { cancelable: true });
+    } else {
+      // Jeśli nie można określić grupy, sprawdź duplikaty w selectedExercises
+      const exerciseExists = selectedExercises.some(ex => ex.name === exercise.name);
+      if (exerciseExists) {
+        Alert.alert('Info', `${exercise.name} jest już w planie treningowym`, [{ text: 'OK' }]);
+        return;
+      }
+
+      const newExercise = {
+        ...exercise,
+        id: `${exercise.name}-${Date.now()}-${Math.random()}`,
+      };
+      setSelectedExercises(prev => [...prev, newExercise]);
+
+      // Zamknij search bar i wyniki
+      setSearchQuery('');
+      setShowExerciseList(false);
+
+      // Pokaż informację o dodaniu
+      Alert.alert('Dodano', `${exercise.name} został dodany do planu treningowego`, [{ text: 'OK' }], { cancelable: true });
+    }
   };
 
   const removeExercise = (exerciseId) => {
     setSelectedExercises(prev => prev.filter(ex => ex.id !== exerciseId));
+  };
+
+  const addMuscleGroup = () => {
+    const newGroup = {
+      id: `group-${Date.now()}`,
+      muscleGroup: null,
+      exercises: []
+    };
+    setWorkoutPlan(prev => [...prev, newGroup]);
+  };
+
+  const setMuscleGroupType = (groupId, muscleGroupType) => {
+    setWorkoutPlan(prev => prev.map(group =>
+      group.id === groupId ? { ...group, muscleGroup: muscleGroupType } : group
+    ));
+  };
+
+  const removeGroup = (groupId) => {
+    setWorkoutPlan(prev => prev.filter(group => group.id !== groupId));
+  };
+
+  const addExerciseToGroup = (groupId, exercise) => {
+    // Znajdź grupę i sprawdź czy ćwiczenie już istnieje
+    const group = workoutPlan.find(g => g.id === groupId);
+    if (group) {
+      const exerciseExists = group.exercises.some(ex => ex.name === exercise.name);
+      if (exerciseExists) {
+        Alert.alert('Info', `${exercise.name} jest już w tej grupie`, [{ text: 'OK' }]);
+        return;
+      }
+    }
+
+    const newExercise = {
+      ...exercise,
+      id: `${exercise.name}-${Date.now()}-${Math.random()}`,
+    };
+
+    setWorkoutPlan(prev => prev.map(group =>
+      group.id === groupId
+        ? { ...group, exercises: [...group.exercises, newExercise] }
+        : group
+    ));
+
+    // Zamknij search bar i wyniki
+    setSearchQuery('');
+    setShowExerciseList(false);
+    setAddingExerciseToGroup(null);
+
+    // Pokaż informację o dodaniu
+    Alert.alert('Dodano', `${exercise.name} został dodany do grupy`, [{ text: 'OK' }], { cancelable: true });
+  };
+
+  const removeExerciseFromGroup = (groupId, exerciseId) => {
+    setWorkoutPlan(prev => prev.map(group =>
+      group.id === groupId
+        ? { ...group, exercises: group.exercises.filter(ex => ex.id !== exerciseId) }
+        : group
+    ));
   };
 
   const toggleFavorite = (exercise) => {
@@ -251,7 +383,13 @@ function CustomWorkoutBuilder({
   };
 
   const handleSaveWorkout = () => {
-    if (selectedExercises.length === 0) {
+    // Zbierz wszystkie ćwiczenia z obu struktur
+    const allExercises = [
+      ...selectedExercises,
+      ...workoutPlan.flatMap(group => group.exercises)
+    ];
+
+    if (allExercises.length === 0) {
       Alert.alert('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
       return;
     }
@@ -260,7 +398,8 @@ function CustomWorkoutBuilder({
       const categories = Object.keys(exercisesByCategory);
       const workoutData = {
         type: 'custom',
-        exercises: selectedExercises,
+        exercises: allExercises,
+        workoutPlan: workoutPlan, // Dodaj nową strukturę
         warmup: [],
         categories: categories,
         name: workoutTitle,
@@ -273,7 +412,13 @@ function CustomWorkoutBuilder({
   };
 
   const handleBeginWorkout = () => {
-    if (selectedExercises.length === 0) {
+    // Zbierz wszystkie ćwiczenia z obu struktur
+    const allExercises = [
+      ...selectedExercises,
+      ...workoutPlan.flatMap(group => group.exercises)
+    ];
+
+    if (allExercises.length === 0) {
       Alert.alert('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
       return;
     }
@@ -282,7 +427,8 @@ function CustomWorkoutBuilder({
       const categories = Object.keys(exercisesByCategory);
       const workoutData = {
         type: 'custom',
-        exercises: selectedExercises,
+        exercises: allExercises,
+        workoutPlan: workoutPlan, // Dodaj nową strukturę
         warmup: [],
         categories: categories
       };
@@ -291,7 +437,13 @@ function CustomWorkoutBuilder({
   };
 
   const handleScheduleWorkout = () => {
-    if (selectedExercises.length === 0) {
+    // Zbierz wszystkie ćwiczenia z obu struktur
+    const allExercises = [
+      ...selectedExercises,
+      ...workoutPlan.flatMap(group => group.exercises)
+    ];
+
+    if (allExercises.length === 0) {
       Alert.alert('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
       return;
     }
@@ -302,7 +454,8 @@ function CustomWorkoutBuilder({
       const workoutData = {
         id: Date.now(),
         type: 'custom',
-        exercises: selectedExercises,
+        exercises: allExercises,
+        workoutPlan: workoutPlan, // Dodaj nową strukturę
         warmup: [],
         categories: categories,
         name: workoutTitle,
@@ -315,20 +468,27 @@ function CustomWorkoutBuilder({
   };
 
   const loadWorkout = (workout) => {
-    const exercisesToLoad = workout.exercises.map(ex => ({
-      ...ex,
-      id: ex.id || `${ex.name}-${Date.now()}-${Math.random()}`
-    }));
-    setSelectedExercises(exercisesToLoad);
+    // Załaduj workoutPlan jeśli istnieje, w przeciwnym razie użyj starej struktury
+    if (workout.workoutPlan && workout.workoutPlan.length > 0) {
+      setWorkoutPlan(workout.workoutPlan);
+      setSelectedExercises([]);
+    } else {
+      const exercisesToLoad = workout.exercises.map(ex => ({
+        ...ex,
+        id: ex.id || `${ex.name}-${Date.now()}-${Math.random()}`
+      }));
+      setSelectedExercises(exercisesToLoad);
+
+      const categories = {};
+      exercisesToLoad.forEach(ex => {
+        const category = getPrimaryCategory(ex);
+        categories[category] = true;
+      });
+      setExpandedCategories(categories);
+    }
+
     setWorkoutTitle(workout.title || 'Mój Trening');
     setActiveTab('search');
-    
-    const categories = {};
-    exercisesToLoad.forEach(ex => {
-      const category = getPrimaryCategory(ex);
-      categories[category] = true;
-    });
-    setExpandedCategories(categories);
   };
 
   const getDateType = () => {
@@ -346,14 +506,8 @@ function CustomWorkoutBuilder({
   const filteredExercises = allExercises.filter(exercise => {
     const matchesSearch = exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          exercise.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    if (selectedMuscleGroups.length === 0) return matchesSearch;
-    
-    const exerciseCategories = exercise.labels || [];
-    return matchesSearch && selectedMuscleGroups.some(group => {
-      const groupLabels = CATEGORY_TO_AI_LABELS[group] || [];
-      return groupLabels.some(label => exerciseCategories.includes(label));
-    });
+
+    return matchesSearch;
   });
 
   const toggleMuscleGroup = (groupId) => {
@@ -362,6 +516,38 @@ function CustomWorkoutBuilder({
         ? prev.filter(id => id !== groupId)
         : [...prev, groupId]
     );
+  };
+
+  const getFilteredExercisesForGroup = (muscleGroup, searchQuery) => {
+    if (!searchQuery || searchQuery.length === 0) return [];
+
+    return allExercises.filter(exercise => {
+      const matchesSearch = exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           exercise.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      if (!matchesSearch) return false;
+
+      const exerciseCategories = exercise.labels || [];
+      const groupLabels = CATEGORY_TO_AI_LABELS[muscleGroup] || [];
+      return groupLabels.some(label => exerciseCategories.includes(label));
+    });
+  };
+
+  const isExerciseInPlan = (exerciseName, excludeGroupId = null) => {
+    // Sprawdź w workoutPlan
+    for (const group of workoutPlan) {
+      if (excludeGroupId && group.id === excludeGroupId) continue;
+      if (group.exercises.some(ex => ex.name === exerciseName)) {
+        return { inPlan: true, groupName: TRAINING_TYPES.find(t => t.id === group.muscleGroup)?.name || 'Nieznana grupa' };
+      }
+    }
+
+    // Sprawdź w selectedExercises
+    if (selectedExercises.some(ex => ex.name === exerciseName)) {
+      return { inPlan: true, groupName: 'Plan treningowy' };
+    }
+
+    return { inPlan: false, groupName: null };
   };
 
   return (
@@ -400,7 +586,7 @@ function CustomWorkoutBuilder({
         </TouchableOpacity>
       </View>
 
-      {selectedExercises.length > 0 && (
+      {(selectedExercises.length > 0 || workoutPlan.some(group => group.exercises.length > 0)) && (
         <View style={styles.actionButtons}>
           {dateType === 'today' && (
             <TouchableOpacity
@@ -490,60 +676,76 @@ function CustomWorkoutBuilder({
         showsVerticalScrollIndicator={false}
       >
         {activeTab === 'search' && (
-          <View>
+          <View style={styles.searchContainer}>
             <TextInput
               style={styles.searchInput}
               value={searchQuery}
-              onChangeText={setSearchQuery}
+              onChangeText={(text) => {
+                setSearchQuery(text);
+                setShowExerciseList(text.length > 0);
+              }}
               placeholder="Szukaj ćwiczeń..."
               placeholderTextColor="#9ca3af"
             />
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.muscleGroupsScroll}
-              contentContainerStyle={styles.muscleGroupsContent}
-            >
-              {TRAINING_TYPES.filter(type => type.id !== 'fullbody').map(type => (
-                <TouchableOpacity
-                  key={type.id}
-                  onPress={() => toggleMuscleGroup(type.id)}
-                  style={[
-                    styles.muscleGroupChip,
-                    selectedMuscleGroups.includes(type.id) && styles.muscleGroupChipActive
-                  ]}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[
-                    styles.muscleGroupChipText,
-                    selectedMuscleGroups.includes(type.id) && styles.muscleGroupChipTextActive
-                  ]}>
-                    {type.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <View style={styles.exerciseList}>
-              {filteredExercises.map((exercise, idx) => (
-                <View key={idx} style={styles.searchExerciseItem}>
-                  <ExerciseCard
-                    exercise={exercise}
-                    exerciseId={idx}
-                    isExpanded={false}
-                    onToggle={() => handleImageClick(exercise)}
-                  />
-                  <TouchableOpacity
-                    onPress={() => addExercise(exercise)}
-                    style={styles.addButton}
-                    activeOpacity={0.7}
+            {showExerciseList && (
+              <>
+                <Pressable
+                  style={styles.searchBackdrop}
+                  onPress={() => {
+                    setSearchQuery('');
+                    setShowExerciseList(false);
+                  }}
+                />
+                <View style={styles.searchResultsOverlay}>
+                  <ScrollView
+                    style={styles.searchResultsScrollView}
+                    contentContainerStyle={styles.searchResultsContent}
+                    showsVerticalScrollIndicator={true}
+                    nestedScrollEnabled={true}
                   >
-                    <Ionicons name="add-circle" size={24} color="#9333ea" />
-                  </TouchableOpacity>
+                    {filteredExercises.map((exercise, idx) => {
+                      const { inPlan, groupName } = isExerciseInPlan(exercise.name);
+                      return (
+                        <View
+                          key={`search-${exercise.name}-${idx}`}
+                          style={[
+                            styles.searchExerciseItem,
+                            inPlan && styles.searchExerciseItemInPlan
+                          ]}
+                        >
+                          {inPlan && (
+                            <View style={styles.inPlanBadge}>
+                              <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
+                              <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
+                            </View>
+                          )}
+                          <View style={inPlan ? styles.exerciseCardDimmed : null}>
+                            <ExerciseCard
+                              exercise={exercise}
+                              exerciseId={idx}
+                              isExpanded={false}
+                              onToggle={() => handleImageClick(exercise)}
+                            />
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => addExercise(exercise)}
+                            style={styles.addButton}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons
+                              name={inPlan ? "add-circle-outline" : "add-circle"}
+                              size={24}
+                              color={inPlan ? "#9ca3af" : "#9333ea"}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
                 </View>
-              ))}
-            </View>
+              </>
+            )}
           </View>
         )}
 
@@ -552,23 +754,44 @@ function CustomWorkoutBuilder({
             {favorites.length === 0 ? (
               <Text style={styles.emptyText}>Brak ulubionych ćwiczeń</Text>
             ) : (
-              favorites.map((exercise, idx) => (
-                <View key={idx} style={styles.searchExerciseItem}>
-                  <ExerciseCard
-                    exercise={exercise}
-                    exerciseId={idx}
-                    isExpanded={false}
-                    onToggle={() => handleImageClick(exercise)}
-                  />
-                  <TouchableOpacity
-                    onPress={() => addExercise(exercise)}
-                    style={styles.addButton}
-                    activeOpacity={0.7}
+              favorites.map((exercise, idx) => {
+                const { inPlan, groupName } = isExerciseInPlan(exercise.name);
+                return (
+                  <View
+                    key={`favorite-${exercise.name}-${idx}`}
+                    style={[
+                      styles.searchExerciseItem,
+                      inPlan && styles.searchExerciseItemInPlan
+                    ]}
                   >
-                    <Ionicons name="add-circle" size={24} color="#9333ea" />
-                  </TouchableOpacity>
-                </View>
-              ))
+                    {inPlan && (
+                      <View style={styles.inPlanBadge}>
+                        <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
+                        <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
+                      </View>
+                    )}
+                    <View style={inPlan ? styles.exerciseCardDimmed : null}>
+                      <ExerciseCard
+                        exercise={exercise}
+                        exerciseId={idx}
+                        isExpanded={false}
+                        onToggle={() => handleImageClick(exercise)}
+                      />
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => addExercise(exercise)}
+                      style={styles.addButton}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={inPlan ? "add-circle-outline" : "add-circle"}
+                        size={24}
+                        color={inPlan ? "#9ca3af" : "#9333ea"}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                );
+              })
             )}
           </View>
         )}
@@ -602,31 +825,53 @@ function CustomWorkoutBuilder({
           </View>
         )}
 
-        {selectedExercises.length > 0 && (
-          <View style={styles.selectedSection}>
-            <Text style={styles.selectedTitle}>Wybrane ćwiczenia</Text>
-            {Object.entries(exercisesByCategory).map(([category, exercises]) => (
-              <View key={category} style={styles.categorySection}>
-                <TouchableOpacity
-                  onPress={() => toggleCategory(category)}
-                  style={styles.categoryHeader}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.categoryHeaderLeft}>
-                    <Text style={styles.categoryIcon}>{getCategoryIcon(category)}</Text>
-                    <Text style={styles.categoryTitle}>{getCategoryName(category)}</Text>
-                    <Text style={styles.categoryCount}>({exercises.length})</Text>
-                  </View>
-                  <Ionicons
-                    name={expandedCategories[category] ? 'chevron-up' : 'chevron-down'}
-                    size={20}
-                    color="#4b5563"
-                  />
-                </TouchableOpacity>
+        <View style={styles.selectedSection}>
+          <Text style={styles.selectedTitle}>Plan treningowy</Text>
 
-                {expandedCategories[category] && (
-                  <View style={styles.categoryExercises}>
-                    {exercises.map((exercise) => (
+          {/* Grupy mięśniowe */}
+          {workoutPlan.map((group) => (
+              <View key={group.id} style={styles.muscleGroupSection}>
+                <View style={styles.muscleGroupHeader}>
+                  {group.muscleGroup ? (
+                    <View style={styles.muscleGroupHeaderContent}>
+                      <Text style={styles.muscleGroupIcon}>
+                        {TRAINING_TYPES.find(t => t.id === group.muscleGroup)?.name || 'Grupa'}
+                      </Text>
+                      <Text style={styles.muscleGroupCount}>({group.exercises.length})</Text>
+                    </View>
+                  ) : (
+                    <View style={styles.muscleGroupSelector}>
+                      <Text style={styles.muscleGroupSelectorLabel}>Wybierz grupę mięśniową:</Text>
+                      <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.muscleGroupOptions}
+                      >
+                        {TRAINING_TYPES.filter(type => type.id !== 'fullbody').map(type => (
+                          <TouchableOpacity
+                            key={type.id}
+                            onPress={() => setMuscleGroupType(group.id, type.id)}
+                            style={styles.muscleGroupOption}
+                            activeOpacity={0.7}
+                          >
+                            <Text style={styles.muscleGroupOptionText}>{type.name}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                  <TouchableOpacity
+                    onPress={() => removeGroup(group.id)}
+                    style={styles.removeGroupButton}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="close-circle" size={24} color="#ef4444" />
+                  </TouchableOpacity>
+                </View>
+
+                {group.muscleGroup && (
+                  <>
+                    {group.exercises.map((exercise) => (
                       <View key={exercise.id} style={styles.selectedExerciseItem}>
                         <ExerciseCard
                           exercise={exercise}
@@ -647,7 +892,7 @@ function CustomWorkoutBuilder({
                             />
                           </TouchableOpacity>
                           <TouchableOpacity
-                            onPress={() => removeExercise(exercise.id)}
+                            onPress={() => removeExerciseFromGroup(group.id, exercise.id)}
                             style={styles.removeButton}
                             activeOpacity={0.7}
                           >
@@ -656,12 +901,106 @@ function CustomWorkoutBuilder({
                         </View>
                       </View>
                     ))}
-                  </View>
+
+                    {/* Lokalny search bar dla grupy */}
+                    <View style={[
+                      styles.groupSearchSection,
+                      groupSearchQueries[group.id] && groupSearchQueries[group.id].length > 0 && styles.groupSearchSectionExpanded
+                    ]}>
+                      <TextInput
+                        style={styles.groupSearchInput}
+                        value={groupSearchQueries[group.id] || ''}
+                        onChangeText={(text) => {
+                          setGroupSearchQueries(prev => ({
+                            ...prev,
+                            [group.id]: text
+                          }));
+                        }}
+                        placeholder="Szukaj ćwiczeń do dodania..."
+                        placeholderTextColor="#9ca3af"
+                      />
+
+                      {groupSearchQueries[group.id] && groupSearchQueries[group.id].length > 0 && (
+                        <>
+                          <Pressable
+                            style={styles.groupSearchBackdrop}
+                            onPress={() => {
+                              setGroupSearchQueries(prev => ({
+                                ...prev,
+                                [group.id]: ''
+                              }));
+                            }}
+                          />
+                          <View style={styles.groupSearchResultsOverlay}>
+                            <ScrollView
+                              style={styles.groupSearchResultsScrollView}
+                              contentContainerStyle={styles.groupSearchResultsContent}
+                              showsVerticalScrollIndicator={true}
+                              nestedScrollEnabled={true}
+                            >
+                              {getFilteredExercisesForGroup(group.muscleGroup, groupSearchQueries[group.id]).map((exercise, idx) => {
+                                const { inPlan, groupName } = isExerciseInPlan(exercise.name);
+                                return (
+                                  <View
+                                    key={`group-search-${group.id}-${exercise.name}-${idx}`}
+                                    style={[
+                                      styles.groupSearchResultItem,
+                                      inPlan && styles.searchExerciseItemInPlan
+                                    ]}
+                                  >
+                                    {inPlan && (
+                                      <View style={styles.inPlanBadge}>
+                                        <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
+                                        <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
+                                      </View>
+                                    )}
+                                    <View style={inPlan ? styles.exerciseCardDimmed : null}>
+                                      <ExerciseCard
+                                        exercise={exercise}
+                                        exerciseId={`group-${group.id}-${idx}`}
+                                        isExpanded={false}
+                                        onToggle={() => handleImageClick(exercise)}
+                                      />
+                                    </View>
+                                    <TouchableOpacity
+                                      onPress={() => {
+                                        addExerciseToGroup(group.id, exercise);
+                                        setGroupSearchQueries(prev => ({
+                                          ...prev,
+                                          [group.id]: ''
+                                        }));
+                                      }}
+                                      style={styles.addButton}
+                                      activeOpacity={0.7}
+                                    >
+                                      <Ionicons
+                                        name={inPlan ? "add-circle-outline" : "add-circle"}
+                                        size={24}
+                                        color={inPlan ? "#9ca3af" : "#9333ea"}
+                                      />
+                                    </TouchableOpacity>
+                                  </View>
+                                );
+                              })}
+                            </ScrollView>
+                          </View>
+                        </>
+                      )}
+                    </View>
+                  </>
                 )}
               </View>
             ))}
+
+            <TouchableOpacity
+              onPress={addMuscleGroup}
+              style={styles.addMuscleGroupButton}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="add-circle" size={24} color="#ffffff" />
+              <Text style={styles.addMuscleGroupButtonText}>Dodaj grupę mięśniową</Text>
+            </TouchableOpacity>
           </View>
-        )}
       </ScrollView>
 
       <GifModal
@@ -782,6 +1121,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
+  searchContainer: {
+    position: 'relative',
+    zIndex: 10,
+  },
   searchInput: {
     margin: 16,
     padding: 12,
@@ -790,6 +1133,43 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
     fontSize: 16,
+    zIndex: 1,
+  },
+  searchBackdrop: {
+    position: 'absolute',
+    top: -1000,
+    left: -1000,
+    right: -1000,
+    height: 10000,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    zIndex: 50,
+  },
+  searchResultsOverlay: {
+    position: 'absolute',
+    top: 68,
+    left: 16,
+    right: 16,
+    zIndex: 100,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    maxHeight: 500,
+  },
+  searchResultsScrollView: {
+    maxHeight: 500,
+  },
+  searchResultsContent: {
+    padding: 8,
+    gap: 12,
   },
   muscleGroupsScroll: {
     maxHeight: 50,
@@ -829,6 +1209,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     overflow: 'hidden',
     position: 'relative',
+    width: '100%',
   },
   addButton: {
     position: 'absolute',
@@ -947,6 +1328,252 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     padding: 8,
+  },
+  legacyExercisesSection: {
+    marginBottom: 16,
+  },
+  legacyTitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginBottom: 12,
+  },
+  ungroupedExercisesSection: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  ungroupedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  ungroupedTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#6b7280',
+  },
+  ungroupedCount: {
+    fontSize: 14,
+    color: '#9ca3af',
+  },
+  muscleGroupSection: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#9333ea',
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  muscleGroupHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: '#f3e8ff',
+  },
+  muscleGroupHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  muscleGroupIcon: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#7c3aed',
+  },
+  muscleGroupCount: {
+    fontSize: 14,
+    color: '#7c3aed',
+  },
+  muscleGroupSelector: {
+    flex: 1,
+  },
+  muscleGroupSelectorLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#7c3aed',
+    marginBottom: 8,
+  },
+  muscleGroupOptions: {
+    maxHeight: 40,
+  },
+  muscleGroupOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#9333ea',
+  },
+  muscleGroupOptionText: {
+    fontSize: 12,
+    color: '#7c3aed',
+    fontWeight: '600',
+  },
+  removeGroupButton: {
+    padding: 8,
+  },
+  addExerciseToGroupButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  addExerciseToGroupButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9333ea',
+  },
+  addMuscleGroupButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#9333ea',
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  addMuscleGroupButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  addingToGroupBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f3e8ff',
+    padding: 12,
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#9333ea',
+  },
+  addingToGroupContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  addingToGroupText: {
+    fontSize: 14,
+    color: '#7c3aed',
+    fontWeight: '600',
+    flex: 1,
+  },
+  cancelAddingButton: {
+    padding: 4,
+  },
+  groupSearchSection: {
+    position: 'relative',
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    zIndex: 5,
+  },
+  groupSearchSectionExpanded: {
+    minHeight: 450,
+  },
+  groupSearchInput: {
+    padding: 12,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    fontSize: 14,
+    zIndex: 1,
+  },
+  groupSearchBackdrop: {
+    position: 'absolute',
+    top: -1000,
+    left: -1000,
+    right: -1000,
+    height: 10000,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    zIndex: 25,
+  },
+  groupSearchResultsOverlay: {
+    position: 'absolute',
+    top: 70,
+    left: 16,
+    right: 16,
+    zIndex: 50,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    maxHeight: 400,
+  },
+  groupSearchResultsScrollView: {
+    maxHeight: 400,
+  },
+  groupSearchResultsContent: {
+    padding: 8,
+    gap: 8,
+  },
+  groupSearchResults: {
+    marginTop: 12,
+    gap: 8,
+  },
+  groupSearchResultItem: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  searchExerciseItemInPlan: {
+    borderColor: '#fca5a5',
+    borderWidth: 2,
+    backgroundColor: '#fef2f2',
+  },
+  inPlanBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    zIndex: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#fee2e2',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+  },
+  inPlanBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#dc2626',
+  },
+  exerciseCardDimmed: {
+    opacity: 0.6,
   },
 });
 
