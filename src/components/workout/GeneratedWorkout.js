@@ -13,7 +13,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import storage from '../../utils/storage';
 import { getExercises } from '../../utils/apiHelpers';
-import { getWarmupExercises } from '../data/exercisesData';
 import { getLocalISOString } from '../../utils/workoutHelpers';
 import GifModal from './GifModal';
 import ExerciseCard from './ExerciseCard';
@@ -29,13 +28,11 @@ function GeneratedWorkout({
   console.log('GeneratedWorkout render - selectedTypes:', selectedTypes);
   
   const [workoutPlan, setWorkoutPlan] = useState({});
-  const [warmupExercises, setWarmupExercises] = useState([]);
   const [allExercises, setAllExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState(
     selectedTypes.reduce((acc, type) => ({ ...acc, [type]: true }), {})
   );
-  const [warmupExpanded, setWarmupExpanded] = useState(true);
   const [expandedExercise, setExpandedExercise] = useState(null);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [favorites, setFavorites] = useState([]);
@@ -235,18 +232,15 @@ function GeneratedWorkout({
   const generateWorkout = async () => {
     console.log('generateWorkout called');
     setLoading(true);
-    
+
     if (allExercises.length === 0) {
       console.log('No exercises available');
       setLoading(false);
       return;
     }
-    
-    const warmups = getWarmupExercises(selectedTypes, allExercises);
-    setWarmupExercises(warmups.slice(0, 3));
-    
+
     fallbackGeneration();
-    
+
     setLoading(false);
   };
 
@@ -368,7 +362,6 @@ function GeneratedWorkout({
       const workoutData = {
         type: 'generated',
         exercises: allExercises,
-        warmup: warmupExercises,
         categories: selectedTypes,
         title: selectedTypes.map(t => getShortCategoryName(t)).join('+')
       };
@@ -413,7 +406,6 @@ function GeneratedWorkout({
       const workoutData = {
         type: 'generated',
         exercises: allExercises,
-        warmup: warmupExercises,
         categories: selectedTypes,
         name: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
         date: customDate
@@ -451,7 +443,6 @@ function GeneratedWorkout({
         id: Date.now(),
         type: 'generated',
         exercises: allExercises,
-        warmup: warmupExercises,
         categories: selectedTypes,
         name: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
         title: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
@@ -571,43 +562,6 @@ function GeneratedWorkout({
             <Text style={styles.saveButtonText}>Zapisz Trening</Text>
           </TouchableOpacity>
         </View>
-
-        {warmupExercises.length > 0 && (
-          <View style={styles.section}>
-            <TouchableOpacity
-              onPress={() => setWarmupExpanded(!warmupExpanded)}
-              style={styles.sectionHeader}
-              activeOpacity={0.7}
-            >
-              <View style={styles.sectionHeaderLeft}>
-                <Text style={styles.sectionIcon}>🔥</Text>
-                <Text style={styles.sectionTitle}>Rozgrzewka</Text>
-                <Text style={styles.sectionCount}>({warmupExercises.length} ćwiczeń)</Text>
-              </View>
-              <Ionicons
-                name={warmupExpanded ? 'chevron-up' : 'chevron-down'}
-                size={20}
-                color="#4b5563"
-              />
-            </TouchableOpacity>
-
-            {warmupExpanded && (
-              <View style={styles.exerciseList}>
-                {warmupExercises.map((exercise, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    onPress={() => handleImageClick(exercise)}
-                    style={styles.warmupItem}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.warmupName}>{exercise.name}</Text>
-                    <Text style={styles.warmupSets}>2-3 serie × 10-15 powtórzeń</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-        )}
 
         {selectedTypes.map(category => (
           <View key={category} style={styles.section}>
@@ -815,21 +769,6 @@ const styles = StyleSheet.create({
   exerciseList: {
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
-  },
-  warmupItem: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  warmupName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  warmupSets: {
-    fontSize: 14,
-    color: '#6b7280',
   },
   addExerciseButton: {
     flexDirection: 'row',
