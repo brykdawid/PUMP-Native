@@ -13,7 +13,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import storage from '../../utils/storage';
 import { getExercises } from '../../utils/apiHelpers';
-import { getWarmupExercises } from '../data/exercisesData';
 import { getLocalISOString } from '../../utils/workoutHelpers';
 import GifModal from './GifModal';
 import ExerciseCard from './ExerciseCard';
@@ -29,13 +28,11 @@ function GeneratedWorkout({
   console.log('GeneratedWorkout render - selectedTypes:', selectedTypes);
   
   const [workoutPlan, setWorkoutPlan] = useState({});
-  const [warmupExercises, setWarmupExercises] = useState([]);
   const [allExercises, setAllExercises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState(
     selectedTypes.reduce((acc, type) => ({ ...acc, [type]: true }), {})
   );
-  const [warmupExpanded, setWarmupExpanded] = useState(true);
   const [expandedExercise, setExpandedExercise] = useState(null);
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [favorites, setFavorites] = useState([]);
@@ -138,6 +135,55 @@ function GeneratedWorkout({
 
   const isFavorite = (exerciseName) => favorites.some(ex => ex.name === exerciseName);
 
+  const removeExercise = (category, exerciseToRemove) => {
+    setWorkoutPlan(prev => ({
+      ...prev,
+      [category]: prev[category].filter(ex => ex.name !== exerciseToRemove.name)
+    }));
+  };
+
+  const addNewExercise = (category) => {
+    const categoryLabels = {
+      'barki': 'shoulders',
+      'biceps': 'biceps',
+      'brzuch': 'abs',
+      'klatka': 'chest',
+      'nogi': 'legs',
+      'plecy': 'back',
+      'posladki': 'glutes',
+      'przedramiona': 'forearms',
+      'triceps': 'triceps'
+    };
+
+    const targetLabel = categoryLabels[category];
+    const usedNames = workoutPlan[category].map(ex => ex.name);
+
+    const availableExercises = allExercises.filter(ex =>
+      ex.labels &&
+      ex.labels.includes(targetLabel) &&
+      !usedNames.includes(ex.name)
+    );
+
+    if (availableExercises.length === 0) {
+      Alert.alert('Info', 'Brak innych ćwiczeń w tej kategorii!');
+      return;
+    }
+
+    const randomIndex = Math.floor(Math.random() * availableExercises.length);
+    const selectedExercise = availableExercises[randomIndex];
+
+    const newExercise = {
+      ...selectedExercise,
+      count: workoutPlan[category].length + 1,
+      category: category,
+    };
+
+    setWorkoutPlan(prev => ({
+      ...prev,
+      [category]: [...prev[category], newExercise]
+    }));
+  };
+
   const replaceExercise = async (category, exerciseToReplace) => {
     const categoryLabels = {
       'barki': 'shoulders',
@@ -150,34 +196,34 @@ function GeneratedWorkout({
       'przedramiona': 'forearms',
       'triceps': 'triceps'
     };
-    
+
     const targetLabel = categoryLabels[category];
     const usedNames = workoutPlan[category].map(ex => ex.name);
-    
-    const availableExercises = allExercises.filter(ex => 
-      ex.labels && 
+
+    const availableExercises = allExercises.filter(ex =>
+      ex.labels &&
       ex.labels.includes(targetLabel) &&
       !usedNames.includes(ex.name)
     );
-    
+
     if (availableExercises.length === 0) {
       Alert.alert('Info', 'Brak innych ćwiczeń w tej kategorii do wymiany!');
       return;
     }
-    
+
     const randomIndex = Math.floor(Math.random() * availableExercises.length);
     const selectedExercise = availableExercises[randomIndex];
-    
+
     // POPRAWKA: Zachowaj kategorię podczas wymiany
     const newExercise = {
       ...selectedExercise,
       count: exerciseToReplace.count,
       category: category, // WAŻNE: Ustaw kategorię
     };
-    
+
     setWorkoutPlan(prev => ({
       ...prev,
-      [category]: prev[category].map(ex => 
+      [category]: prev[category].map(ex =>
         ex.name === exerciseToReplace.name ? newExercise : ex
       )
     }));
@@ -186,18 +232,15 @@ function GeneratedWorkout({
   const generateWorkout = async () => {
     console.log('generateWorkout called');
     setLoading(true);
-    
+
     if (allExercises.length === 0) {
       console.log('No exercises available');
       setLoading(false);
       return;
     }
-    
-    const warmups = getWarmupExercises(selectedTypes, allExercises);
-    setWarmupExercises(warmups.slice(0, 3));
-    
+
     fallbackGeneration();
-    
+
     setLoading(false);
   };
 
@@ -227,9 +270,9 @@ function GeneratedWorkout({
       console.log(`Found ${categoryExercises.length} exercises for ${category} (label: ${targetLabel})`);
       
       const shuffled = [...categoryExercises].sort(() => Math.random() - 0.5);
-      
+
       // POPRAWKA: Dodaj kategorię do każdego ćwiczenia
-      plan[category] = shuffled.slice(0, 5).map((ex, idx) => ({
+      plan[category] = shuffled.slice(0, 3).map((ex, idx) => ({
         ...ex,
         count: idx + 1,
         category: category // WAŻNE: Ustaw kategorię wybrana przez użytkownika
@@ -291,6 +334,10 @@ function GeneratedWorkout({
     return icons[id] || '💪';
   };
 
+  const getTotalExercisesCount = () => {
+    return Object.values(workoutPlan).reduce((total, exercises) => total + exercises.length, 0);
+  };
+
   const handleBeginWorkout = () => {
     if (onBeginWorkout) {
       // POPRAWKA: Flatten exercises z zachowaniem kategorii
@@ -304,13 +351,17 @@ function GeneratedWorkout({
           });
         });
       });
-      
+
+      if (allExercises.length === 0) {
+        Alert.alert('Błąd', 'Nie możesz rozpocząć treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
+        return;
+      }
+
       console.log('Beginning workout with exercises:', allExercises.map(e => `${e.name} (${e.category})`));
-      
+
       const workoutData = {
         type: 'generated',
         exercises: allExercises,
-        warmup: warmupExercises,
         categories: selectedTypes,
         title: selectedTypes.map(t => getShortCategoryName(t)).join('+')
       };
@@ -346,11 +397,15 @@ function GeneratedWorkout({
           });
         });
       });
-      
+
+      if (allExercises.length === 0) {
+        Alert.alert('Błąd', 'Nie możesz zapisać treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
+        return;
+      }
+
       const workoutData = {
         type: 'generated',
         exercises: allExercises,
-        warmup: warmupExercises,
         categories: selectedTypes,
         name: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
         date: customDate
@@ -363,7 +418,7 @@ function GeneratedWorkout({
   const handleScheduleWorkout = () => {
     if (!scheduleCalledRef.current && onScheduleWorkout) {
       scheduleCalledRef.current = true;
-      
+
       // POPRAWKA: Flatten z zachowaniem kategorii
       const allExercises = [];
       Object.entries(workoutPlan).forEach(([category, exercises]) => {
@@ -375,14 +430,19 @@ function GeneratedWorkout({
           });
         });
       });
-      
+
+      if (allExercises.length === 0) {
+        scheduleCalledRef.current = false; // Reset aby można było spróbować ponownie
+        Alert.alert('Błąd', 'Nie możesz zaplanować treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
+        return;
+      }
+
       console.log('Scheduling workout with exercises:', allExercises.map(e => `${e.name} (${e.category})`));
-      
+
       const workoutData = {
         id: Date.now(),
         type: 'generated',
         exercises: allExercises,
-        warmup: warmupExercises,
         categories: selectedTypes,
         name: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
         title: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
@@ -405,6 +465,8 @@ function GeneratedWorkout({
   };
 
   const dateType = getDateType();
+  const totalExercises = getTotalExercisesCount();
+  const hasNoExercises = totalExercises === 0;
 
   if (loading) {
     return (
@@ -442,8 +504,9 @@ function GeneratedWorkout({
           {dateType === 'today' && (
             <TouchableOpacity
               onPress={handleBeginWorkout}
-              style={styles.beginButton}
+              style={[styles.beginButton, hasNoExercises && styles.disabledButton]}
               activeOpacity={0.8}
+              disabled={hasNoExercises}
             >
               <LinearGradient
                 colors={['#16a34a', '#15803d']}
@@ -460,8 +523,9 @@ function GeneratedWorkout({
           {dateType === 'future' && (
             <TouchableOpacity
               onPress={handleScheduleWorkout}
-              style={styles.beginButton}
+              style={[styles.beginButton, hasNoExercises && styles.disabledButton]}
               activeOpacity={0.8}
+              disabled={hasNoExercises}
             >
               <LinearGradient
                 colors={['#ea580c', '#c2410c']}
@@ -490,50 +554,14 @@ function GeneratedWorkout({
 
           <TouchableOpacity
             onPress={handleSaveWorkout}
-            style={styles.saveButton}
+            style={[styles.saveButton, hasNoExercises && styles.disabledButton]}
             activeOpacity={0.8}
+            disabled={hasNoExercises}
           >
             <Ionicons name="star" size={20} color="#7c3aed" />
             <Text style={styles.saveButtonText}>Zapisz Trening</Text>
           </TouchableOpacity>
         </View>
-
-        {warmupExercises.length > 0 && (
-          <View style={styles.section}>
-            <TouchableOpacity
-              onPress={() => setWarmupExpanded(!warmupExpanded)}
-              style={styles.sectionHeader}
-              activeOpacity={0.7}
-            >
-              <View style={styles.sectionHeaderLeft}>
-                <Text style={styles.sectionIcon}>🔥</Text>
-                <Text style={styles.sectionTitle}>Rozgrzewka</Text>
-                <Text style={styles.sectionCount}>({warmupExercises.length} ćwiczeń)</Text>
-              </View>
-              <Ionicons
-                name={warmupExpanded ? 'chevron-up' : 'chevron-down'}
-                size={20}
-                color="#4b5563"
-              />
-            </TouchableOpacity>
-
-            {warmupExpanded && (
-              <View style={styles.exerciseList}>
-                {warmupExercises.map((exercise, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    onPress={() => handleImageClick(exercise)}
-                    style={styles.warmupItem}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.warmupName}>{exercise.name}</Text>
-                    <Text style={styles.warmupSets}>2-3 serie × 10-15 powtórzeń</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-        )}
 
         {selectedTypes.map(category => (
           <View key={category} style={styles.section}>
@@ -567,10 +595,19 @@ function GeneratedWorkout({
                     onToggle={() => handleImageClick(exercise)}
                     onFavorite={() => toggleFavorite(exercise)}
                     isFavorite={isFavorite(exercise.name)}
+                    onRemove={() => removeExercise(category, exercise)}
                     onReplace={() => replaceExercise(category, exercise)}
                     replaceButtonText="Wymień"
                   />
                 ))}
+                <TouchableOpacity
+                  onPress={() => addNewExercise(category)}
+                  style={styles.addExerciseButton}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add-circle" size={24} color="#9333ea" />
+                  <Text style={styles.addExerciseButtonText}>Wygeneruj nowe ćwiczenie (AI)</Text>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -733,20 +770,23 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
   },
-  warmupItem: {
+  addExerciseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    backgroundColor: '#f3e8ff',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
   },
-  warmupName: {
-    fontSize: 16,
+  addExerciseButtonText: {
+    fontSize: 15,
     fontWeight: '600',
-    color: '#111827',
-    marginBottom: 4,
+    color: '#9333ea',
   },
-  warmupSets: {
-    fontSize: 14,
-    color: '#6b7280',
+  disabledButton: {
+    opacity: 0.5,
   },
 });
 

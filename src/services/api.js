@@ -239,10 +239,10 @@ export const fetchExercises = async () => {
 /**
  * Wygeneruj workout z AI
  * @param {Array<string>} categories - Kategorie mięśniowe (np. ['chest', 'back'])
- * @param {number} numExercises - Liczba ćwiczeń (default: 4)
+ * @param {number} numExercises - Liczba ćwiczeń (default: 3)
  * @returns {Promise<Object>} Wygenerowany workout
  */
-export const generateWorkout = async (categories, numExercises = 4) => {
+export const generateWorkout = async (categories, numExercises = 3) => {
   try {
     console.log('[API] 🤖 Generating AI workout...');
     console.log(`[API] Categories: ${categories.join(', ')}`);
