@@ -448,10 +448,14 @@ function CustomWorkoutBuilder({
         const groupLabels = CATEGORY_TO_AI_LABELS[group.muscleGroup] || [];
         return matchesSearch && groupLabels.some(label => exerciseCategories.includes(label));
       }
+      // Jeśli grupa nie ma jeszcze przypisanej grupy mięśniowej, pokaż wszystkie pasujące do wyszukiwania
+      return matchesSearch;
     }
 
+    // Jeśli nie wybrano żadnych filtrów grup mięśniowych, pokaż wszystkie pasujące do wyszukiwania
     if (selectedMuscleGroups.length === 0) return matchesSearch;
 
+    // Filtruj według wybranych grup mięśniowych
     const exerciseCategories = exercise.labels || [];
     return matchesSearch && selectedMuscleGroups.some(group => {
       const groupLabels = CATEGORY_TO_AI_LABELS[group] || [];
@@ -737,14 +741,12 @@ function CustomWorkoutBuilder({
           </View>
         )}
 
-        {(selectedExercises.length > 0 || workoutPlan.length > 0) && (
-          <View style={styles.selectedSection}>
-            <Text style={styles.selectedTitle}>Plan treningowy</Text>
+        <View style={styles.selectedSection}>
+          <Text style={styles.selectedTitle}>Plan treningowy</Text>
 
-            {/* Stare ćwiczenia (dla kompatybilności) */}
-            {selectedExercises.length > 0 && (
+          {/* Stare ćwiczenia (dla kompatybilności) */}
+          {selectedExercises.length > 0 && (
               <View style={styles.legacyExercisesSection}>
-                <Text style={styles.legacyTitle}>Ćwiczenia (stara struktura)</Text>
                 {Object.entries(exercisesByCategory).map(([category, exercises]) => (
                   <View key={category} style={styles.categorySection}>
                     <TouchableOpacity
@@ -902,7 +904,6 @@ function CustomWorkoutBuilder({
               <Text style={styles.addMuscleGroupButtonText}>Dodaj grupę mięśniową</Text>
             </TouchableOpacity>
           </View>
-        )}
       </ScrollView>
 
       <GifModal
@@ -1070,6 +1071,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     overflow: 'hidden',
     position: 'relative',
+    width: '100%',
   },
   addButton: {
     position: 'absolute',
