@@ -37,6 +37,8 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [currentEditField, setCurrentEditField] = useState(null);
   const [tempValue, setTempValue] = useState('');
+  const [aboutModalVisible, setAboutModalVisible] = useState(false);
+  const [resetModalVisible, setResetModalVisible] = useState(false);
 
   const isLoadedRef = useRef(false);
 
@@ -245,26 +247,52 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
     }
   };
 
-  const handleResetData = () => {
-    Alert.alert(
-      'Resetuj dane',
-      'Czy na pewno chcesz zresetować wszystkie dane aplikacji? Ta operacja jest nieodwracalna.',
-      [
-        { text: 'Anuluj', style: 'cancel' },
-        {
-          text: 'Resetuj',
-          style: 'destructive',
-          onPress: async () => {
-            await storage.removeItem('profileData');
-            await storage.removeItem('profileImage');
-            await storage.removeItem('userStats');
-            await storage.removeItem('workoutHistory');
-            await storage.removeItem('savedWorkouts');
-            Alert.alert('Gotowe', 'Dane zostały zresetowane. Uruchom aplikację ponownie.');
-          }
-        }
-      ]
-    );
+  const handleResetData = async () => {
+    try {
+      console.log('🗑️ Resetowanie wszystkich danych aplikacji...');
+
+      // Usuń wszystkie klucze storage
+      await storage.removeItem('profileData');
+      await storage.removeItem('profileImage');
+      await storage.removeItem('userStats');
+      await storage.removeItem('workoutHistory');
+      await storage.removeItem('savedWorkouts');
+      await storage.removeItem('favoriteExercises');
+      await storage.removeItem('selectedTargetDate');
+
+      console.log('✅ Wszystkie dane zostały usunięte');
+
+      // Zresetuj lokalny stan
+      setProfileData({
+        name: '',
+        birthDate: '',
+        gender: '',
+        goal: '',
+        targetWeight: '',
+        experienceLevel: '',
+        weeklyWorkouts: '3-4',
+        workoutDuration: '60',
+        equipment: 'gym',
+        units: 'metric',
+        language: 'pl',
+        notifications: true
+      });
+      setProfileImage(null);
+
+      // Zamknij modal i pokaż komunikat
+      setResetModalVisible(false);
+
+      setTimeout(() => {
+        Alert.alert(
+          'Gotowe',
+          'Wszystkie dane zostały usunięte. Odśwież aplikację, aby zobaczyć zmiany.',
+          [{ text: 'OK' }]
+        );
+      }, 300);
+    } catch (error) {
+      console.error('❌ Błąd podczas resetowania danych:', error);
+      Alert.alert('Błąd', 'Nie udało się zresetować wszystkich danych');
+    }
   };
 
   const formatTime = (seconds) => {
@@ -532,7 +560,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
 
         <TouchableOpacity
           style={styles.actionItem}
-          onPress={() => Alert.alert('PUMP', 'Aplikacja do śledzenia treningów\nWersja 1.0.0')}
+          onPress={() => setAboutModalVisible(true)}
         >
           <View style={styles.settingLeft}>
             <Ionicons name="information-circle-outline" size={20} color="#3b82f6" />
@@ -541,7 +569,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
           <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionItem} onPress={handleResetData}>
+        <TouchableOpacity style={styles.actionItem} onPress={() => setResetModalVisible(true)}>
           <View style={styles.settingLeft}>
             <Ionicons name="trash-outline" size={20} color="#dc2626" />
             <Text style={[styles.actionLabel, { color: '#dc2626' }]}>Resetuj dane</Text>
@@ -670,6 +698,123 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
                 onPress={saveEdit}
               >
                 <Text style={styles.modalButtonTextSave}>Zapisz</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* About Modal */}
+      <Modal
+        visible={aboutModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setAboutModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.aboutHeader}>
+              <Text style={styles.aboutLogo}>PUMP</Text>
+              <Text style={styles.aboutVersion}>Wersja 1.0.0</Text>
+            </View>
+
+            <View style={styles.aboutSection}>
+              <Text style={styles.aboutTitle}>O aplikacji</Text>
+              <Text style={styles.aboutText}>
+                PUMP to kompleksowa aplikacja do śledzenia treningów siłowych, która pomaga w osiąganiu celów fitness.
+              </Text>
+            </View>
+
+            <View style={styles.aboutSection}>
+              <Text style={styles.aboutTitle}>Funkcje</Text>
+              <View style={styles.featureList}>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#9333ea" />
+                  <Text style={styles.featureText}>Generowanie treningów AI</Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#9333ea" />
+                  <Text style={styles.featureText}>Tworzenie własnych treningów</Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#9333ea" />
+                  <Text style={styles.featureText}>Śledzenie postępów</Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#9333ea" />
+                  <Text style={styles.featureText}>Rekordy osobiste</Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#9333ea" />
+                  <Text style={styles.featureText}>Biblioteka ćwiczeń</Text>
+                </View>
+                <View style={styles.featureItem}>
+                  <Ionicons name="checkmark-circle" size={20} color="#9333ea" />
+                  <Text style={styles.featureText}>Statystyki treningowe</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.aboutSection}>
+              <Text style={styles.aboutCopyright}>© 2025 PUMP. Wszystkie prawa zastrzeżone.</Text>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalButtonFull, styles.modalButtonSave]}
+              onPress={() => setAboutModalVisible(false)}
+            >
+              <Text style={styles.modalButtonTextSave}>Zamknij</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Reset Confirmation Modal */}
+      <Modal
+        visible={resetModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setResetModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.resetWarningIcon}>
+              <Ionicons name="warning" size={60} color="#dc2626" />
+            </View>
+
+            <Text style={styles.modalTitle}>Resetuj wszystkie dane</Text>
+
+            <View style={styles.resetWarningBox}>
+              <Text style={styles.resetWarningTitle}>⚠️ Uwaga! Ta operacja jest nieodwracalna!</Text>
+              <Text style={styles.resetWarningText}>
+                Po potwierdzeniu zostaną trwale usunięte:
+              </Text>
+              <View style={styles.resetList}>
+                <Text style={styles.resetListItem}>• Wszystkie treningi z historii</Text>
+                <Text style={styles.resetListItem}>• Zapisane szablony treningów</Text>
+                <Text style={styles.resetListItem}>• Ulubione ćwiczenia</Text>
+                <Text style={styles.resetListItem}>• Rekordy osobiste</Text>
+                <Text style={styles.resetListItem}>• Historia pomiarów wagi</Text>
+                <Text style={styles.resetListItem}>• Dane profilu i ustawienia</Text>
+                <Text style={styles.resetListItem}>• Zdjęcie profilowe</Text>
+              </View>
+              <Text style={styles.resetWarningFooter}>
+                Aplikacja zostanie zresetowana do stanu początkowego.
+              </Text>
+            </View>
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonCancel]}
+                onPress={() => setResetModalVisible(false)}
+              >
+                <Text style={styles.modalButtonTextCancel}>Anuluj</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.modalButtonDanger]}
+                onPress={handleResetData}
+              >
+                <Text style={styles.modalButtonTextDanger}>Resetuj</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -974,6 +1119,107 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  modalButtonFull: {
+    flex: 'none',
+    width: '100%',
+  },
+  modalButtonDanger: {
+    backgroundColor: '#dc2626',
+  },
+  modalButtonTextDanger: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  // About Modal styles
+  aboutHeader: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  aboutLogo: {
+    fontSize: 48,
+    fontWeight: '900',
+    color: '#9333ea',
+    fontStyle: 'italic',
+    marginBottom: 8,
+  },
+  aboutVersion: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  aboutSection: {
+    marginBottom: 20,
+  },
+  aboutTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 8,
+  },
+  aboutText: {
+    fontSize: 14,
+    color: '#6b7280',
+    lineHeight: 20,
+  },
+  featureList: {
+    gap: 12,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  featureText: {
+    fontSize: 14,
+    color: '#111827',
+  },
+  aboutCopyright: {
+    fontSize: 12,
+    color: '#9ca3af',
+    textAlign: 'center',
+  },
+  // Reset Modal styles
+  resetWarningIcon: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  resetWarningBox: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 20,
+  },
+  resetWarningTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#dc2626',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  resetWarningText: {
+    fontSize: 14,
+    color: '#991b1b',
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  resetList: {
+    marginBottom: 12,
+  },
+  resetListItem: {
+    fontSize: 13,
+    color: '#7f1d1d',
+    marginBottom: 6,
+    lineHeight: 18,
+  },
+  resetWarningFooter: {
+    fontSize: 13,
+    color: '#991b1b',
+    fontWeight: '600',
+    textAlign: 'center',
+    marginTop: 8,
   },
 });
 
