@@ -213,40 +213,6 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
       .slice(0, 3);
   };
 
-  const handleExportData = async () => {
-    try {
-      const exportData = {
-        profile: profileData,
-        stats: userStats,
-        history: workoutHistory,
-        exportDate: new Date().toISOString()
-      };
-
-      const dataStr = JSON.stringify(exportData, null, 2);
-
-      // On web, create download
-      if (Platform.OS === 'web') {
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `pump_export_${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        Alert.alert('Sukces', 'Dane wyeksportowane pomyślnie');
-      } else {
-        Alert.alert('Eksport danych', 'Dane zostały przygotowane do eksportu', [
-          { text: 'OK' }
-        ]);
-      }
-    } catch (error) {
-      console.error('Export error:', error);
-      Alert.alert('Błąd', 'Nie udało się wyeksportować danych');
-    }
-  };
-
   const handleResetData = async () => {
     try {
       console.log('🗑️ Resetowanie wszystkich danych aplikacji...');
@@ -549,14 +515,6 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
       {/* Actions */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🔧 Akcje</Text>
-
-        <TouchableOpacity style={styles.actionItem} onPress={handleExportData}>
-          <View style={styles.settingLeft}>
-            <Ionicons name="download-outline" size={20} color="#3b82f6" />
-            <Text style={styles.actionLabel}>Eksportuj dane</Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.actionItem}
