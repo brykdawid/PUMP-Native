@@ -718,6 +718,46 @@ function CustomWorkoutBuilder({
         <View style={styles.selectedSection}>
           <Text style={styles.selectedTitle}>Plan treningowy</Text>
 
+          {/* Ćwiczenia bez przypisanej grupy */}
+          {selectedExercises.length > 0 && (
+            <View style={styles.ungroupedExercisesSection}>
+              <View style={styles.ungroupedHeader}>
+                <Text style={styles.ungroupedTitle}>Ćwiczenia bez grupy</Text>
+                <Text style={styles.ungroupedCount}>({selectedExercises.length})</Text>
+              </View>
+              {selectedExercises.map((exercise) => (
+                <View key={exercise.id} style={styles.selectedExerciseItem}>
+                  <ExerciseCard
+                    exercise={exercise}
+                    exerciseId={exercise.id}
+                    isExpanded={expandedExercise === exercise.id}
+                    onToggle={() => toggleExerciseDetails(exercise.id)}
+                  />
+                  <View style={styles.selectedExerciseActions}>
+                    <TouchableOpacity
+                      onPress={() => toggleFavorite(exercise)}
+                      style={styles.smallButton}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={isFavoriteExercise(exercise.name) ? 'star' : 'star-outline'}
+                        size={20}
+                        color={isFavoriteExercise(exercise.name) ? '#facc15' : '#9ca3af'}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => removeExercise(exercise.id)}
+                      style={styles.removeButton}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="close-circle" size={20} color="#ef4444" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+
           {/* Nowa struktura z grupami mięśniowymi */}
           {workoutPlan.map((group) => (
               <View key={group.id} style={styles.muscleGroupSection}>
@@ -1111,6 +1151,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginBottom: 12,
+  },
+  ungroupedExercisesSection: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  ungroupedHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  ungroupedTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#6b7280',
+  },
+  ungroupedCount: {
+    fontSize: 14,
+    color: '#9ca3af',
   },
   muscleGroupSection: {
     backgroundColor: '#ffffff',
