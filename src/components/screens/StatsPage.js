@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Image,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -26,6 +27,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
   const [expandedExercises, setExpandedExercises] = useState({});
   const [imageErrors, setImageErrors] = useState({});
   const [selectedWorkout, setSelectedWorkout] = useState(null);
+  const [showWeightHistoryModal, setShowWeightHistoryModal] = useState(false);
 
   const startEdit = (field, currentValue) => {
     setEditingField(field);
@@ -42,6 +44,16 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
           const height = editingField === 'height' ? numValue : userStats.height;
           newStats.bmi = parseFloat((weight / ((height / 100) ** 2)).toFixed(1));
         }
+
+        // Jeśli zmienia się waga, dodaj do historii
+        if (editingField === 'weight' && numValue !== userStats.weight) {
+          const weightHistory = userStats.weightHistory || [];
+          newStats.weightHistory = [...weightHistory, {
+            date: new Date().toISOString(),
+            weight: numValue
+          }];
+        }
+
         setUserStats(newStats);
       }
     }
@@ -63,6 +75,28 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
     if (bmi < 30) return { text: 'Nadwaga', color: '#ca8a04' };
     return { text: 'Otyłość', color: '#dc2626' };
   };
+
+  // Obliczanie statystyk wagi z historii
+  const calculateWeightStats = useMemo(() => {
+    const weightHistory = userStats.weightHistory || [];
+
+    // Dodaj aktualną wagę do obliczeń
+    const allWeights = [...weightHistory.map(entry => entry.weight), userStats.weight];
+
+    if (allWeights.length === 0) {
+      return { min: 0, max: 0, average: 0 };
+    }
+
+    const min = Math.min(...allWeights);
+    const max = Math.max(...allWeights);
+    const average = allWeights.reduce((sum, w) => sum + w, 0) / allWeights.length;
+
+    return {
+      min: parseFloat(min.toFixed(1)),
+      max: parseFloat(max.toFixed(1)),
+      average: parseFloat(average.toFixed(1))
+    };
+  }, [userStats.weight, userStats.weightHistory]);
 
   // Calculate training volume from pre-calculated totalVolume field
   const calculateTrainingVolume = useMemo(() => {
@@ -228,7 +262,17 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
         <View style={styles.metricsGrid}>
           {/* Weight */}
           <View style={styles.metricCard}>
-            <Text style={styles.metricLabel}>Waga</Text>
+            <View style={styles.metricLabelRow}>
+              <Text style={styles.metricLabel}>Waga</Text>
+              <TouchableOpacity
+                onPress={() => setShowWeightHistoryModal(true)}
+                style={styles.historyButton}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="time-outline" size={14} color="#9333ea" />
+                <Text style={styles.historyButtonText}>Historia</Text>
+              </TouchableOpacity>
+            </View>
             {editingField === 'weight' ? (
               <View style={styles.editContainer}>
                 <TextInput
@@ -716,6 +760,59 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
         {activeTab === 'volume' && renderTrainingVolume()}
         {activeTab === 'workouts' && renderWorkoutCount()}
       </ScrollView>
+
+      {/* Modal historii wagi */}
+      <Modal
+        visible={showWeightHistoryModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowWeightHistoryModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Statystyki wagi</Text>
+              <TouchableOpacity
+                onPress={() => setShowWeightHistoryModal(false)}
+                style={styles.modalCloseButton}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close-circle" size={28} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.weightStatsGrid}>
+              <View style={styles.weightStatCard}>
+                <Ionicons name="arrow-down-circle" size={32} color="#16a34a" />
+                <Text style={styles.weightStatLabel}>Najmniejsza waga</Text>
+                <Text style={styles.weightStatValue}>{calculateWeightStats.min}</Text>
+                <Text style={styles.weightStatUnit}>kg</Text>
+              </View>
+
+              <View style={styles.weightStatCard}>
+                <Ionicons name="analytics" size={32} color="#3b82f6" />
+                <Text style={styles.weightStatLabel}>Średnia waga</Text>
+                <Text style={styles.weightStatValue}>{calculateWeightStats.average}</Text>
+                <Text style={styles.weightStatUnit}>kg</Text>
+              </View>
+
+              <View style={styles.weightStatCard}>
+                <Ionicons name="arrow-up-circle" size={32} color="#dc2626" />
+                <Text style={styles.weightStatLabel}>Największa waga</Text>
+                <Text style={styles.weightStatValue}>{calculateWeightStats.max}</Text>
+                <Text style={styles.weightStatUnit}>kg</Text>
+              </View>
+            </View>
+
+            <View style={styles.modalInfo}>
+              <Ionicons name="information-circle" size={20} color="#6b7280" />
+              <Text style={styles.modalInfoText}>
+                Statystyki są automatycznie obliczane na podstawie historii pomiarów wagi
+              </Text>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -1158,6 +1255,114 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#9333ea',
+  },
+  // Styles dla przycisku historii
+  metricLabelRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  historyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: '#f3e8ff',
+    borderRadius: 6,
+  },
+  historyButtonText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#9333ea',
+  },
+  // Styles dla modalu
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  modalCloseButton: {
+    padding: 4,
+  },
+  weightStatsGrid: {
+    gap: 16,
+  },
+  weightStatCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  weightStatLabel: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginTop: 12,
+    marginBottom: 8,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  weightStatValue: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  weightStatUnit: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  modalInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 24,
+    padding: 16,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 12,
+  },
+  modalInfoText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#6b7280',
+    lineHeight: 18,
+  },
+  setX: {
+    fontSize: 14,
+    color: '#6b7280',
+    fontWeight: '600',
   },
 });
 
