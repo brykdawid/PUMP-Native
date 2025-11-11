@@ -564,7 +564,6 @@ function GeneratedWorkout({
                       sets: '3-4 serie × 8-12 powtórzeń'
                     }}
                     exerciseId={idx}
-                    isExpanded={false}
                     onToggle={() => handleImageClick(exercise)}
                     onFavorite={() => toggleFavorite(exercise)}
                     isFavorite={isFavorite(exercise.name)}

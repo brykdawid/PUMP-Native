@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getExercises } from '../../utils/apiHelpers';
 import { TRAINING_TYPES } from '../data/exercisesData';
 import ExerciseCard from '../workout/ExerciseCard';
+import GifModal from '../workout/GifModal';
 import storage from '../../utils/storage';
 
 const ITEMS_PER_PAGE = 20;
@@ -27,7 +28,7 @@ function LibraryPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedExercise, setExpandedExercise] = useState(null);
+  const [selectedExercise, setSelectedExercise] = useState(null);
   const [favorites, setFavorites] = useState([]);
 
   useEffect(() => {
@@ -147,8 +148,12 @@ function LibraryPage() {
     }).length;
   };
 
-  const handleToggleExpand = (exerciseId) => {
-    setExpandedExercise(expandedExercise === exerciseId ? null : exerciseId);
+  const handleImageClick = (exercise) => {
+    setSelectedExercise(exercise);
+  };
+
+  const closeModal = () => {
+    setSelectedExercise(null);
   };
 
   if (loading) {
@@ -238,8 +243,7 @@ function LibraryPage() {
             <ExerciseCard
               exercise={item}
               exerciseId={uniqueId}
-              isExpanded={expandedExercise === uniqueId}
-              onToggle={() => handleToggleExpand(uniqueId)}
+              onToggle={() => handleImageClick(item)}
               onFavorite={() => toggleFavorite(item.id || item.name)}
               isFavorite={favorites.includes(item.id || item.name)}
             />
@@ -288,6 +292,13 @@ function LibraryPage() {
         windowSize={5}
         removeClippedSubviews={true}
         style={styles.exerciseList}
+      />
+
+      <GifModal
+        exercise={selectedExercise}
+        onClose={closeModal}
+        onToggleFavorite={() => selectedExercise && toggleFavorite(selectedExercise.id || selectedExercise.name)}
+        isFavorite={selectedExercise ? favorites.includes(selectedExercise.id || selectedExercise.name) : false}
       />
     </View>
   );

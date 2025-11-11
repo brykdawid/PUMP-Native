@@ -61,7 +61,6 @@ function CustomWorkoutBuilder({
   const [groupSearchQueries, setGroupSearchQueries] = useState({});
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [activeTab, setActiveTab] = useState('search');
-  const [expandedExercise, setExpandedExercise] = useState(null);
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [savedWorkouts, setSavedWorkouts] = useState([]);
@@ -368,10 +367,6 @@ function CustomWorkoutBuilder({
       ...prev,
       [category]: !prev[category]
     }));
-  };
-
-  const toggleExerciseDetails = (exerciseId) => {
-    setExpandedExercise(prev => prev === exerciseId ? null : exerciseId);
   };
 
   const handleImageClick = (exercise) => {
@@ -724,7 +719,6 @@ function CustomWorkoutBuilder({
                             <ExerciseCard
                               exercise={exercise}
                               exerciseId={idx}
-                              isExpanded={false}
                               onToggle={() => handleImageClick(exercise)}
                               onAdd={() => addExercise(exercise)}
                             />
@@ -764,7 +758,6 @@ function CustomWorkoutBuilder({
                       <ExerciseCard
                         exercise={exercise}
                         exerciseId={idx}
-                        isExpanded={false}
                         onToggle={() => handleImageClick(exercise)}
                         onAdd={() => addExercise(exercise)}
                       />
@@ -856,8 +849,7 @@ function CustomWorkoutBuilder({
                         <ExerciseCard
                           exercise={exercise}
                           exerciseId={exercise.id}
-                          isExpanded={expandedExercise === exercise.id}
-                          onToggle={() => toggleExerciseDetails(exercise.id)}
+                          onToggle={() => handleImageClick(exercise)}
                           onFavorite={() => toggleFavorite(exercise)}
                           isFavorite={isFavoriteExercise(exercise.name)}
                           onRemove={() => removeExerciseFromGroup(group.id, exercise.id)}
@@ -921,7 +913,6 @@ function CustomWorkoutBuilder({
                                       <ExerciseCard
                                         exercise={exercise}
                                         exerciseId={`group-${group.id}-${idx}`}
-                                        isExpanded={false}
                                         onToggle={() => handleImageClick(exercise)}
                                         onAdd={() => {
                                           addExerciseToGroup(group.id, exercise);

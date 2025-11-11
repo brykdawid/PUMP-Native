@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 function ExerciseCard({
   exercise,
   exerciseId,
-  isExpanded,
   onToggle,
   // Optional action buttons
   onFavorite,
@@ -133,14 +132,6 @@ function ExerciseCard({
           </TouchableOpacity>
         </View>
       )}
-
-      {isExpanded && (
-        <View style={styles.descriptionContainer}>
-          <Text style={styles.descriptionText}>
-            {exercise.description}
-          </Text>
-        </View>
-      )}
     </View>
   );
 }
@@ -210,16 +201,6 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     padding: 4,
-  },
-  descriptionContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    backgroundColor: '#f9fafb',
-  },
-  descriptionText: {
-    color: '#6b7280',
-    fontSize: 14,
-    lineHeight: 20,
   },
   exerciseActions: {
     flexDirection: 'row',
