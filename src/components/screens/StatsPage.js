@@ -488,37 +488,47 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
         {/* Lista dodanych rekordów */}
         {userStats.records.length > 0 && (
           <View style={styles.recordsList}>
-            {userStats.records.map((record, idx) => (
-              <View key={idx} style={styles.recordCard}>
-                {/* Obrazek ćwiczenia jeśli dostępny */}
-                {record.image && (
-                  <Image
-                    source={{ uri: record.image }}
-                    style={styles.recordImage}
-                    resizeMode="cover"
-                  />
-                )}
+            {userStats.records.map((record, idx) => {
+              const isFromApi = record.image || record.category;
+              return (
+                <View key={idx} style={styles.recordCard}>
+                  {/* Obrazek ćwiczenia jeśli dostępny */}
+                  {record.image && (
+                    <Image
+                      source={{ uri: record.image }}
+                      style={styles.recordImage}
+                      resizeMode="cover"
+                    />
+                  )}
 
-                <View style={styles.recordInfo}>
-                  <Text style={styles.recordExercise}>{record.exercise}</Text>
-                  <Text style={styles.recordLabel}>Najlepszy wynik</Text>
-                </View>
-
-                <View style={styles.recordActions}>
-                  <View style={styles.recordValueContainer}>
-                    <Text style={styles.recordValue}>{record.weight}</Text>
-                    <Text style={styles.recordUnit}>kg</Text>
+                  <View style={styles.recordInfo}>
+                    <View style={styles.recordTitleRow}>
+                      <Text style={styles.recordExercise}>{record.exercise}</Text>
+                      <View style={[styles.recordBadge, isFromApi ? styles.recordBadgeApi : styles.recordBadgeCustom]}>
+                        <Text style={styles.recordBadgeText}>
+                          {isFromApi ? 'Z listy' : 'Własny'}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.recordLabel}>Najlepszy wynik</Text>
                   </View>
-                  <TouchableOpacity
-                    onPress={() => deleteRecord(idx)}
-                    style={styles.deleteRecordButton}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="trash-outline" size={20} color="#dc2626" />
-                  </TouchableOpacity>
+
+                  <View style={styles.recordActions}>
+                    <View style={styles.recordValueContainer}>
+                      <Text style={styles.recordValue}>{record.weight}</Text>
+                      <Text style={styles.recordUnit}>kg</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => deleteRecord(idx)}
+                      style={styles.deleteRecordButton}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="trash-outline" size={20} color="#dc2626" />
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
 
@@ -1343,11 +1353,33 @@ const styles = StyleSheet.create({
   recordInfo: {
     flex: 1,
   },
+  recordTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+    flexWrap: 'wrap',
+  },
   recordExercise: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 4,
+  },
+  recordBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  recordBadgeApi: {
+    backgroundColor: '#dbeafe',
+  },
+  recordBadgeCustom: {
+    backgroundColor: '#f3e8ff',
+  },
+  recordBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#374151',
   },
   recordLabel: {
     fontSize: 14,
