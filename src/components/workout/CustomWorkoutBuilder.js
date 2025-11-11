@@ -675,7 +675,7 @@ function CustomWorkoutBuilder({
         showsVerticalScrollIndicator={false}
       >
         {activeTab === 'search' && (
-          <View>
+          <View style={styles.searchContainer}>
             <TextInput
               style={styles.searchInput}
               value={searchQuery}
@@ -688,45 +688,52 @@ function CustomWorkoutBuilder({
             />
 
             {showExerciseList && (
-              <View style={styles.exerciseList}>
-                {filteredExercises.map((exercise, idx) => {
-                  const { inPlan, groupName } = isExerciseInPlan(exercise.name);
-                  return (
-                    <View
-                      key={`search-${exercise.name}-${idx}`}
-                      style={[
-                        styles.searchExerciseItem,
-                        inPlan && styles.searchExerciseItemInPlan
-                      ]}
-                    >
-                      {inPlan && (
-                        <View style={styles.inPlanBadge}>
-                          <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
-                          <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
-                        </View>
-                      )}
-                      <View style={inPlan ? styles.exerciseCardDimmed : null}>
-                        <ExerciseCard
-                          exercise={exercise}
-                          exerciseId={idx}
-                          isExpanded={false}
-                          onToggle={() => handleImageClick(exercise)}
-                        />
-                      </View>
-                      <TouchableOpacity
-                        onPress={() => addExercise(exercise)}
-                        style={styles.addButton}
-                        activeOpacity={0.7}
+              <View style={styles.searchResultsOverlay}>
+                <ScrollView
+                  style={styles.searchResultsScrollView}
+                  contentContainerStyle={styles.searchResultsContent}
+                  showsVerticalScrollIndicator={true}
+                  nestedScrollEnabled={true}
+                >
+                  {filteredExercises.map((exercise, idx) => {
+                    const { inPlan, groupName } = isExerciseInPlan(exercise.name);
+                    return (
+                      <View
+                        key={`search-${exercise.name}-${idx}`}
+                        style={[
+                          styles.searchExerciseItem,
+                          inPlan && styles.searchExerciseItemInPlan
+                        ]}
                       >
-                        <Ionicons
-                          name={inPlan ? "add-circle-outline" : "add-circle"}
-                          size={24}
-                          color={inPlan ? "#9ca3af" : "#9333ea"}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
+                        {inPlan && (
+                          <View style={styles.inPlanBadge}>
+                            <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
+                            <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
+                          </View>
+                        )}
+                        <View style={inPlan ? styles.exerciseCardDimmed : null}>
+                          <ExerciseCard
+                            exercise={exercise}
+                            exerciseId={idx}
+                            isExpanded={false}
+                            onToggle={() => handleImageClick(exercise)}
+                          />
+                        </View>
+                        <TouchableOpacity
+                          onPress={() => addExercise(exercise)}
+                          style={styles.addButton}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons
+                            name={inPlan ? "add-circle-outline" : "add-circle"}
+                            size={24}
+                            color={inPlan ? "#9ca3af" : "#9333ea"}
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
+                </ScrollView>
               </View>
             )}
           </View>
@@ -901,51 +908,58 @@ function CustomWorkoutBuilder({
                       />
 
                       {groupSearchQueries[group.id] && groupSearchQueries[group.id].length > 0 && (
-                        <View style={styles.groupSearchResults}>
-                          {getFilteredExercisesForGroup(group.muscleGroup, groupSearchQueries[group.id]).map((exercise, idx) => {
-                            const { inPlan, groupName } = isExerciseInPlan(exercise.name);
-                            return (
-                              <View
-                                key={`group-search-${group.id}-${exercise.name}-${idx}`}
-                                style={[
-                                  styles.groupSearchResultItem,
-                                  inPlan && styles.searchExerciseItemInPlan
-                                ]}
-                              >
-                                {inPlan && (
-                                  <View style={styles.inPlanBadge}>
-                                    <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
-                                    <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
-                                  </View>
-                                )}
-                                <View style={inPlan ? styles.exerciseCardDimmed : null}>
-                                  <ExerciseCard
-                                    exercise={exercise}
-                                    exerciseId={`group-${group.id}-${idx}`}
-                                    isExpanded={false}
-                                    onToggle={() => handleImageClick(exercise)}
-                                  />
-                                </View>
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    addExerciseToGroup(group.id, exercise);
-                                    setGroupSearchQueries(prev => ({
-                                      ...prev,
-                                      [group.id]: ''
-                                    }));
-                                  }}
-                                  style={styles.addButton}
-                                  activeOpacity={0.7}
+                        <View style={styles.groupSearchResultsOverlay}>
+                          <ScrollView
+                            style={styles.groupSearchResultsScrollView}
+                            contentContainerStyle={styles.groupSearchResultsContent}
+                            showsVerticalScrollIndicator={true}
+                            nestedScrollEnabled={true}
+                          >
+                            {getFilteredExercisesForGroup(group.muscleGroup, groupSearchQueries[group.id]).map((exercise, idx) => {
+                              const { inPlan, groupName } = isExerciseInPlan(exercise.name);
+                              return (
+                                <View
+                                  key={`group-search-${group.id}-${exercise.name}-${idx}`}
+                                  style={[
+                                    styles.groupSearchResultItem,
+                                    inPlan && styles.searchExerciseItemInPlan
+                                  ]}
                                 >
-                                  <Ionicons
-                                    name={inPlan ? "add-circle-outline" : "add-circle"}
-                                    size={24}
-                                    color={inPlan ? "#9ca3af" : "#9333ea"}
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                            );
-                          })}
+                                  {inPlan && (
+                                    <View style={styles.inPlanBadge}>
+                                      <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
+                                      <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
+                                    </View>
+                                  )}
+                                  <View style={inPlan ? styles.exerciseCardDimmed : null}>
+                                    <ExerciseCard
+                                      exercise={exercise}
+                                      exerciseId={`group-${group.id}-${idx}`}
+                                      isExpanded={false}
+                                      onToggle={() => handleImageClick(exercise)}
+                                    />
+                                  </View>
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      addExerciseToGroup(group.id, exercise);
+                                      setGroupSearchQueries(prev => ({
+                                        ...prev,
+                                        [group.id]: ''
+                                      }));
+                                    }}
+                                    style={styles.addButton}
+                                    activeOpacity={0.7}
+                                  >
+                                    <Ionicons
+                                      name={inPlan ? "add-circle-outline" : "add-circle"}
+                                      size={24}
+                                      color={inPlan ? "#9ca3af" : "#9333ea"}
+                                    />
+                                  </TouchableOpacity>
+                                </View>
+                              );
+                            })}
+                          </ScrollView>
                         </View>
                       )}
                     </View>
@@ -1083,6 +1097,10 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 100,
   },
+  searchContainer: {
+    position: 'relative',
+    zIndex: 10,
+  },
   searchInput: {
     margin: 16,
     padding: 12,
@@ -1091,6 +1109,34 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
     fontSize: 16,
+    zIndex: 1,
+  },
+  searchResultsOverlay: {
+    position: 'absolute',
+    top: 68,
+    left: 16,
+    right: 16,
+    zIndex: 100,
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    maxHeight: 500,
+  },
+  searchResultsScrollView: {
+    maxHeight: 500,
+  },
+  searchResultsContent: {
+    padding: 8,
+    gap: 12,
   },
   muscleGroupsScroll: {
     maxHeight: 50,
@@ -1401,10 +1447,12 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   groupSearchSection: {
+    position: 'relative',
     padding: 16,
     backgroundColor: '#f9fafb',
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
+    zIndex: 5,
   },
   groupSearchInput: {
     padding: 12,
@@ -1413,6 +1461,34 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
     fontSize: 14,
+    zIndex: 1,
+  },
+  groupSearchResultsOverlay: {
+    position: 'absolute',
+    top: 70,
+    left: 16,
+    right: 16,
+    zIndex: 50,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
+    maxHeight: 400,
+  },
+  groupSearchResultsScrollView: {
+    maxHeight: 400,
+  },
+  groupSearchResultsContent: {
+    padding: 8,
+    gap: 8,
   },
   groupSearchResults: {
     marginTop: 12,
