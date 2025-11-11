@@ -903,7 +903,7 @@ function CustomWorkoutBuilder({
                       {groupSearchQueries[group.id] && groupSearchQueries[group.id].length > 0 && (
                         <View style={styles.groupSearchResults}>
                           {getFilteredExercisesForGroup(group.muscleGroup, groupSearchQueries[group.id]).map((exercise, idx) => {
-                            const { inPlan, groupName } = isExerciseInPlan(exercise.name, group.id);
+                            const { inPlan, groupName } = isExerciseInPlan(exercise.name);
                             return (
                               <View
                                 key={`group-search-${group.id}-${exercise.name}-${idx}`}
