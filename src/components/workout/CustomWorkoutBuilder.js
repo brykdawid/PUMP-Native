@@ -35,18 +35,10 @@ const translateCategory = (category) => {
 };
 
 const categoryToMuscleGroup = (category) => {
-  const mapping = {
-    'barki': 'shoulders',
-    'biceps': 'arms',
-    'brzuch': 'abs',
-    'klatka': 'chest',
-    'nogi': 'legs',
-    'plecy': 'back',
-    'posladki': 'glutes',
-    'przedramiona': 'arms',
-    'triceps': 'arms',
-  };
-  return mapping[category] || null;
+  // TRAINING_TYPES używa polskich ID, więc zwracamy kategorię bezpośrednio
+  // jeśli jest zgodna z TRAINING_TYPES
+  const validGroups = ['barki', 'biceps', 'brzuch', 'klatka', 'nogi', 'plecy', 'posladki', 'przedramiona', 'triceps'];
+  return validGroups.includes(category?.toLowerCase()) ? category.toLowerCase() : null;
 };
 
 function CustomWorkoutBuilder({ 
