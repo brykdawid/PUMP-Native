@@ -34,6 +34,21 @@ const translateCategory = (category) => {
   return translations[category?.toLowerCase()] || category;
 };
 
+const categoryToMuscleGroup = (category) => {
+  const mapping = {
+    'barki': 'shoulders',
+    'biceps': 'arms',
+    'brzuch': 'abs',
+    'klatka': 'chest',
+    'nogi': 'legs',
+    'plecy': 'back',
+    'posladki': 'glutes',
+    'przedramiona': 'arms',
+    'triceps': 'arms',
+  };
+  return mapping[category] || null;
+};
+
 function CustomWorkoutBuilder({ 
   onBack, 
   onSaveWorkout, 
@@ -50,6 +65,7 @@ function CustomWorkoutBuilder({
   const [workoutPlan, setWorkoutPlan] = useState([]);
   const [expandedCategories, setExpandedCategories] = useState({});
   const [addingExerciseToGroup, setAddingExerciseToGroup] = useState(null);
+  const [groupSearchQueries, setGroupSearchQueries] = useState({});
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [activeTab, setActiveTab] = useState('search');
   const [expandedExercise, setExpandedExercise] = useState(null);
@@ -207,13 +223,35 @@ function CustomWorkoutBuilder({
       ...exercise,
       id: `${exercise.name}-${Date.now()}-${Math.random()}`,
     };
-    setSelectedExercises(prev => [...prev, newExercise]);
 
+    // Określ kategorię i grupę mięśniową
     const category = getPrimaryCategory(newExercise);
-    setExpandedCategories(prev => ({
-      ...prev,
-      [category]: true
-    }));
+    const muscleGroup = categoryToMuscleGroup(category);
+
+    if (muscleGroup) {
+      // Sprawdź czy grupa już istnieje
+      const existingGroup = workoutPlan.find(g => g.muscleGroup === muscleGroup);
+
+      if (existingGroup) {
+        // Dodaj do istniejącej grupy
+        setWorkoutPlan(prev => prev.map(group =>
+          group.muscleGroup === muscleGroup
+            ? { ...group, exercises: [...group.exercises, newExercise] }
+            : group
+        ));
+      } else {
+        // Utwórz nową grupę
+        const newGroup = {
+          id: `group-${Date.now()}`,
+          muscleGroup: muscleGroup,
+          exercises: [newExercise]
+        };
+        setWorkoutPlan(prev => [...prev, newGroup]);
+      }
+    } else {
+      // Jeśli nie można określić grupy, dodaj do selectedExercises (zapasowo)
+      setSelectedExercises(prev => [...prev, newExercise]);
+    }
 
     // Zamknij search bar i wyniki
     setSearchQuery('');
@@ -440,27 +478,7 @@ function CustomWorkoutBuilder({
     const matchesSearch = exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          exercise.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Jeśli dodajemy ćwiczenie do konkretnej grupy, filtruj tylko po tej grupie
-    if (addingExerciseToGroup) {
-      const group = workoutPlan.find(g => g.id === addingExerciseToGroup);
-      if (group && group.muscleGroup) {
-        const exerciseCategories = exercise.labels || [];
-        const groupLabels = CATEGORY_TO_AI_LABELS[group.muscleGroup] || [];
-        return matchesSearch && groupLabels.some(label => exerciseCategories.includes(label));
-      }
-      // Jeśli grupa nie ma jeszcze przypisanej grupy mięśniowej, pokaż wszystkie pasujące do wyszukiwania
-      return matchesSearch;
-    }
-
-    // Jeśli nie wybrano żadnych filtrów grup mięśniowych, pokaż wszystkie pasujące do wyszukiwania
-    if (selectedMuscleGroups.length === 0) return matchesSearch;
-
-    // Filtruj według wybranych grup mięśniowych
-    const exerciseCategories = exercise.labels || [];
-    return matchesSearch && selectedMuscleGroups.some(group => {
-      const groupLabels = CATEGORY_TO_AI_LABELS[group] || [];
-      return groupLabels.some(label => exerciseCategories.includes(label));
-    });
+    return matchesSearch;
   });
 
   const toggleMuscleGroup = (groupId) => {
@@ -469,6 +487,21 @@ function CustomWorkoutBuilder({
         ? prev.filter(id => id !== groupId)
         : [...prev, groupId]
     );
+  };
+
+  const getFilteredExercisesForGroup = (muscleGroup, searchQuery) => {
+    if (!searchQuery || searchQuery.length === 0) return [];
+
+    return allExercises.filter(exercise => {
+      const matchesSearch = exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           exercise.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      if (!matchesSearch) return false;
+
+      const exerciseCategories = exercise.labels || [];
+      const groupLabels = CATEGORY_TO_AI_LABELS[muscleGroup] || [];
+      return groupLabels.some(label => exerciseCategories.includes(label));
+    });
   };
 
   return (
@@ -598,27 +631,6 @@ function CustomWorkoutBuilder({
       >
         {activeTab === 'search' && (
           <View>
-            {addingExerciseToGroup && (
-              <View style={styles.addingToGroupBanner}>
-                <View style={styles.addingToGroupContent}>
-                  <Ionicons name="information-circle" size={20} color="#7c3aed" />
-                  <Text style={styles.addingToGroupText}>
-                    Dodajesz ćwiczenie do grupy:{' '}
-                    {TRAINING_TYPES.find(t =>
-                      t.id === workoutPlan.find(g => g.id === addingExerciseToGroup)?.muscleGroup
-                    )?.name || 'Grupa'}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => setAddingExerciseToGroup(null)}
-                  style={styles.cancelAddingButton}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="close" size={20} color="#7c3aed" />
-                </TouchableOpacity>
-              </View>
-            )}
-
             <TextInput
               style={styles.searchInput}
               value={searchQuery}
@@ -641,13 +653,7 @@ function CustomWorkoutBuilder({
                       onToggle={() => handleImageClick(exercise)}
                     />
                     <TouchableOpacity
-                      onPress={() => {
-                        if (addingExerciseToGroup) {
-                          addExerciseToGroup(addingExerciseToGroup, exercise);
-                        } else {
-                          addExercise(exercise);
-                        }
-                      }}
+                      onPress={() => addExercise(exercise)}
                       style={styles.addButton}
                       activeOpacity={0.7}
                     >
@@ -718,47 +724,7 @@ function CustomWorkoutBuilder({
         <View style={styles.selectedSection}>
           <Text style={styles.selectedTitle}>Plan treningowy</Text>
 
-          {/* Ćwiczenia bez przypisanej grupy */}
-          {selectedExercises.length > 0 && (
-            <View style={styles.ungroupedExercisesSection}>
-              <View style={styles.ungroupedHeader}>
-                <Text style={styles.ungroupedTitle}>Ćwiczenia bez grupy</Text>
-                <Text style={styles.ungroupedCount}>({selectedExercises.length})</Text>
-              </View>
-              {selectedExercises.map((exercise) => (
-                <View key={exercise.id} style={styles.selectedExerciseItem}>
-                  <ExerciseCard
-                    exercise={exercise}
-                    exerciseId={exercise.id}
-                    isExpanded={expandedExercise === exercise.id}
-                    onToggle={() => toggleExerciseDetails(exercise.id)}
-                  />
-                  <View style={styles.selectedExerciseActions}>
-                    <TouchableOpacity
-                      onPress={() => toggleFavorite(exercise)}
-                      style={styles.smallButton}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons
-                        name={isFavoriteExercise(exercise.name) ? 'star' : 'star-outline'}
-                        size={20}
-                        color={isFavoriteExercise(exercise.name) ? '#facc15' : '#9ca3af'}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => removeExercise(exercise.id)}
-                      style={styles.removeButton}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="close-circle" size={20} color="#ef4444" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* Nowa struktura z grupami mięśniowymi */}
+          {/* Grupy mięśniowe */}
           {workoutPlan.map((group) => (
               <View key={group.id} style={styles.muscleGroupSection}>
                 <View style={styles.muscleGroupHeader}>
@@ -832,17 +798,49 @@ function CustomWorkoutBuilder({
                       </View>
                     ))}
 
-                    <TouchableOpacity
-                      onPress={() => {
-                        setAddingExerciseToGroup(group.id);
-                        setActiveTab('search');
-                      }}
-                      style={styles.addExerciseToGroupButton}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="add-circle-outline" size={20} color="#9333ea" />
-                      <Text style={styles.addExerciseToGroupButtonText}>Dodaj ćwiczenie do grupy</Text>
-                    </TouchableOpacity>
+                    {/* Lokalny search bar dla grupy */}
+                    <View style={styles.groupSearchSection}>
+                      <TextInput
+                        style={styles.groupSearchInput}
+                        value={groupSearchQueries[group.id] || ''}
+                        onChangeText={(text) => {
+                          setGroupSearchQueries(prev => ({
+                            ...prev,
+                            [group.id]: text
+                          }));
+                        }}
+                        placeholder="Szukaj ćwiczeń do dodania..."
+                        placeholderTextColor="#9ca3af"
+                      />
+
+                      {groupSearchQueries[group.id] && groupSearchQueries[group.id].length > 0 && (
+                        <View style={styles.groupSearchResults}>
+                          {getFilteredExercisesForGroup(group.muscleGroup, groupSearchQueries[group.id]).map((exercise, idx) => (
+                            <View key={idx} style={styles.groupSearchResultItem}>
+                              <ExerciseCard
+                                exercise={exercise}
+                                exerciseId={`group-${group.id}-${idx}`}
+                                isExpanded={false}
+                                onToggle={() => handleImageClick(exercise)}
+                              />
+                              <TouchableOpacity
+                                onPress={() => {
+                                  addExerciseToGroup(group.id, exercise);
+                                  setGroupSearchQueries(prev => ({
+                                    ...prev,
+                                    [group.id]: ''
+                                  }));
+                                }}
+                                style={styles.addButton}
+                                activeOpacity={0.7}
+                              >
+                                <Ionicons name="add-circle" size={24} color="#9333ea" />
+                              </TouchableOpacity>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                    </View>
                   </>
                 )}
               </View>
@@ -1293,6 +1291,32 @@ const styles = StyleSheet.create({
   },
   cancelAddingButton: {
     padding: 4,
+  },
+  groupSearchSection: {
+    padding: 16,
+    backgroundColor: '#f9fafb',
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  groupSearchInput: {
+    padding: 12,
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    fontSize: 14,
+  },
+  groupSearchResults: {
+    marginTop: 12,
+    gap: 8,
+  },
+  groupSearchResultItem: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    overflow: 'hidden',
+    position: 'relative',
   },
 });
 
