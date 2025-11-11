@@ -693,7 +693,7 @@ function CustomWorkoutBuilder({
                   const { inPlan, groupName } = isExerciseInPlan(exercise.name);
                   return (
                     <View
-                      key={idx}
+                      key={`search-${exercise.name}-${idx}`}
                       style={[
                         styles.searchExerciseItem,
                         inPlan && styles.searchExerciseItemInPlan
@@ -705,7 +705,7 @@ function CustomWorkoutBuilder({
                           <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
                         </View>
                       )}
-                      <View style={inPlan && styles.exerciseCardDimmed}>
+                      <View style={inPlan ? styles.exerciseCardDimmed : null}>
                         <ExerciseCard
                           exercise={exercise}
                           exerciseId={idx}
@@ -741,7 +741,7 @@ function CustomWorkoutBuilder({
                 const { inPlan, groupName } = isExerciseInPlan(exercise.name);
                 return (
                   <View
-                    key={idx}
+                    key={`favorite-${exercise.name}-${idx}`}
                     style={[
                       styles.searchExerciseItem,
                       inPlan && styles.searchExerciseItemInPlan
@@ -753,7 +753,7 @@ function CustomWorkoutBuilder({
                         <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
                       </View>
                     )}
-                    <View style={inPlan && styles.exerciseCardDimmed}>
+                    <View style={inPlan ? styles.exerciseCardDimmed : null}>
                       <ExerciseCard
                         exercise={exercise}
                         exerciseId={idx}
@@ -906,7 +906,7 @@ function CustomWorkoutBuilder({
                             const { inPlan, groupName } = isExerciseInPlan(exercise.name, group.id);
                             return (
                               <View
-                                key={idx}
+                                key={`group-search-${group.id}-${exercise.name}-${idx}`}
                                 style={[
                                   styles.groupSearchResultItem,
                                   inPlan && styles.searchExerciseItemInPlan
@@ -918,7 +918,7 @@ function CustomWorkoutBuilder({
                                     <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
                                   </View>
                                 )}
-                                <View style={inPlan && styles.exerciseCardDimmed}>
+                                <View style={inPlan ? styles.exerciseCardDimmed : null}>
                                   <ExerciseCard
                                     exercise={exercise}
                                     exerciseId={`group-${group.id}-${idx}`}
