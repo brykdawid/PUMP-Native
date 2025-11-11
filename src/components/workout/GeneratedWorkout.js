@@ -340,6 +340,10 @@ function GeneratedWorkout({
     return icons[id] || '💪';
   };
 
+  const getTotalExercisesCount = () => {
+    return Object.values(workoutPlan).reduce((total, exercises) => total + exercises.length, 0);
+  };
+
   const handleBeginWorkout = () => {
     if (onBeginWorkout) {
       // POPRAWKA: Flatten exercises z zachowaniem kategorii
@@ -353,9 +357,14 @@ function GeneratedWorkout({
           });
         });
       });
-      
+
+      if (allExercises.length === 0) {
+        Alert.alert('Błąd', 'Nie możesz rozpocząć treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
+        return;
+      }
+
       console.log('Beginning workout with exercises:', allExercises.map(e => `${e.name} (${e.category})`));
-      
+
       const workoutData = {
         type: 'generated',
         exercises: allExercises,
@@ -395,7 +404,12 @@ function GeneratedWorkout({
           });
         });
       });
-      
+
+      if (allExercises.length === 0) {
+        Alert.alert('Błąd', 'Nie możesz zapisać treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
+        return;
+      }
+
       const workoutData = {
         type: 'generated',
         exercises: allExercises,
@@ -412,7 +426,7 @@ function GeneratedWorkout({
   const handleScheduleWorkout = () => {
     if (!scheduleCalledRef.current && onScheduleWorkout) {
       scheduleCalledRef.current = true;
-      
+
       // POPRAWKA: Flatten z zachowaniem kategorii
       const allExercises = [];
       Object.entries(workoutPlan).forEach(([category, exercises]) => {
@@ -424,9 +438,15 @@ function GeneratedWorkout({
           });
         });
       });
-      
+
+      if (allExercises.length === 0) {
+        scheduleCalledRef.current = false; // Reset aby można było spróbować ponownie
+        Alert.alert('Błąd', 'Nie możesz zaplanować treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
+        return;
+      }
+
       console.log('Scheduling workout with exercises:', allExercises.map(e => `${e.name} (${e.category})`));
-      
+
       const workoutData = {
         id: Date.now(),
         type: 'generated',
@@ -454,6 +474,8 @@ function GeneratedWorkout({
   };
 
   const dateType = getDateType();
+  const totalExercises = getTotalExercisesCount();
+  const hasNoExercises = totalExercises === 0;
 
   if (loading) {
     return (
@@ -491,8 +513,9 @@ function GeneratedWorkout({
           {dateType === 'today' && (
             <TouchableOpacity
               onPress={handleBeginWorkout}
-              style={styles.beginButton}
+              style={[styles.beginButton, hasNoExercises && styles.disabledButton]}
               activeOpacity={0.8}
+              disabled={hasNoExercises}
             >
               <LinearGradient
                 colors={['#16a34a', '#15803d']}
@@ -509,8 +532,9 @@ function GeneratedWorkout({
           {dateType === 'future' && (
             <TouchableOpacity
               onPress={handleScheduleWorkout}
-              style={styles.beginButton}
+              style={[styles.beginButton, hasNoExercises && styles.disabledButton]}
               activeOpacity={0.8}
+              disabled={hasNoExercises}
             >
               <LinearGradient
                 colors={['#ea580c', '#c2410c']}
@@ -539,8 +563,9 @@ function GeneratedWorkout({
 
           <TouchableOpacity
             onPress={handleSaveWorkout}
-            style={styles.saveButton}
+            style={[styles.saveButton, hasNoExercises && styles.disabledButton]}
             activeOpacity={0.8}
+            disabled={hasNoExercises}
           >
             <Ionicons name="star" size={20} color="#7c3aed" />
             <Text style={styles.saveButtonText}>Zapisz Trening</Text>
@@ -820,6 +845,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#9333ea',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });
 
