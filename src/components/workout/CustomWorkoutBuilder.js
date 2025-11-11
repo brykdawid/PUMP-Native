@@ -532,6 +532,23 @@ function CustomWorkoutBuilder({
     });
   };
 
+  const isExerciseInPlan = (exerciseName, excludeGroupId = null) => {
+    // Sprawdź w workoutPlan
+    for (const group of workoutPlan) {
+      if (excludeGroupId && group.id === excludeGroupId) continue;
+      if (group.exercises.some(ex => ex.name === exerciseName)) {
+        return { inPlan: true, groupName: TRAINING_TYPES.find(t => t.id === group.muscleGroup)?.name || 'Nieznana grupa' };
+      }
+    }
+
+    // Sprawdź w selectedExercises
+    if (selectedExercises.some(ex => ex.name === exerciseName)) {
+      return { inPlan: true, groupName: 'Plan treningowy' };
+    }
+
+    return { inPlan: false, groupName: null };
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -672,23 +689,44 @@ function CustomWorkoutBuilder({
 
             {showExerciseList && (
               <View style={styles.exerciseList}>
-                {filteredExercises.map((exercise, idx) => (
-                  <View key={idx} style={styles.searchExerciseItem}>
-                    <ExerciseCard
-                      exercise={exercise}
-                      exerciseId={idx}
-                      isExpanded={false}
-                      onToggle={() => handleImageClick(exercise)}
-                    />
-                    <TouchableOpacity
-                      onPress={() => addExercise(exercise)}
-                      style={styles.addButton}
-                      activeOpacity={0.7}
+                {filteredExercises.map((exercise, idx) => {
+                  const { inPlan, groupName } = isExerciseInPlan(exercise.name);
+                  return (
+                    <View
+                      key={idx}
+                      style={[
+                        styles.searchExerciseItem,
+                        inPlan && styles.searchExerciseItemInPlan
+                      ]}
                     >
-                      <Ionicons name="add-circle" size={24} color="#9333ea" />
-                    </TouchableOpacity>
-                  </View>
-                ))}
+                      {inPlan && (
+                        <View style={styles.inPlanBadge}>
+                          <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
+                          <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
+                        </View>
+                      )}
+                      <View style={inPlan && styles.exerciseCardDimmed}>
+                        <ExerciseCard
+                          exercise={exercise}
+                          exerciseId={idx}
+                          isExpanded={false}
+                          onToggle={() => handleImageClick(exercise)}
+                        />
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => addExercise(exercise)}
+                        style={styles.addButton}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons
+                          name={inPlan ? "add-circle-outline" : "add-circle"}
+                          size={24}
+                          color={inPlan ? "#9ca3af" : "#9333ea"}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })}
               </View>
             )}
           </View>
@@ -699,23 +737,44 @@ function CustomWorkoutBuilder({
             {favorites.length === 0 ? (
               <Text style={styles.emptyText}>Brak ulubionych ćwiczeń</Text>
             ) : (
-              favorites.map((exercise, idx) => (
-                <View key={idx} style={styles.searchExerciseItem}>
-                  <ExerciseCard
-                    exercise={exercise}
-                    exerciseId={idx}
-                    isExpanded={false}
-                    onToggle={() => handleImageClick(exercise)}
-                  />
-                  <TouchableOpacity
-                    onPress={() => addExercise(exercise)}
-                    style={styles.addButton}
-                    activeOpacity={0.7}
+              favorites.map((exercise, idx) => {
+                const { inPlan, groupName } = isExerciseInPlan(exercise.name);
+                return (
+                  <View
+                    key={idx}
+                    style={[
+                      styles.searchExerciseItem,
+                      inPlan && styles.searchExerciseItemInPlan
+                    ]}
                   >
-                    <Ionicons name="add-circle" size={24} color="#9333ea" />
-                  </TouchableOpacity>
-                </View>
-              ))
+                    {inPlan && (
+                      <View style={styles.inPlanBadge}>
+                        <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
+                        <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
+                      </View>
+                    )}
+                    <View style={inPlan && styles.exerciseCardDimmed}>
+                      <ExerciseCard
+                        exercise={exercise}
+                        exerciseId={idx}
+                        isExpanded={false}
+                        onToggle={() => handleImageClick(exercise)}
+                      />
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => addExercise(exercise)}
+                      style={styles.addButton}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={inPlan ? "add-circle-outline" : "add-circle"}
+                        size={24}
+                        color={inPlan ? "#9ca3af" : "#9333ea"}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                );
+              })
             )}
           </View>
         )}
@@ -843,29 +902,50 @@ function CustomWorkoutBuilder({
 
                       {groupSearchQueries[group.id] && groupSearchQueries[group.id].length > 0 && (
                         <View style={styles.groupSearchResults}>
-                          {getFilteredExercisesForGroup(group.muscleGroup, groupSearchQueries[group.id]).map((exercise, idx) => (
-                            <View key={idx} style={styles.groupSearchResultItem}>
-                              <ExerciseCard
-                                exercise={exercise}
-                                exerciseId={`group-${group.id}-${idx}`}
-                                isExpanded={false}
-                                onToggle={() => handleImageClick(exercise)}
-                              />
-                              <TouchableOpacity
-                                onPress={() => {
-                                  addExerciseToGroup(group.id, exercise);
-                                  setGroupSearchQueries(prev => ({
-                                    ...prev,
-                                    [group.id]: ''
-                                  }));
-                                }}
-                                style={styles.addButton}
-                                activeOpacity={0.7}
+                          {getFilteredExercisesForGroup(group.muscleGroup, groupSearchQueries[group.id]).map((exercise, idx) => {
+                            const { inPlan, groupName } = isExerciseInPlan(exercise.name, group.id);
+                            return (
+                              <View
+                                key={idx}
+                                style={[
+                                  styles.groupSearchResultItem,
+                                  inPlan && styles.searchExerciseItemInPlan
+                                ]}
                               >
-                                <Ionicons name="add-circle" size={24} color="#9333ea" />
-                              </TouchableOpacity>
-                            </View>
-                          ))}
+                                {inPlan && (
+                                  <View style={styles.inPlanBadge}>
+                                    <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
+                                    <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
+                                  </View>
+                                )}
+                                <View style={inPlan && styles.exerciseCardDimmed}>
+                                  <ExerciseCard
+                                    exercise={exercise}
+                                    exerciseId={`group-${group.id}-${idx}`}
+                                    isExpanded={false}
+                                    onToggle={() => handleImageClick(exercise)}
+                                  />
+                                </View>
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    addExerciseToGroup(group.id, exercise);
+                                    setGroupSearchQueries(prev => ({
+                                      ...prev,
+                                      [group.id]: ''
+                                    }));
+                                  }}
+                                  style={styles.addButton}
+                                  activeOpacity={0.7}
+                                >
+                                  <Ionicons
+                                    name={inPlan ? "add-circle-outline" : "add-circle"}
+                                    size={24}
+                                    color={inPlan ? "#9ca3af" : "#9333ea"}
+                                  />
+                                </TouchableOpacity>
+                              </View>
+                            );
+                          })}
                         </View>
                       )}
                     </View>
@@ -1345,6 +1425,34 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     overflow: 'hidden',
     position: 'relative',
+  },
+  searchExerciseItemInPlan: {
+    borderColor: '#fca5a5',
+    borderWidth: 2,
+    backgroundColor: '#fef2f2',
+  },
+  inPlanBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    zIndex: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#fee2e2',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+  },
+  inPlanBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#dc2626',
+  },
+  exerciseCardDimmed: {
+    opacity: 0.6,
   },
 });
 
