@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import CompletedWorkoutDetails from '../workout/CompletedWorkoutDetails';
+import { fetchExercises } from '../../services/api';
+import { TRAINING_TYPES } from '../data/exercisesData';
 
 function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveCompletedWorkoutAsTemplate, onRemoveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
   const [editingField, setEditingField] = useState(null);
@@ -28,6 +30,56 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
   const [imageErrors, setImageErrors] = useState({});
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [showWeightHistoryModal, setShowWeightHistoryModal] = useState(false);
+  const [showAddRecordModal, setShowAddRecordModal] = useState(false);
+  const [showExercisePickerModal, setShowExercisePickerModal] = useState(false);
+  const [newRecordExercise, setNewRecordExercise] = useState('');
+  const [newRecordWeight, setNewRecordWeight] = useState('');
+  const [selectedExerciseFromApi, setSelectedExerciseFromApi] = useState(null);
+  const [exercisesList, setExercisesList] = useState([]);
+  const [filteredExercises, setFilteredExercises] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Pobierz ćwiczenia z API przy pierwszym otwarciu modal'a
+  useEffect(() => {
+    if (showExercisePickerModal && exercisesList.length === 0) {
+      loadExercises();
+    }
+  }, [showExercisePickerModal]);
+
+  // Filtruj ćwiczenia po zmianie search query lub kategorii
+  useEffect(() => {
+    filterExercises();
+  }, [searchQuery, selectedCategory, exercisesList]);
+
+  const loadExercises = async () => {
+    try {
+      const exercises = await fetchExercises();
+      setExercisesList(exercises);
+      setFilteredExercises(exercises);
+    } catch (error) {
+      console.error('Failed to load exercises:', error);
+    }
+  };
+
+  const filterExercises = () => {
+    let filtered = [...exercisesList];
+
+    // Filtruj po kategorii
+    if (selectedCategory) {
+      filtered = filtered.filter(ex => ex.category === selectedCategory);
+    }
+
+    // Filtruj po wyszukiwanej frazie
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(ex =>
+        ex.name.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredExercises(filtered);
+  };
 
   const startEdit = (field, currentValue) => {
     setEditingField(field);
@@ -67,6 +119,83 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
       newRecords[index].weight = numValue;
       setUserStats({ ...userStats, records: newRecords });
     }
+  };
+
+  const addRecord = () => {
+    // Walidacja
+    if (selectedExerciseFromApi) {
+      // Dodawanie rekordu z listy API
+      if (!newRecordWeight.trim()) {
+        return;
+      }
+      const numValue = parseFloat(newRecordWeight);
+      if (isNaN(numValue) || numValue <= 0) {
+        return;
+      }
+
+      const newRecord = {
+        exercise: selectedExerciseFromApi.name,
+        weight: numValue,
+        image: selectedExerciseFromApi.image,
+        category: selectedExerciseFromApi.category
+      };
+
+      setUserStats({
+        ...userStats,
+        records: [...userStats.records, newRecord]
+      });
+    } else {
+      // Dodawanie własnego rekordu
+      if (newRecordExercise.trim() === '' || newRecordWeight.trim() === '') {
+        return;
+      }
+
+      const numValue = parseFloat(newRecordWeight);
+      if (isNaN(numValue) || numValue <= 0) {
+        return;
+      }
+
+      const newRecord = {
+        exercise: newRecordExercise.trim(),
+        weight: numValue
+      };
+
+      setUserStats({
+        ...userStats,
+        records: [...userStats.records, newRecord]
+      });
+    }
+
+    // Reset form
+    setNewRecordExercise('');
+    setNewRecordWeight('');
+    setSelectedExerciseFromApi(null);
+    setShowAddRecordModal(false);
+  };
+
+  const openCustomRecordModal = () => {
+    setSelectedExerciseFromApi(null);
+    setNewRecordExercise('');
+    setNewRecordWeight('');
+    setShowAddRecordModal(true);
+  };
+
+  const openExercisePickerModal = () => {
+    setSearchQuery('');
+    setSelectedCategory(null);
+    setShowExercisePickerModal(true);
+  };
+
+  const handleSelectExercise = (exercise) => {
+    setSelectedExerciseFromApi(exercise);
+    setNewRecordWeight('');
+    setShowExercisePickerModal(false);
+    setShowAddRecordModal(true);
+  };
+
+  const deleteRecord = (index) => {
+    const newRecords = userStats.records.filter((_, idx) => idx !== index);
+    setUserStats({ ...userStats, records: newRecords });
   };
 
   const getBMICategory = (bmi) => {
@@ -346,43 +475,128 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
           <Text style={styles.sectionTitle}>Rekordy osobiste</Text>
         </View>
 
-        <View style={styles.recordsList}>
-          {userStats.records.map((record, idx) => (
-            <View key={idx} style={styles.recordCard}>
-              <View style={styles.recordInfo}>
-                <Text style={styles.recordExercise}>{record.exercise}</Text>
-                <Text style={styles.recordLabel}>Najlepszy wynik</Text>
-              </View>
+        {/* Informacja - pokazuj tylko gdy brak rekordów */}
+        {userStats.records.length === 0 && (
+          <View style={styles.recordsInfoContainer}>
+            <Ionicons name="information-circle-outline" size={48} color="#9333ea" />
+            <Text style={styles.recordsInfoTitle}>Śledź swoje rekordy</Text>
+            <Text style={styles.recordsInfoText}>
+              Dodaj własne ćwiczenia i zapisuj swoje najlepsze wyniki w kilogramach.
+              Śledź postępy i miej zawsze pod ręką swoje osiągnięcia!
+            </Text>
+          </View>
+        )}
 
-              <View style={styles.recordValueContainer}>
-                {editingField === `record-${idx}` ? (
-                  <View style={styles.editContainer}>
-                    <TextInput
-                      style={styles.recordEditInput}
-                      value={tempValue}
-                      onChangeText={setTempValue}
-                      keyboardType="decimal-pad"
-                      autoFocus
-                      onBlur={() => {
-                        updateRecord(idx, tempValue);
-                        setEditingField(null);
-                      }}
-                    />
-                    <Text style={styles.recordUnit}>kg</Text>
-                  </View>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() => startEdit(`record-${idx}`, record.weight)}
-                    style={styles.recordValueButton}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.recordValue}>{record.weight}</Text>
-                    <Text style={styles.recordUnit}>kg</Text>
-                  </TouchableOpacity>
-                )}
+        {/* Lista dodanych rekordów */}
+        {userStats.records.length > 0 && (
+          <>
+            {/* Rekordy z aplikacji */}
+            {userStats.records.filter(r => r.image || r.category).length > 0 && (
+              <View style={styles.recordsCategory}>
+                <View style={styles.recordsCategoryHeader}>
+                  <Ionicons name="cloud-download-outline" size={18} color="#3b82f6" />
+                  <Text style={styles.recordsCategoryTitle}>Z aplikacji</Text>
+                </View>
+                <View style={styles.recordsList}>
+                  {userStats.records.map((record, idx) => {
+                    const isFromApi = record.image || record.category;
+                    if (!isFromApi) return null;
+
+                    return (
+                      <View key={idx} style={styles.recordCard}>
+                        {record.image && (
+                          <Image
+                            source={{ uri: record.image }}
+                            style={styles.recordImage}
+                            resizeMode="cover"
+                          />
+                        )}
+
+                        <View style={styles.recordInfo}>
+                          <Text style={styles.recordExercise}>{record.exercise}</Text>
+                          <Text style={styles.recordLabel}>Najlepszy wynik</Text>
+                        </View>
+
+                        <View style={styles.recordActions}>
+                          <View style={styles.recordValueContainer}>
+                            <Text style={styles.recordValue}>{record.weight}</Text>
+                            <Text style={styles.recordUnit}>kg</Text>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => deleteRecord(idx)}
+                            style={styles.deleteRecordButton}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="trash-outline" size={20} color="#dc2626" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
               </View>
-            </View>
-          ))}
+            )}
+
+            {/* Rekordy własne */}
+            {userStats.records.filter(r => !r.image && !r.category).length > 0 && (
+              <View style={styles.recordsCategory}>
+                <View style={styles.recordsCategoryHeader}>
+                  <Ionicons name="pencil-outline" size={18} color="#9333ea" />
+                  <Text style={styles.recordsCategoryTitle}>Własne</Text>
+                </View>
+                <View style={styles.recordsList}>
+                  {userStats.records.map((record, idx) => {
+                    const isFromApi = record.image || record.category;
+                    if (isFromApi) return null;
+
+                    return (
+                      <View key={idx} style={styles.recordCard}>
+                        <View style={styles.recordInfo}>
+                          <Text style={styles.recordExercise}>{record.exercise}</Text>
+                          <Text style={styles.recordLabel}>Najlepszy wynik</Text>
+                        </View>
+
+                        <View style={styles.recordActions}>
+                          <View style={styles.recordValueContainer}>
+                            <Text style={styles.recordValue}>{record.weight}</Text>
+                            <Text style={styles.recordUnit}>kg</Text>
+                          </View>
+                          <TouchableOpacity
+                            onPress={() => deleteRecord(idx)}
+                            style={styles.deleteRecordButton}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="trash-outline" size={20} color="#dc2626" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+          </>
+        )}
+
+        {/* Przyciski dodawania */}
+        <View style={styles.addButtonsContainer}>
+          <TouchableOpacity
+            onPress={openCustomRecordModal}
+            style={[styles.addRecordButton, styles.addRecordButtonCustom]}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="create-outline" size={20} color="#ffffff" />
+            <Text style={styles.addRecordButtonText}>Dodaj własny rekord</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={openExercisePickerModal}
+            style={[styles.addRecordButton, styles.addRecordButtonFromList]}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="list-outline" size={20} color="#ffffff" />
+            <Text style={styles.addRecordButtonText}>Dodaj z listy ćwiczeń</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </>
@@ -813,6 +1027,216 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
           </View>
         </View>
       </Modal>
+
+      {/* Modal wyboru ćwiczenia z listy */}
+      <Modal
+        visible={showExercisePickerModal}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setShowExercisePickerModal(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.exercisePickerContainer}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <View style={styles.exercisePickerHeader}>
+            <TouchableOpacity
+              onPress={() => setShowExercisePickerModal(false)}
+              style={styles.backButton}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="arrow-back" size={24} color="#9333ea" />
+              <Text style={styles.backButtonText}>Wróć</Text>
+            </TouchableOpacity>
+            <Text style={styles.exercisePickerTitle}>Wybierz ćwiczenie</Text>
+          </View>
+
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color="#6b7280" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Wyszukaj ćwiczenie..."
+              placeholderTextColor="#9ca3af"
+              autoCapitalize="none"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Ionicons name="close-circle" size={20} color="#6b7280" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Categories */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoriesScrollView}
+            contentContainerStyle={styles.categoriesContainer}
+          >
+            <TouchableOpacity
+              onPress={() => setSelectedCategory(null)}
+              style={[styles.categoryButton, selectedCategory === null && styles.categoryButtonActive]}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.categoryButtonText, selectedCategory === null && styles.categoryButtonTextActive]}>
+                Wszystkie
+              </Text>
+            </TouchableOpacity>
+            {TRAINING_TYPES.filter(type => type.id !== 'fullbody').map(type => (
+              <TouchableOpacity
+                key={type.id}
+                onPress={() => setSelectedCategory(type.id)}
+                style={[styles.categoryButton, selectedCategory === type.id && styles.categoryButtonActive]}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.categoryButtonText, selectedCategory === type.id && styles.categoryButtonTextActive]}>
+                  {type.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Info lub lista ćwiczeń */}
+          {filteredExercises.length === 0 && exercisesList.length === 0 ? (
+            <View style={styles.exercisePickerEmptyState}>
+              <ActivityIndicator size="large" color="#9333ea" />
+              <Text style={styles.exercisePickerEmptyText}>Ładowanie ćwiczeń...</Text>
+            </View>
+          ) : filteredExercises.length === 0 ? (
+            <View style={styles.exercisePickerEmptyState}>
+              <Ionicons name="search-outline" size={64} color="#d1d5db" />
+              <Text style={styles.exercisePickerEmptyText}>Nie znaleziono ćwiczeń</Text>
+              <Text style={styles.exercisePickerEmptySubtext}>
+                Spróbuj zmienić kategorię lub wyszukiwaną frazę
+              </Text>
+            </View>
+          ) : !searchQuery && !selectedCategory ? (
+            <View style={styles.exercisePickerEmptyState}>
+              <Ionicons name="information-circle-outline" size={64} color="#9333ea" />
+              <Text style={styles.exercisePickerEmptyTitle}>Wyszukaj ćwiczenia</Text>
+              <Text style={styles.exercisePickerEmptyText}>
+                Użyj paska wyszukiwania lub wybierz kategorię
+              </Text>
+            </View>
+          ) : (
+            <ScrollView style={styles.exercisesListScroll} showsVerticalScrollIndicator={false}>
+              {filteredExercises.map((exercise, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  onPress={() => handleSelectExercise(exercise)}
+                  style={styles.exerciseListItem}
+                  activeOpacity={0.7}
+                >
+                  {exercise.image ? (
+                    <Image
+                      source={{ uri: exercise.image }}
+                      style={styles.exerciseListImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.exerciseListImagePlaceholder}>
+                      <Ionicons name="barbell-outline" size={32} color="#d1d5db" />
+                    </View>
+                  )}
+                  <View style={styles.exerciseListInfo}>
+                    <Text style={styles.exerciseListName}>{exercise.name}</Text>
+                    <Text style={styles.exerciseListCategory}>{exercise.category}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Modal dodawania rekordu */}
+      <Modal
+        visible={showAddRecordModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => {
+          setShowAddRecordModal(false);
+          setSelectedExerciseFromApi(null);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Dodaj rekord osobisty</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowAddRecordModal(false);
+                  setNewRecordExercise('');
+                  setNewRecordWeight('');
+                  setSelectedExerciseFromApi(null);
+                }}
+                style={styles.modalCloseButton}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close-circle" size={28} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.formContainer}>
+              {/* Jeśli wybrano ćwiczenie z API, pokaż jego szczegóły */}
+              {selectedExerciseFromApi ? (
+                <View style={styles.selectedExerciseContainer}>
+                  {selectedExerciseFromApi.image ? (
+                    <Image
+                      source={{ uri: selectedExerciseFromApi.image }}
+                      style={styles.selectedExerciseImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.selectedExerciseImagePlaceholder}>
+                      <Ionicons name="barbell-outline" size={48} color="#d1d5db" />
+                    </View>
+                  )}
+                  <Text style={styles.selectedExerciseName}>{selectedExerciseFromApi.name}</Text>
+                  <Text style={styles.selectedExerciseCategory}>{selectedExerciseFromApi.category}</Text>
+                </View>
+              ) : (
+                <View style={styles.formGroup}>
+                  <Text style={styles.formLabel}>Nazwa ćwiczenia</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    value={newRecordExercise}
+                    onChangeText={setNewRecordExercise}
+                    placeholder="np. Wyciskanie sztangi"
+                    placeholderTextColor="#9ca3af"
+                    autoCapitalize="words"
+                  />
+                </View>
+              )}
+
+              <View style={styles.formGroup}>
+                <Text style={styles.formLabel}>Rekord (kg)</Text>
+                <TextInput
+                  style={styles.formInput}
+                  value={newRecordWeight}
+                  onChangeText={setNewRecordWeight}
+                  placeholder="np. 100"
+                  placeholderTextColor="#9ca3af"
+                  keyboardType="decimal-pad"
+                />
+              </View>
+
+              <TouchableOpacity
+                onPress={addRecord}
+                style={styles.submitButton}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="checkmark-circle" size={22} color="#ffffff" />
+                <Text style={styles.submitButtonText}>Dodaj rekord</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -953,6 +1377,21 @@ const styles = StyleSheet.create({
   checkButton: {
     padding: 4,
   },
+  recordsCategory: {
+    marginBottom: 16,
+  },
+  recordsCategoryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  recordsCategoryTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#374151',
+  },
   recordsList: {
     gap: 12,
   },
@@ -965,6 +1404,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    gap: 12,
+  },
+  recordImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
   },
   recordInfo: {
     flex: 1,
@@ -1360,6 +1805,287 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     fontWeight: '600',
+  },
+  // Styles dla sekcji informacyjnej o rekordach
+  recordsInfoContainer: {
+    alignItems: 'center',
+    padding: 24,
+    backgroundColor: '#faf5ff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e9d5ff',
+    marginBottom: 16,
+  },
+  recordsInfoTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 12,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  recordsInfoText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  // Styles dla akcji w karcie rekordu
+  recordActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  deleteRecordButton: {
+    padding: 8,
+    backgroundColor: '#fee2e2',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fecaca',
+  },
+  // Styles dla przycisków dodawania rekordu
+  addButtonsContainer: {
+    gap: 12,
+    marginTop: 8,
+  },
+  addRecordButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  addRecordButtonCustom: {
+    backgroundColor: '#9333ea',
+  },
+  addRecordButtonFromList: {
+    backgroundColor: '#3b82f6',
+  },
+  addRecordButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  // Styles dla formularza
+  formContainer: {
+    gap: 20,
+  },
+  formGroup: {
+    gap: 8,
+  },
+  formLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 4,
+  },
+  formInput: {
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: '#111827',
+  },
+  submitButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    backgroundColor: '#9333ea',
+    borderRadius: 12,
+    marginTop: 12,
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  // Styles dla modalu wyboru ćwiczenia
+  exercisePickerContainer: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  exercisePickerHeader: {
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  exercisePickerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 16,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#9333ea',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    margin: 16,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#111827',
+  },
+  categoriesScrollView: {
+    maxHeight: 50,
+    marginBottom: 8,
+  },
+  categoriesContainer: {
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  categoryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  categoryButtonActive: {
+    backgroundColor: '#9333ea',
+    borderColor: '#9333ea',
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#6b7280',
+  },
+  categoryButtonTextActive: {
+    color: '#ffffff',
+  },
+  exercisePickerEmptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  exercisePickerEmptyTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#111827',
+    marginTop: 16,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  exercisePickerEmptyText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 16,
+  },
+  exercisePickerEmptySubtext: {
+    fontSize: 14,
+    color: '#9ca3af',
+    textAlign: 'center',
+    marginTop: 8,
+  },
+  exercisesListScroll: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  exerciseListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  exerciseListImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+  },
+  exerciseListImagePlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  exerciseListInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  exerciseListName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  exerciseListCategory: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  // Styles dla wybranego ćwiczenia w modalu dodawania
+  selectedExerciseContainer: {
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    marginBottom: 16,
+  },
+  selectedExerciseImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  selectedExerciseImagePlaceholder: {
+    width: 120,
+    height: 120,
+    borderRadius: 12,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  selectedExerciseName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  selectedExerciseCategory: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
   },
 });
 
