@@ -630,32 +630,6 @@ function CustomWorkoutBuilder({
               placeholderTextColor="#9ca3af"
             />
 
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.muscleGroupsScroll}
-              contentContainerStyle={styles.muscleGroupsContent}
-            >
-              {TRAINING_TYPES.filter(type => type.id !== 'fullbody').map(type => (
-                <TouchableOpacity
-                  key={type.id}
-                  onPress={() => toggleMuscleGroup(type.id)}
-                  style={[
-                    styles.muscleGroupChip,
-                    selectedMuscleGroups.includes(type.id) && styles.muscleGroupChipActive
-                  ]}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[
-                    styles.muscleGroupChipText,
-                    selectedMuscleGroups.includes(type.id) && styles.muscleGroupChipTextActive
-                  ]}>
-                    {type.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
             {showExerciseList && (
               <View style={styles.exerciseList}>
                 {filteredExercises.map((exercise, idx) => (
