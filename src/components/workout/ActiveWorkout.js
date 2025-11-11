@@ -72,10 +72,13 @@ function ActiveWorkout({
     if (activeWorkout && activeWorkout.exercises) {
       setWorkoutExercises(activeWorkout.exercises);
       const initialSets = {};
+      const initialExpanded = {};
       activeWorkout.exercises.forEach(exercise => {
         initialSets[exercise.name] = [{ weight: '', reps: '', completed: false }];
+        initialExpanded[exercise.name] = true; // Domyślnie rozwinięte
       });
       setExerciseSets(initialSets);
+      setExpandedExercises(initialExpanded);
     }
   }, [activeWorkout]);
 
@@ -386,9 +389,13 @@ function ActiveWorkout({
               const isExpanded = expandedExercises[exercise.name];
               const sets = exerciseSets[exercise.name] || [];
               const completedSets = sets.filter(s => s.completed).length;
+              const allSetsCompleted = sets.length > 0 && sets.every(s => s.completed);
 
               return (
-                <View key={exercise.id || exercise.name} style={styles.exerciseCard}>
+                <View key={exercise.id || exercise.name} style={[
+                  styles.exerciseCard,
+                  allSetsCompleted && styles.exerciseCardCompleted
+                ]}>
                   <View style={styles.exerciseHeader}>
                     <TouchableOpacity
                       onPress={() => toggleExpandExercise(exercise.name)}
@@ -410,10 +417,20 @@ function ActiveWorkout({
 
                       {/* Exercise Info */}
                       <View style={styles.exerciseHeaderLeft}>
-                        <Text style={styles.exerciseName}>{exercise.name}</Text>
-                        <Text style={styles.exerciseSets}>
-                          {completedSets}/{sets.length} serie
-                        </Text>
+                        <Text style={[
+                          styles.exerciseName,
+                          allSetsCompleted && styles.exerciseNameCompleted
+                        ]}>{exercise.name}</Text>
+                        {allSetsCompleted ? (
+                          <View style={styles.completedLabelContainer}>
+                            <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+                            <Text style={styles.completedLabel}>Ukończono</Text>
+                          </View>
+                        ) : (
+                          <Text style={styles.exerciseSets}>
+                            {completedSets}/{sets.length} serie
+                          </Text>
+                        )}
                       </View>
                     </TouchableOpacity>
 
@@ -784,6 +801,11 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     overflow: 'hidden',
   },
+  exerciseCardCompleted: {
+    borderColor: '#10b981',
+    borderWidth: 2,
+    backgroundColor: '#f0fdf4',
+  },
   exerciseHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -817,9 +839,23 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 4,
   },
+  exerciseNameCompleted: {
+    textDecorationLine: 'line-through',
+    color: '#6b7280',
+  },
   exerciseSets: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  completedLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  completedLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#10b981',
   },
   exerciseHeaderRight: {
     paddingRight: 16,
