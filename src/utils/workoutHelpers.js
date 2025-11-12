@@ -46,15 +46,43 @@ export function getLocalISOString(date = new Date()) {
  * Normalizuje workout do zunifikowanego formatu
  */
 export function normalizeWorkout(workout) {
-  // Jeśli już znormalizowany
+  // Jeśli już znormalizowany (ma exercises ale nie ma workoutPlan)
   if (workout.exercises && Array.isArray(workout.exercises) && !workout.workoutPlan) {
     return workout;
   }
 
-  // Generated workout (ma workoutPlan)
+  // Ma workoutPlan - sprawdź czy to array (custom) czy object (generated)
   if (workout.workoutPlan) {
     const allExercises = [];
-    
+
+    // Custom workout - workoutPlan jest array'em grup mięśniowych
+    if (Array.isArray(workout.workoutPlan)) {
+      workout.workoutPlan.forEach(group => {
+        if (group.exercises && Array.isArray(group.exercises)) {
+          group.exercises.forEach(ex => {
+            allExercises.push({
+              ...ex,
+              category: group.muscleGroup || 'inne',
+              sets: ex.sets || ex.count || 3
+            });
+          });
+        }
+      });
+
+      return {
+        id: workout.id,
+        title: workout.title || workout.name || 'Custom Workout',
+        type: 'custom',
+        exercises: allExercises,
+        workoutPlan: workout.workoutPlan, // ZACHOWAJ strukturę grup dla wczytywania
+        metadata: {
+          isFavorite: workout.isFavorite || false
+        },
+        savedAt: workout.savedAt
+      };
+    }
+
+    // Generated workout - workoutPlan jest obiektem {category: [exercises]}
     Object.entries(workout.workoutPlan).forEach(([category, exercises]) => {
       exercises.forEach(ex => {
         allExercises.push({
@@ -79,7 +107,7 @@ export function normalizeWorkout(workout) {
     };
   }
 
-  // Custom workout (ma exercises)
+  // Custom workout (ma exercises, stara struktura)
   if (workout.exercises) {
     return {
       id: workout.id,
