@@ -16,7 +16,7 @@ import { normalizeWorkout, getTotalExercises as getExerciseCount, getLocalISOStr
 import GifModal from '../workout/GifModal';
 import ExerciseCard from '../workout/ExerciseCard';
 
-function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onUpdateWorkout }) {
+function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onUpdateWorkout, onScheduleWorkout }) {
   const [activeTab, setActiveTab] = useState('workouts');
   const [expandedWorkout, setExpandedWorkout] = useState(null);
   const [selectedGif, setSelectedGif] = useState(null);
@@ -117,7 +117,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
 
   const handleStartWorkout = (workout) => {
     const normalized = normalizeWorkout(workout);
-    
+
     const workoutData = {
       title: normalized.title || 'Trening',
       exercises: normalized.exercises.map(ex => ({
@@ -126,9 +126,36 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
       })),
       type: normalized.type
     };
-    
+
     if (onBeginWorkout) {
       onBeginWorkout(workoutData, null, false);
+    }
+  };
+
+  const handleScheduleWorkout = (workout) => {
+    const normalized = normalizeWorkout(workout);
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayString = `${year}-${month}-${day}`;
+
+    const workoutData = {
+      id: Date.now(),
+      title: normalized.title || 'Trening',
+      exercises: normalized.exercises.map(ex => ({
+        ...ex,
+        id: `${ex.name}-${Date.now()}-${Math.random()}`
+      })),
+      type: normalized.type,
+      date: todayString,
+      scheduled: true
+    };
+
+    if (onScheduleWorkout) {
+      onScheduleWorkout(workoutData);
+      Alert.alert('Sukces', 'Trening został zaplanowany na dzisiaj!');
     }
   };
 
@@ -339,6 +366,20 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
                           >
                             <Ionicons name="play-circle" size={18} color="#ffffff" />
                             <Text style={styles.actionButtonText}>Rozpocznij</Text>
+                          </LinearGradient>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          onPress={() => handleScheduleWorkout(workout)}
+                          style={styles.actionButton}
+                          activeOpacity={0.8}
+                        >
+                          <LinearGradient
+                            colors={['#ea580c', '#c2410c']}
+                            style={styles.actionButtonGradient}
+                          >
+                            <Ionicons name="calendar" size={18} color="#ffffff" />
+                            <Text style={styles.actionButtonText}>Zaplanuj</Text>
                           </LinearGradient>
                         </TouchableOpacity>
 
