@@ -793,7 +793,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
             <View key={idx} style={styles.workoutCard}>
               <View style={styles.workoutCardHeader}>
                 <View style={styles.workoutCardHeaderLeft}>
-                  <Text style={styles.workoutTitle}>{workout.title}</Text>
+                  <Text style={styles.workoutTitle} numberOfLines={1} ellipsizeMode="tail">{workout.title}</Text>
                   <Text style={styles.workoutDate}>
                     {dateStr} o {timeStr}
                   </Text>

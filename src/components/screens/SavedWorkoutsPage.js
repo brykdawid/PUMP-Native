@@ -323,7 +323,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
                                 {workout.isFavorite && (
                                   <Ionicons name="star" size={16} color="#facc15" />
                                 )}
-                                <Text style={styles.workoutTitle}>
+                                <Text style={styles.workoutTitle} numberOfLines={1} ellipsizeMode="tail">
                                   {normalized.title || 'Trening'}
                                 </Text>
                               </View>

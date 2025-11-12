@@ -488,10 +488,14 @@ function ActiveWorkout({
 
                       {/* Exercise Info */}
                       <View style={styles.exerciseHeaderLeft}>
-                        <Text style={[
-                          styles.exerciseName,
-                          allSetsCompleted && styles.exerciseNameCompleted
-                        ]}>{exercise.name}</Text>
+                        <Text
+                          style={[
+                            styles.exerciseName,
+                            allSetsCompleted && styles.exerciseNameCompleted
+                          ]}
+                          numberOfLines={2}
+                          ellipsizeMode="tail"
+                        >{exercise.name}</Text>
                         {allSetsCompleted ? (
                           <View style={styles.completedLabelContainer}>
                             <Ionicons name="checkmark-circle" size={16} color="#10b981" />

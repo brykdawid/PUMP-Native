@@ -831,7 +831,7 @@ function CustomWorkoutBuilder({
                 <View key={workout.id} style={styles.savedWorkoutItem}>
                   <View style={styles.savedWorkoutHeader}>
                     <View style={styles.savedWorkoutInfo}>
-                      <Text style={styles.savedWorkoutTitle}>{workout.title}</Text>
+                      <Text style={styles.savedWorkoutTitle} numberOfLines={1} ellipsizeMode="tail">{workout.title}</Text>
                       <Text style={styles.savedWorkoutDate}>
                         {workout.date ? new Date(workout.date + 'T00:00:00').toLocaleDateString('pl-PL') : ''}
                       </Text>
