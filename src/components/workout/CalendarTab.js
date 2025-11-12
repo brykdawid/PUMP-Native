@@ -179,7 +179,9 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
     if (!onBeginWorkout) return;
 
     // Przygotuj dane treningu do rozpoczęcia
+    // Przekazujemy ID zaplanowanego treningu aby później go zaktualizować zamiast tworzyć nowy
     const workoutData = {
+      scheduledWorkoutId: workout.id, // ID zaplanowanego treningu do aktualizacji
       type: workout.type || 'generated',
       exercises: workout.exercises || [],
       categories: workout.categories || [],
