@@ -400,6 +400,7 @@ function ActiveWorkout({
         workoutHistory={workoutHistory}
         setWorkoutHistory={setWorkoutHistory}
         onGoToPlan={onGoToPlan}
+        onBeginWorkout={onBeginWorkout}
         onSaveWorkout={onSaveWorkout}
         onSaveCompletedWorkoutAsTemplate={onSaveCompletedWorkoutAsTemplate}
         onRemoveCompletedWorkoutAsTemplate={onRemoveCompletedWorkoutAsTemplate}

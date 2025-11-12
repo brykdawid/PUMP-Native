@@ -23,7 +23,7 @@ const MONTHS_PL = [
 
 const DAYS_SHORT_PL = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
 
-function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWorkout, onSaveCompletedWorkoutAsTemplate, onRemoveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
+function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWorkout, onSaveWorkout, onSaveCompletedWorkoutAsTemplate, onRemoveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekStartDate, setWeekStartDate] = useState(getWeekStart(new Date()));
@@ -116,6 +116,16 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
            date.getFullYear() === selectedDate.getFullYear();
   };
 
+  // Sprawdź czy zaplanowany trening można już rozpocząć (data treningu <= dzisiaj)
+  const canStartScheduledWorkout = (workoutDate) => {
+    if (!workoutDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const scheduled = new Date(workoutDate.split('T')[0] + 'T00:00:00');
+    return scheduled <= today;
+  };
+
   // Nawigacja miesiąca
   const goToPreviousMonth = () => {
     const newDate = new Date(currentDate);
@@ -162,6 +172,22 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
   const handleViewWorkout = (workout) => {
     setSelectedWorkoutForView(workout);
     setShowWorkoutModal(true);
+  };
+
+  // Obsługa rozpoczęcia zaplanowanego treningu
+  const handleStartScheduledWorkout = (workout) => {
+    if (!onBeginWorkout) return;
+
+    // Przygotuj dane treningu do rozpoczęcia
+    const workoutData = {
+      type: workout.type || 'generated',
+      exercises: workout.exercises || [],
+      categories: workout.categories || [],
+      title: workout.title || workout.name || 'Trening'
+    };
+
+    // Rozpocznij trening natychmiast
+    onBeginWorkout(workoutData, workout.date, true);
   };
 
   // Znajdź pełne dane ćwiczenia z API
@@ -440,6 +466,18 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
                   </View>
 
                   <View style={styles.actionButtons}>
+                    {/* Przycisk "Rozpocznij" dla zaplanowanych treningów, których data już nadeszła */}
+                    {workout.scheduled && canStartScheduledWorkout(workout.date) && (
+                      <TouchableOpacity
+                        onPress={() => handleStartScheduledWorkout(workout)}
+                        style={styles.startButton}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="play-circle" size={18} color="#16a34a" />
+                        <Text style={styles.startButtonText}>Rozpocznij</Text>
+                      </TouchableOpacity>
+                    )}
+
                     <TouchableOpacity
                       onPress={() => handleViewWorkout(workout)}
                       style={styles.previewButton}
@@ -921,6 +959,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  startButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#d1fae5',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  startButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#16a34a',
   },
   previewButton: {
     flexDirection: 'row',
