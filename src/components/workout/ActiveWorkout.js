@@ -131,16 +131,29 @@ function ActiveWorkout({
   };
 
   const toggleSetComplete = (exerciseName, setIndex) => {
+    console.log('=== toggleSetComplete WYWOŁANE ===');
+    console.log('Exercise:', exerciseName, 'Set index:', setIndex);
+
     setExerciseSets(prev => {
       const currentSet = prev[exerciseName][setIndex];
+      console.log('Current set:', currentSet);
+      console.log('Current set completed:', currentSet.completed);
+      console.log('Current set weight:', currentSet.weight);
+      console.log('Current set reps:', currentSet.reps);
 
       // Jeśli próbujemy oznaczyć serię jako ukończoną (currently not completed)
       if (!currentSet.completed) {
+        console.log('Seria NIE jest ukończona - sprawdzam walidację');
+
         const weightStr = String(currentSet.weight || '').trim();
         const repsStr = String(currentSet.reps || '').trim();
 
+        console.log('weightStr:', weightStr);
+        console.log('repsStr:', repsStr);
+
         // Sprawdź czy pola są puste
         if (!weightStr || !repsStr) {
+          console.log('BŁĄD: Puste pola!');
           Alert.alert(
             'Nieprawidłowe dane',
             'Musisz wypełnić wagę i liczbę powtórzeń.',
@@ -152,8 +165,16 @@ function ActiveWorkout({
         const weight = parseFloat(weightStr);
         const reps = parseFloat(repsStr);
 
+        console.log('Parsed weight:', weight);
+        console.log('Parsed reps:', reps);
+        console.log('isNaN(weight):', isNaN(weight));
+        console.log('weight <= 0:', weight <= 0);
+        console.log('isNaN(reps):', isNaN(reps));
+        console.log('reps <= 0:', reps <= 0);
+
         // Walidacja: kg i reps muszą być liczbami większymi od 0
         if (isNaN(weight) || weight <= 0 || isNaN(reps) || reps <= 0) {
+          console.log('BŁĄD: Wartości <= 0 lub NaN!');
           Alert.alert(
             'Nieprawidłowe dane',
             'Waga i liczba powtórzeń muszą być większe od 0.',
@@ -161,6 +182,10 @@ function ActiveWorkout({
           );
           return prev; // Nie zmieniaj stanu
         }
+
+        console.log('Walidacja PRZESZŁA - zaznaczam serię jako ukończoną');
+      } else {
+        console.log('Seria JEST ukończona - odznaczam');
       }
 
       // Walidacja przeszła lub odznaczamy serię - zmień stan
