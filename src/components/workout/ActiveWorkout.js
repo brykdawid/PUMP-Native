@@ -43,6 +43,7 @@ function ActiveWorkout({
   const [showSearchForCategory, setShowSearchForCategory] = useState(null);
   const [showMuscleGroupModal, setShowMuscleGroupModal] = useState(false);
   const [showEndWorkoutModal, setShowEndWorkoutModal] = useState(false);
+  const [validationError, setValidationError] = useState(null);
 
   const workoutType = activeWorkout?.type || 'custom';
 
@@ -154,11 +155,9 @@ function ActiveWorkout({
         // Sprawdź czy pola są puste
         if (!weightStr || !repsStr) {
           console.log('BŁĄD: Puste pola!');
-          Alert.alert(
-            'Nieprawidłowe dane',
-            'Musisz wypełnić wagę i liczbę powtórzeń.',
-            [{ text: 'OK' }]
-          );
+          const errorMsg = 'Musisz wypełnić wagę i liczbę powtórzeń.';
+          console.log('Ustawiam błąd walidacji:', errorMsg);
+          setValidationError(errorMsg);
           return prev;
         }
 
@@ -175,11 +174,9 @@ function ActiveWorkout({
         // Walidacja: kg i reps muszą być liczbami większymi od 0
         if (isNaN(weight) || weight <= 0 || isNaN(reps) || reps <= 0) {
           console.log('BŁĄD: Wartości <= 0 lub NaN!');
-          Alert.alert(
-            'Nieprawidłowe dane',
-            'Waga i liczba powtórzeń muszą być większe od 0.',
-            [{ text: 'OK' }]
-          );
+          const errorMsg = 'Waga i liczba powtórzeń muszą być większe od 0.';
+          console.log('Ustawiam błąd walidacji:', errorMsg);
+          setValidationError(errorMsg);
           return prev; // Nie zmieniaj stanu
         }
 
@@ -760,6 +757,33 @@ function ActiveWorkout({
         </View>
       </Modal>
 
+      <Modal
+        visible={validationError !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setValidationError(null)}
+      >
+        <View style={styles.confirmModalOverlay}>
+          <View style={styles.confirmModal}>
+            <View style={styles.validationErrorIcon}>
+              <Ionicons name="alert-circle" size={48} color="#ef4444" />
+            </View>
+            <Text style={styles.confirmModalTitle}>Nieprawidłowe dane</Text>
+            <Text style={styles.confirmModalMessage}>
+              {validationError}
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setValidationError(null)}
+              style={[styles.confirmModalButton, styles.validationErrorButton]}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.confirmModalButtonTextConfirm}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <GifModal
         exercise={selectedExercise}
         onClose={() => setSelectedExercise(null)}
@@ -1228,6 +1252,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#ffffff',
+  },
+  validationErrorIcon: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  validationErrorButton: {
+    width: '100%',
+    backgroundColor: '#ef4444',
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
   },
 });
 
