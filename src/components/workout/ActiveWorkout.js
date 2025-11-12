@@ -36,6 +36,7 @@ function ActiveWorkout({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [exerciseSets, setExerciseSets] = useState({});
   const [expandedExercises, setExpandedExercises] = useState({});
+  const [expandedCategories, setExpandedCategories] = useState({});
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [workoutExercises, setWorkoutExercises] = useState([]);
   const [allExercises, setAllExercises] = useState([]);
@@ -74,12 +75,23 @@ function ActiveWorkout({
       setWorkoutExercises(activeWorkout.exercises);
       const initialSets = {};
       const initialExpanded = {};
+      const initialExpandedCategories = {};
+
+      // Grupuj ćwiczenia po kategorii
+      const categories = {};
       activeWorkout.exercises.forEach(exercise => {
+        const category = exercise.category || 'inne';
+        if (!categories[category]) {
+          categories[category] = true;
+          initialExpandedCategories[category] = true; // Domyślnie rozwinięte
+        }
         initialSets[exercise.name] = [{ weight: '', reps: '', completed: false }];
         initialExpanded[exercise.name] = true; // Domyślnie rozwinięte
       });
+
       setExerciseSets(initialSets);
       setExpandedExercises(initialExpanded);
+      setExpandedCategories(initialExpandedCategories);
     }
   }, [activeWorkout]);
 
@@ -110,6 +122,22 @@ function ActiveWorkout({
       ...prev,
       [exerciseName]: !prev[exerciseName]
     }));
+  };
+
+  const toggleExpandCategory = (category) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
+
+  const isCategoryCompleted = (category, exercises) => {
+    if (!exercises || exercises.length === 0) return false;
+
+    return exercises.every(exercise => {
+      const sets = exerciseSets[exercise.name] || [];
+      return sets.length > 0 && sets.every(set => set.completed);
+    });
   };
 
   const addSet = (exerciseName) => {
@@ -239,6 +267,10 @@ function ActiveWorkout({
     setExpandedExercises(prev => ({
       ...prev,
       [exercise.name]: true
+    }));
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: true
     }));
   };
 
@@ -448,16 +480,44 @@ function ActiveWorkout({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {Object.entries(exercisesByCategory).map(([category, exercises]) => (
-          <View key={category} style={styles.categorySection}>
-            <View style={styles.categoryHeader}>
-              <Text style={styles.categoryIcon}>{getCategoryIcon(category)}</Text>
-              <Text style={styles.categoryTitle}>{getCategoryName(category)}</Text>
-              <Text style={styles.categoryCount}>({exercises.length})</Text>
-            </View>
+        {Object.entries(exercisesByCategory).map(([category, exercises]) => {
+          const isExpanded = expandedCategories[category] !== false;
+          const isCompleted = isCategoryCompleted(category, exercises);
 
-            {exercises.map((exercise) => {
-              const isExpanded = expandedExercises[exercise.name];
+          return (
+            <View key={category} style={styles.categorySection}>
+              <TouchableOpacity
+                onPress={() => toggleExpandCategory(category)}
+                style={[
+                  styles.categoryHeader,
+                  isCompleted && styles.categoryHeaderCompleted
+                ]}
+                activeOpacity={0.7}
+              >
+                <View style={styles.categoryHeaderLeft}>
+                  <Text style={styles.categoryIcon}>{getCategoryIcon(category)}</Text>
+                  <Text style={[
+                    styles.categoryTitle,
+                    isCompleted && styles.categoryTitleCompleted
+                  ]}>
+                    {getCategoryName(category)}
+                  </Text>
+                  <Text style={styles.categoryCount}>({exercises.length})</Text>
+                  {isCompleted && (
+                    <View style={styles.categoryCompletedBadge}>
+                      <Text style={styles.categoryCompletedBadgeText}>Ukończono</Text>
+                    </View>
+                  )}
+                </View>
+                <Ionicons
+                  name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={24}
+                  color={isCompleted ? '#10b981' : '#6b7280'}
+                />
+              </TouchableOpacity>
+
+              {isExpanded && exercises.map((exercise) => {
+              const isExerciseExpanded = expandedExercises[exercise.name];
               const sets = exerciseSets[exercise.name] || [];
               const completedSets = sets.filter(s => s.completed).length;
               const allSetsCompleted = sets.length > 0 && sets.every(s => s.completed);
@@ -521,7 +581,7 @@ function ActiveWorkout({
                     </View>
                   </View>
 
-                  {isExpanded && (
+                  {isExerciseExpanded && (
                     <View style={styles.setsContainer}>
                       {sets.map((set, idx) => (
                         <View key={idx} style={styles.setRow}>
@@ -585,16 +645,19 @@ function ActiveWorkout({
               );
             })}
 
-            <TouchableOpacity
-              onPress={() => setShowSearchForCategory(category)}
-              style={styles.addExerciseButton}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="add-circle-outline" size={20} color="#9333ea" />
-              <Text style={styles.addExerciseButtonText}>Dodaj ćwiczenie</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+              {isExpanded && (
+                <TouchableOpacity
+                  onPress={() => setShowSearchForCategory(category)}
+                  style={styles.addExerciseButton}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="add-circle-outline" size={20} color="#9333ea" />
+                  <Text style={styles.addExerciseButtonText}>Dodaj ćwiczenie</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          );
+        })}
 
         <TouchableOpacity
           onPress={() => setShowMuscleGroupModal(true)}
@@ -887,20 +950,57 @@ const styles = StyleSheet.create({
   categoryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 12,
     marginBottom: 12,
+    backgroundColor: '#ffffff',
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  categoryHeaderCompleted: {
+    borderColor: '#10b981',
+    backgroundColor: '#f0fdf4',
+  },
+  categoryHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
   },
   categoryIcon: {
-    fontSize: 24,
+    fontSize: 28,
   },
   categoryTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#111827',
   },
+  categoryTitleCompleted: {
+    textDecorationLine: 'line-through',
+    color: '#10b981',
+  },
   categoryCount: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  categoryCompletedBadge: {
+    backgroundColor: '#10b981',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  categoryCompletedBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#ffffff',
   },
   exerciseCard: {
     backgroundColor: '#ffffff',
