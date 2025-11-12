@@ -668,6 +668,13 @@ function ActiveWorkout({
                     style={styles.searchResultItem}
                     activeOpacity={0.7}
                   >
+                    <View style={styles.searchResultImageContainer}>
+                      <Image
+                        source={{ uri: exercise.image }}
+                        style={styles.searchResultImage}
+                        resizeMode="cover"
+                      />
+                    </View>
                     <Text style={styles.searchResultText}>{exercise.name}</Text>
                   </TouchableOpacity>
                 ))
@@ -1122,12 +1129,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   searchResultItem: {
-    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
     paddingHorizontal: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
+    gap: 12,
+  },
+  searchResultImageContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    overflow: 'hidden',
+    flexShrink: 0,
+    backgroundColor: '#f3f4f6',
+  },
+  searchResultImage: {
+    width: '100%',
+    height: '100%',
   },
   searchResultText: {
+    flex: 1,
     fontSize: 16,
     color: '#111827',
   },
