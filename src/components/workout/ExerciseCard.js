@@ -70,7 +70,7 @@ function ExerciseCard({
           </View>
 
           <View style={styles.textContainer}>
-            <Text style={styles.exerciseName}>{exercise.name}</Text>
+            <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{exercise.name}</Text>
             <Text style={styles.exerciseSets}>{formatSets(exercise.sets)}</Text>
           </View>
         </TouchableOpacity>

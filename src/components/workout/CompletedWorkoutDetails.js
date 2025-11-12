@@ -151,7 +151,7 @@ function CompletedWorkoutDetails({ workout, onClose, onSaveCompletedWorkoutAsTem
 
         <View style={styles.headerContent}>
           <View style={styles.workoutInfo}>
-            <Text style={styles.workoutTitle}>{workout.title}</Text>
+            <Text style={styles.workoutTitle} numberOfLines={2} ellipsizeMode="tail">{workout.title}</Text>
             <Text style={styles.workoutDate}>{formatDate(workout.date)}</Text>
           </View>
         </View>
