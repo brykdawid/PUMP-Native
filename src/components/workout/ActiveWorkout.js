@@ -354,13 +354,18 @@ function ActiveWorkout({
       });
     });
 
+    // Sprawdź czy to był zaplanowany trening
+    const scheduledWorkoutId = activeWorkout?.scheduledWorkoutId;
+
     const workoutData = {
-      id: Date.now(),
-      date: getLocalISOString(),
+      id: scheduledWorkoutId || Date.now(), // Użyj ID zaplanowanego treningu lub stwórz nowe
+      date: targetDate || getLocalISOString(), // Użyj daty zaplanowanego treningu lub dzisiejszej
       duration: elapsedTime,
-      title: title || 'Trening',
+      title: title || activeWorkout?.title || 'Trening',
       type: workoutType,
       totalVolume: Math.round(totalVolume),
+      scheduled: false, // Oznacz jako ukończony (nie zaplanowany)
+      categories: activeWorkout?.categories || categories, // Zachowaj kategorie z zaplanowanego treningu
       exercises: workoutExercises.map(ex => ({
         name: ex.name,
         category: ex.category,
@@ -375,8 +380,17 @@ function ActiveWorkout({
     // Update workout history first
     if (setWorkoutHistory) {
       setWorkoutHistory(prev => {
-        const updated = [...prev, workoutData];
-        return updated;
+        if (scheduledWorkoutId) {
+          // Jeśli to był zaplanowany trening, zaktualizuj go zamiast dodawać nowy
+          const updated = prev.map(w =>
+            w.id === scheduledWorkoutId ? workoutData : w
+          );
+          return updated;
+        } else {
+          // Jeśli to nowy trening, dodaj go do historii
+          const updated = [...prev, workoutData];
+          return updated;
+        }
       });
     }
 
@@ -400,6 +414,7 @@ function ActiveWorkout({
         workoutHistory={workoutHistory}
         setWorkoutHistory={setWorkoutHistory}
         onGoToPlan={onGoToPlan}
+        onBeginWorkout={onBeginWorkout}
         onSaveWorkout={onSaveWorkout}
         onSaveCompletedWorkoutAsTemplate={onSaveCompletedWorkoutAsTemplate}
         onRemoveCompletedWorkoutAsTemplate={onRemoveCompletedWorkoutAsTemplate}

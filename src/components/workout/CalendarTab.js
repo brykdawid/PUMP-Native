@@ -23,7 +23,7 @@ const MONTHS_PL = [
 
 const DAYS_SHORT_PL = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
 
-function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWorkout, onSaveCompletedWorkoutAsTemplate, onRemoveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
+function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWorkout, onSaveWorkout, onSaveCompletedWorkoutAsTemplate, onRemoveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekStartDate, setWeekStartDate] = useState(getWeekStart(new Date()));
@@ -116,6 +116,16 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
            date.getFullYear() === selectedDate.getFullYear();
   };
 
+  // Sprawdź czy zaplanowany trening można już rozpocząć (data treningu <= dzisiaj)
+  const canStartScheduledWorkout = (workoutDate) => {
+    if (!workoutDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const scheduled = new Date(workoutDate.split('T')[0] + 'T00:00:00');
+    return scheduled <= today;
+  };
+
   // Nawigacja miesiąca
   const goToPreviousMonth = () => {
     const newDate = new Date(currentDate);
@@ -162,6 +172,24 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
   const handleViewWorkout = (workout) => {
     setSelectedWorkoutForView(workout);
     setShowWorkoutModal(true);
+  };
+
+  // Obsługa rozpoczęcia zaplanowanego treningu
+  const handleStartScheduledWorkout = (workout) => {
+    if (!onBeginWorkout) return;
+
+    // Przygotuj dane treningu do rozpoczęcia
+    // Przekazujemy ID zaplanowanego treningu aby później go zaktualizować zamiast tworzyć nowy
+    const workoutData = {
+      scheduledWorkoutId: workout.id, // ID zaplanowanego treningu do aktualizacji
+      type: workout.type || 'generated',
+      exercises: workout.exercises || [],
+      categories: workout.categories || [],
+      title: workout.title || workout.name || 'Trening'
+    };
+
+    // Rozpocznij trening natychmiast
+    onBeginWorkout(workoutData, workout.date, true);
   };
 
   // Znajdź pełne dane ćwiczenia z API
@@ -369,6 +397,17 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
 
               return (
                 <View key={index} style={styles.workoutCard}>
+                  {/* Badge ze statusem w prawym górnym rogu */}
+                  {workout.scheduled ? (
+                    <View style={[styles.statusBadge, styles.statusBadgeAbsolute]}>
+                      <Text style={styles.statusBadgeTextScheduled}>Zaplanowany</Text>
+                    </View>
+                  ) : (
+                    <View style={[styles.statusBadge, styles.statusBadgeCompleted, styles.statusBadgeAbsolute]}>
+                      <Text style={styles.statusBadgeTextCompleted}>Ukończony</Text>
+                    </View>
+                  )}
+
                   <View style={styles.workoutCardHeader}>
                     <View style={styles.workoutTitleRow}>
                       <Ionicons
@@ -427,36 +466,34 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onSaveWork
                 )}
 
                 <View style={styles.workoutActions}>
-                  <View style={styles.workoutStatus}>
-                    {workout.scheduled ? (
-                      <View style={styles.statusBadge}>
-                        <Text style={styles.statusBadgeTextScheduled}>Zaplanowany</Text>
-                      </View>
-                    ) : (
-                      <View style={[styles.statusBadge, styles.statusBadgeCompleted]}>
-                        <Text style={styles.statusBadgeTextCompleted}>Ukończony</Text>
-                      </View>
-                    )}
-                  </View>
-
-                  <View style={styles.actionButtons}>
+                  {/* Przycisk "Rozpocznij" dla zaplanowanych treningów, których data już nadeszła */}
+                  {workout.scheduled && canStartScheduledWorkout(workout.date) && (
                     <TouchableOpacity
-                      onPress={() => handleViewWorkout(workout)}
-                      style={styles.previewButton}
+                      onPress={() => handleStartScheduledWorkout(workout)}
+                      style={styles.startButton}
                       activeOpacity={0.7}
                     >
-                      <Ionicons name="eye-outline" size={18} color="#9333ea" />
-                      <Text style={styles.previewButtonText}>Podgląd</Text>
+                      <Ionicons name="play-circle" size={18} color="#16a34a" />
+                      <Text style={styles.startButtonText}>Rozpocznij</Text>
                     </TouchableOpacity>
+                  )}
 
-                    <TouchableOpacity
-                      onPress={() => handleDeleteWorkout(workout)}
-                      style={styles.deleteButton}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="trash-outline" size={18} color="#ef4444" />
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity
+                    onPress={() => handleViewWorkout(workout)}
+                    style={styles.previewButton}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="eye-outline" size={18} color="#9333ea" />
+                    <Text style={styles.previewButtonText}>Podgląd</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => handleDeleteWorkout(workout)}
+                    style={styles.deleteButton}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#ef4444" />
+                  </TouchableOpacity>
                 </View>
               </View>
               );
@@ -807,6 +844,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   workoutCard: {
+    position: 'relative',
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
@@ -828,6 +866,7 @@ const styles = StyleSheet.create({
   workoutTitleContainer: {
     marginLeft: 12,
     flex: 1,
+    paddingRight: 100,
   },
   titleWithStar: {
     flexDirection: 'row',
@@ -887,40 +926,55 @@ const styles = StyleSheet.create({
   workoutActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    justifyContent: 'flex-end',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 12,
     paddingBottom: 12,
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: '#f3f4f6',
   },
-  workoutStatus: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-  },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
     backgroundColor: '#fef3c7',
+  },
+  statusBadgeAbsolute: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
   },
   statusBadgeCompleted: {
     backgroundColor: '#d1fae5',
   },
   statusBadgeTextScheduled: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: '#f59e0b',
   },
   statusBadgeTextCompleted: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: '#10b981',
   },
-  actionButtons: {
+  startButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#d1fae5',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#86efac',
+  },
+  startButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#16a34a',
   },
   previewButton: {
     flexDirection: 'row',
