@@ -43,6 +43,7 @@ function ActiveWorkout({
   const [showSearchForCategory, setShowSearchForCategory] = useState(null);
   const [showMuscleGroupModal, setShowMuscleGroupModal] = useState(false);
   const [showEndWorkoutModal, setShowEndWorkoutModal] = useState(false);
+  const [validationError, setValidationError] = useState(null);
 
   const workoutType = activeWorkout?.type || 'custom';
 
@@ -72,10 +73,13 @@ function ActiveWorkout({
     if (activeWorkout && activeWorkout.exercises) {
       setWorkoutExercises(activeWorkout.exercises);
       const initialSets = {};
+      const initialExpanded = {};
       activeWorkout.exercises.forEach(exercise => {
         initialSets[exercise.name] = [{ weight: '', reps: '', completed: false }];
+        initialExpanded[exercise.name] = true; // Domyślnie rozwinięte
       });
       setExerciseSets(initialSets);
+      setExpandedExercises(initialExpanded);
     }
   }, [activeWorkout]);
 
@@ -128,12 +132,67 @@ function ActiveWorkout({
   };
 
   const toggleSetComplete = (exerciseName, setIndex) => {
-    setExerciseSets(prev => ({
-      ...prev,
-      [exerciseName]: prev[exerciseName].map((set, idx) =>
-        idx === setIndex ? { ...set, completed: !set.completed } : set
-      )
-    }));
+    console.log('=== toggleSetComplete WYWOŁANE ===');
+    console.log('Exercise:', exerciseName, 'Set index:', setIndex);
+
+    setExerciseSets(prev => {
+      const currentSet = prev[exerciseName][setIndex];
+      console.log('Current set:', currentSet);
+      console.log('Current set completed:', currentSet.completed);
+      console.log('Current set weight:', currentSet.weight);
+      console.log('Current set reps:', currentSet.reps);
+
+      // Jeśli próbujemy oznaczyć serię jako ukończoną (currently not completed)
+      if (!currentSet.completed) {
+        console.log('Seria NIE jest ukończona - sprawdzam walidację');
+
+        const weightStr = String(currentSet.weight || '').trim();
+        const repsStr = String(currentSet.reps || '').trim();
+
+        console.log('weightStr:', weightStr);
+        console.log('repsStr:', repsStr);
+
+        // Sprawdź czy pola są puste
+        if (!weightStr || !repsStr) {
+          console.log('BŁĄD: Puste pola!');
+          const errorMsg = 'Musisz wypełnić wagę i liczbę powtórzeń.';
+          console.log('Ustawiam błąd walidacji:', errorMsg);
+          setValidationError(errorMsg);
+          return prev;
+        }
+
+        const weight = parseFloat(weightStr);
+        const reps = parseFloat(repsStr);
+
+        console.log('Parsed weight:', weight);
+        console.log('Parsed reps:', reps);
+        console.log('isNaN(weight):', isNaN(weight));
+        console.log('weight <= 0:', weight <= 0);
+        console.log('isNaN(reps):', isNaN(reps));
+        console.log('reps <= 0:', reps <= 0);
+
+        // Walidacja: kg i reps muszą być liczbami większymi od 0
+        if (isNaN(weight) || weight <= 0 || isNaN(reps) || reps <= 0) {
+          console.log('BŁĄD: Wartości <= 0 lub NaN!');
+          const errorMsg = 'Waga i liczba powtórzeń muszą być większe od 0.';
+          console.log('Ustawiam błąd walidacji:', errorMsg);
+          setValidationError(errorMsg);
+          return prev; // Nie zmieniaj stanu
+        }
+
+        console.log('Walidacja PRZESZŁA - zaznaczam serię jako ukończoną');
+      } else {
+        console.log('Seria JEST ukończona - odznaczam');
+      }
+
+      // Walidacja przeszła lub odznaczamy serię - zmień stan
+      return {
+        ...prev,
+        [exerciseName]: prev[exerciseName].map((set, idx) =>
+          idx === setIndex ? { ...set, completed: !set.completed } : set
+        )
+      };
+    });
   };
 
   const removeSet = (exerciseName, setIndex) => {
@@ -386,9 +445,13 @@ function ActiveWorkout({
               const isExpanded = expandedExercises[exercise.name];
               const sets = exerciseSets[exercise.name] || [];
               const completedSets = sets.filter(s => s.completed).length;
+              const allSetsCompleted = sets.length > 0 && sets.every(s => s.completed);
 
               return (
-                <View key={exercise.id || exercise.name} style={styles.exerciseCard}>
+                <View key={exercise.id || exercise.name} style={[
+                  styles.exerciseCard,
+                  allSetsCompleted && styles.exerciseCardCompleted
+                ]}>
                   <View style={styles.exerciseHeader}>
                     <TouchableOpacity
                       onPress={() => toggleExpandExercise(exercise.name)}
@@ -410,10 +473,20 @@ function ActiveWorkout({
 
                       {/* Exercise Info */}
                       <View style={styles.exerciseHeaderLeft}>
-                        <Text style={styles.exerciseName}>{exercise.name}</Text>
-                        <Text style={styles.exerciseSets}>
-                          {completedSets}/{sets.length} serie
-                        </Text>
+                        <Text style={[
+                          styles.exerciseName,
+                          allSetsCompleted && styles.exerciseNameCompleted
+                        ]}>{exercise.name}</Text>
+                        {allSetsCompleted ? (
+                          <View style={styles.completedLabelContainer}>
+                            <Ionicons name="checkmark-circle" size={16} color="#10b981" />
+                            <Text style={styles.completedLabel}>Ukończono</Text>
+                          </View>
+                        ) : (
+                          <Text style={styles.exerciseSets}>
+                            {completedSets}/{sets.length} serie
+                          </Text>
+                        )}
                       </View>
                     </TouchableOpacity>
 
@@ -684,6 +757,33 @@ function ActiveWorkout({
         </View>
       </Modal>
 
+      <Modal
+        visible={validationError !== null}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setValidationError(null)}
+      >
+        <View style={styles.confirmModalOverlay}>
+          <View style={styles.confirmModal}>
+            <View style={styles.validationErrorIcon}>
+              <Ionicons name="alert-circle" size={48} color="#ef4444" />
+            </View>
+            <Text style={styles.confirmModalTitle}>Nieprawidłowe dane</Text>
+            <Text style={styles.confirmModalMessage}>
+              {validationError}
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setValidationError(null)}
+              style={[styles.confirmModalButton, styles.validationErrorButton]}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.confirmModalButtonTextConfirm}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <GifModal
         exercise={selectedExercise}
         onClose={() => setSelectedExercise(null)}
@@ -784,6 +884,11 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     overflow: 'hidden',
   },
+  exerciseCardCompleted: {
+    borderColor: '#10b981',
+    borderWidth: 2,
+    backgroundColor: '#f0fdf4',
+  },
   exerciseHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -817,9 +922,23 @@ const styles = StyleSheet.create({
     color: '#111827',
     marginBottom: 4,
   },
+  exerciseNameCompleted: {
+    textDecorationLine: 'line-through',
+    color: '#6b7280',
+  },
   exerciseSets: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  completedLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  completedLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#10b981',
   },
   exerciseHeaderRight: {
     paddingRight: 16,
@@ -1133,6 +1252,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#ffffff',
+  },
+  validationErrorIcon: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  validationErrorButton: {
+    width: '100%',
+    backgroundColor: '#ef4444',
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
   },
 });
 
