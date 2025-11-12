@@ -87,28 +87,43 @@ function CustomWorkoutBuilder({
       setWorkoutTitle(preloadedWorkout.title || 'Mój Trening');
       setIsFavorite(preloadedWorkout.isFavorite || false);
 
-      // Załaduj workoutPlan jeśli istnieje, w przeciwnym razie użyj starej struktury
-      if (preloadedWorkout.workoutPlan && preloadedWorkout.workoutPlan.length > 0) {
+      // Załaduj workoutPlan jeśli istnieje i nie jest pusty
+      if (preloadedWorkout.workoutPlan && Array.isArray(preloadedWorkout.workoutPlan) && preloadedWorkout.workoutPlan.length > 0) {
         setWorkoutPlan(preloadedWorkout.workoutPlan);
         setSelectedExercises([]);
-      } else {
+      } else if (preloadedWorkout.exercises && preloadedWorkout.exercises.length > 0) {
+        // Konwertuj starą strukturę (flat exercises) do workoutPlan (grupy mięśniowe)
         const exercisesToLoad = preloadedWorkout.exercises.map(ex => ({
           ...ex,
           id: ex.id || `${ex.name}-${Date.now()}-${Math.random()}`
         }));
-        setSelectedExercises(exercisesToLoad);
 
-        const categories = {};
+        // Grupuj ćwiczenia po muscle groups
+        const groups = {};
         exercisesToLoad.forEach(ex => {
-          let category = 'inne';
-          if (ex.category) {
-            category = translateCategory(ex.category);
-          } else if (ex.labels && ex.labels.length > 0) {
-            category = translateCategory(ex.labels[0]);
+          const category = getPrimaryCategory(ex);
+          const muscleGroup = categoryToMuscleGroup(category);
+
+          if (muscleGroup) {
+            if (!groups[muscleGroup]) {
+              groups[muscleGroup] = {
+                id: `group-${muscleGroup}-${Date.now()}-${Math.random()}`,
+                muscleGroup: muscleGroup,
+                exercises: []
+              };
+            }
+            groups[muscleGroup].exercises.push(ex);
           }
-          categories[category] = true;
         });
-        setExpandedCategories(categories);
+
+        // Konwertuj obiekt grup do array
+        const workoutPlanArray = Object.values(groups);
+        setWorkoutPlan(workoutPlanArray);
+        setSelectedExercises([]);
+      } else {
+        // Pusty workout
+        setWorkoutPlan([]);
+        setSelectedExercises([]);
       }
     }
   }, [preloadedWorkout]);
@@ -463,23 +478,43 @@ function CustomWorkoutBuilder({
   };
 
   const loadWorkout = (workout) => {
-    // Załaduj workoutPlan jeśli istnieje, w przeciwnym razie użyj starej struktury
-    if (workout.workoutPlan && workout.workoutPlan.length > 0) {
+    // Załaduj workoutPlan jeśli istnieje i nie jest pusty
+    if (workout.workoutPlan && Array.isArray(workout.workoutPlan) && workout.workoutPlan.length > 0) {
       setWorkoutPlan(workout.workoutPlan);
       setSelectedExercises([]);
-    } else {
+    } else if (workout.exercises && workout.exercises.length > 0) {
+      // Konwertuj starą strukturę (flat exercises) do workoutPlan (grupy mięśniowe)
       const exercisesToLoad = workout.exercises.map(ex => ({
         ...ex,
         id: ex.id || `${ex.name}-${Date.now()}-${Math.random()}`
       }));
-      setSelectedExercises(exercisesToLoad);
 
-      const categories = {};
+      // Grupuj ćwiczenia po muscle groups
+      const groups = {};
       exercisesToLoad.forEach(ex => {
         const category = getPrimaryCategory(ex);
-        categories[category] = true;
+        const muscleGroup = categoryToMuscleGroup(category);
+
+        if (muscleGroup) {
+          if (!groups[muscleGroup]) {
+            groups[muscleGroup] = {
+              id: `group-${muscleGroup}-${Date.now()}-${Math.random()}`,
+              muscleGroup: muscleGroup,
+              exercises: []
+            };
+          }
+          groups[muscleGroup].exercises.push(ex);
+        }
       });
-      setExpandedCategories(categories);
+
+      // Konwertuj obiekt grup do array
+      const workoutPlanArray = Object.values(groups);
+      setWorkoutPlan(workoutPlanArray);
+      setSelectedExercises([]);
+    } else {
+      // Pusty workout
+      setWorkoutPlan([]);
+      setSelectedExercises([]);
     }
 
     setWorkoutTitle(workout.title || 'Mój Trening');
