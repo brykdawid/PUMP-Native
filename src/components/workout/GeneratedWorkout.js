@@ -502,22 +502,41 @@ function GeneratedWorkout({
 
         <View style={styles.actionButtons}>
           {dateType === 'today' && (
-            <TouchableOpacity
-              onPress={handleBeginWorkout}
-              style={[styles.beginButton, hasNoExercises && styles.disabledButton]}
-              activeOpacity={0.8}
-              disabled={hasNoExercises}
-            >
-              <LinearGradient
-                colors={['#16a34a', '#15803d']}
-                style={styles.buttonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+            <>
+              <TouchableOpacity
+                onPress={handleBeginWorkout}
+                style={[styles.beginButton, hasNoExercises && styles.disabledButton]}
+                activeOpacity={0.8}
+                disabled={hasNoExercises}
               >
-                <Ionicons name="play-circle" size={20} color="#ffffff" />
-                <Text style={styles.buttonText}>Rozpocznij Teraz</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+                <LinearGradient
+                  colors={['#16a34a', '#15803d']}
+                  style={styles.buttonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Ionicons name="play-circle" size={20} color="#ffffff" />
+                  <Text style={styles.buttonText}>Rozpocznij Teraz</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleScheduleWorkout}
+                style={[styles.beginButton, hasNoExercises && styles.disabledButton]}
+                activeOpacity={0.8}
+                disabled={hasNoExercises}
+              >
+                <LinearGradient
+                  colors={['#ea580c', '#c2410c']}
+                  style={styles.buttonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Ionicons name="calendar" size={20} color="#ffffff" />
+                  <Text style={styles.buttonText}>Zaplanuj na Dzisiaj</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </>
           )}
 
           {dateType === 'future' && (

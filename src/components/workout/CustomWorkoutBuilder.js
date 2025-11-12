@@ -584,21 +584,39 @@ function CustomWorkoutBuilder({
       {(selectedExercises.length > 0 || workoutPlan.some(group => group.exercises.length > 0)) && (
         <View style={styles.actionButtons}>
           {dateType === 'today' && (
-            <TouchableOpacity
-              onPress={handleBeginWorkout}
-              style={styles.actionButton}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={['#16a34a', '#15803d']}
-                style={styles.buttonGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+            <>
+              <TouchableOpacity
+                onPress={handleBeginWorkout}
+                style={styles.actionButton}
+                activeOpacity={0.8}
               >
-                <Ionicons name="play-circle" size={20} color="#ffffff" />
-                <Text style={styles.buttonText}>Rozpocznij</Text>
-              </LinearGradient>
-            </TouchableOpacity>
+                <LinearGradient
+                  colors={['#16a34a', '#15803d']}
+                  style={styles.buttonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Ionicons name="play-circle" size={20} color="#ffffff" />
+                  <Text style={styles.buttonText}>Rozpocznij</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleScheduleWorkout}
+                style={styles.actionButton}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={['#ea580c', '#c2410c']}
+                  style={styles.buttonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  <Ionicons name="calendar" size={20} color="#ffffff" />
+                  <Text style={styles.buttonText}>Zaplanuj</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </>
           )}
 
           {dateType === 'future' && (

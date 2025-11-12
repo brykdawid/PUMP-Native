@@ -391,11 +391,12 @@ function App() {
 
     if (currentTab === 'saved') {
       return (
-        <SavedWorkoutsPage 
+        <SavedWorkoutsPage
           savedWorkouts={savedWorkouts}
           onDeleteWorkout={handleDeleteWorkout}
           onBeginWorkout={handleStartFromSaved}
           onUpdateWorkout={handleUpdateWorkout}
+          onScheduleWorkout={handleScheduleWorkout}
         />
       );
     }
