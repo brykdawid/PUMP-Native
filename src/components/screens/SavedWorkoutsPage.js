@@ -670,6 +670,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     paddingVertical: 12,
+    paddingHorizontal: 8,
   },
   actionButtonText: {
     color: '#ffffff',
@@ -684,6 +685,7 @@ const styles = StyleSheet.create({
     gap: 4,
     backgroundColor: '#f3f4f6',
     paddingVertical: 12,
+    paddingHorizontal: 8,
     borderRadius: 8,
   },
   expandButtonText: {
