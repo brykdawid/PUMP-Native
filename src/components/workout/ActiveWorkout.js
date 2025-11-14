@@ -32,11 +32,14 @@ function ActiveWorkout({
   onSaveWorkout,
   onSaveCompletedWorkoutAsTemplate,
   onRemoveCompletedWorkoutAsTemplate,
-  isWorkoutSavedAsTemplate
+  isWorkoutSavedAsTemplate,
+  isPaused,
+  setIsPaused,
+  totalPausedTime,
+  setTotalPausedTime,
+  elapsedTime,
+  setElapsedTime
 }) {
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const [totalPausedTime, setTotalPausedTime] = useState(0); // Całkowity czas pauzy w ms
   const [pauseStartTime, setPauseStartTime] = useState(null); // Kiedy rozpoczęto pauzę
   const [exerciseSets, setExerciseSets] = useState({});
   const [expandedExercises, setExpandedExercises] = useState({});
@@ -63,17 +66,6 @@ function ActiveWorkout({
     });
     return grouped;
   }, [workoutExercises]);
-
-  useEffect(() => {
-    if (!workoutStartTime || isPaused) return;
-
-    const interval = setInterval(() => {
-      const elapsed = Date.now() - workoutStartTime - totalPausedTime;
-      setElapsedTime(Math.floor(elapsed / 1000));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [workoutStartTime, isPaused, totalPausedTime]);
 
   useEffect(() => {
     if (activeWorkout && activeWorkout.exercises) {
