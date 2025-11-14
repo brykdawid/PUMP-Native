@@ -35,7 +35,8 @@ function ActiveWorkout({
 }) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [pausedTime, setPausedTime] = useState(0);
+  const [totalPausedTime, setTotalPausedTime] = useState(0); // Całkowity czas pauzy w ms
+  const [pauseStartTime, setPauseStartTime] = useState(null); // Kiedy rozpoczęto pauzę
   const [exerciseSets, setExerciseSets] = useState({});
   const [expandedExercises, setExpandedExercises] = useState({});
   const [expandedCategories, setExpandedCategories] = useState({});
@@ -66,11 +67,12 @@ function ActiveWorkout({
     if (!workoutStartTime || isPaused) return;
 
     const interval = setInterval(() => {
-      setElapsedTime(Math.floor((Date.now() - workoutStartTime - pausedTime) / 1000));
+      const elapsed = Date.now() - workoutStartTime - totalPausedTime;
+      setElapsedTime(Math.floor(elapsed / 1000));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [workoutStartTime, isPaused, pausedTime]);
+  }, [workoutStartTime, isPaused, totalPausedTime]);
 
   useEffect(() => {
     if (activeWorkout && activeWorkout.exercises) {
@@ -364,13 +366,16 @@ function ActiveWorkout({
 
   const handleTogglePause = () => {
     if (isPaused) {
-      // Wznawiamy timer - zapisujemy całkowity czas pauzy
-      const pauseDuration = Date.now() - pausedTime;
-      setPausedTime(prev => prev + pauseDuration);
+      // Wznawiamy timer - oblicz ile czasu minęło podczas pauzy
+      if (pauseStartTime) {
+        const pauseDuration = Date.now() - pauseStartTime;
+        setTotalPausedTime(prev => prev + pauseDuration);
+        setPauseStartTime(null);
+      }
       setIsPaused(false);
     } else {
-      // Pauzujemy timer - zapisujemy moment pauzy
-      setPausedTime(Date.now());
+      // Pauzujemy timer - zapisz moment rozpoczęcia pauzy
+      setPauseStartTime(Date.now());
       setIsPaused(true);
     }
   };
