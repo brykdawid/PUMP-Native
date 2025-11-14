@@ -151,69 +151,69 @@ function ActiveWorkout({
   };
 
   const updateSet = (exerciseName, setIndex, field, value) => {
-    setExerciseSets(prev => ({
-      ...prev,
-      [exerciseName]: prev[exerciseName].map((set, idx) =>
-        idx === setIndex ? { ...set, [field]: value } : set
-      )
-    }));
+    setExerciseSets(prev => {
+      const updatedSets = prev[exerciseName].map((set, idx) => {
+        if (idx === setIndex) {
+          const updatedSet = { ...set, [field]: value };
+
+          // Automatyczne sprawdzanie: jeśli waga i reps są wypełnione i > 0, oznacz jako ukończone
+          const weightStr = String(field === 'weight' ? value : updatedSet.weight || '').trim();
+          const repsStr = String(field === 'reps' ? value : updatedSet.reps || '').trim();
+
+          if (weightStr && repsStr) {
+            const weight = parseFloat(weightStr);
+            const reps = parseFloat(repsStr);
+
+            // Jeśli obie wartości są prawidłowe (liczby > 0), automatycznie zaznacz jako ukończone
+            if (!isNaN(weight) && weight > 0 && !isNaN(reps) && reps > 0) {
+              updatedSet.completed = true;
+            } else {
+              // Jeśli wartości są nieprawidłowe, odznacz jako ukończone
+              updatedSet.completed = false;
+            }
+          } else {
+            // Jeśli którekolwiek pole jest puste, odznacz jako ukończone
+            updatedSet.completed = false;
+          }
+
+          return updatedSet;
+        }
+        return set;
+      });
+
+      return {
+        ...prev,
+        [exerciseName]: updatedSets
+      };
+    });
   };
 
   const toggleSetComplete = (exerciseName, setIndex) => {
-    console.log('=== toggleSetComplete WYWOŁANE ===');
-    console.log('Exercise:', exerciseName, 'Set index:', setIndex);
-
     setExerciseSets(prev => {
       const currentSet = prev[exerciseName][setIndex];
-      console.log('Current set:', currentSet);
-      console.log('Current set completed:', currentSet.completed);
-      console.log('Current set weight:', currentSet.weight);
-      console.log('Current set reps:', currentSet.reps);
 
-      // Jeśli próbujemy oznaczyć serię jako ukończoną (currently not completed)
+      // Jeśli próbujemy oznaczyć serię jako ukończoną (nie jest jeszcze ukończona)
       if (!currentSet.completed) {
-        console.log('Seria NIE jest ukończona - sprawdzam walidację');
-
         const weightStr = String(currentSet.weight || '').trim();
         const repsStr = String(currentSet.reps || '').trim();
 
-        console.log('weightStr:', weightStr);
-        console.log('repsStr:', repsStr);
-
         // Sprawdź czy pola są puste
         if (!weightStr || !repsStr) {
-          console.log('BŁĄD: Puste pola!');
-          const errorMsg = 'Musisz wypełnić wagę i liczbę powtórzeń.';
-          console.log('Ustawiam błąd walidacji:', errorMsg);
-          setValidationError(errorMsg);
+          setValidationError('Musisz wypełnić wagę i liczbę powtórzeń.');
           return prev;
         }
 
         const weight = parseFloat(weightStr);
         const reps = parseFloat(repsStr);
 
-        console.log('Parsed weight:', weight);
-        console.log('Parsed reps:', reps);
-        console.log('isNaN(weight):', isNaN(weight));
-        console.log('weight <= 0:', weight <= 0);
-        console.log('isNaN(reps):', isNaN(reps));
-        console.log('reps <= 0:', reps <= 0);
-
         // Walidacja: kg i reps muszą być liczbami większymi od 0
         if (isNaN(weight) || weight <= 0 || isNaN(reps) || reps <= 0) {
-          console.log('BŁĄD: Wartości <= 0 lub NaN!');
-          const errorMsg = 'Waga i liczba powtórzeń muszą być większe od 0.';
-          console.log('Ustawiam błąd walidacji:', errorMsg);
-          setValidationError(errorMsg);
-          return prev; // Nie zmieniaj stanu
+          setValidationError('Waga i liczba powtórzeń muszą być większe od 0.');
+          return prev;
         }
-
-        console.log('Walidacja PRZESZŁA - zaznaczam serię jako ukończoną');
-      } else {
-        console.log('Seria JEST ukończona - odznaczam');
       }
 
-      // Walidacja przeszła lub odznaczamy serię - zmień stan
+      // Przełącz status ukończenia
       return {
         ...prev,
         [exerciseName]: prev[exerciseName].map((set, idx) =>
@@ -593,18 +593,16 @@ function ActiveWorkout({
                             onChangeText={(value) => updateSet(exercise.name, idx, 'weight', value)}
                             placeholder="kg"
                             keyboardType="decimal-pad"
-                            editable={!set.completed}
                           />
-                          
+
                           <Text style={styles.setX}>×</Text>
-                          
+
                           <TextInput
                             style={[styles.setInput, set.completed && styles.setInputCompleted]}
                             value={set.reps}
                             onChangeText={(value) => updateSet(exercise.name, idx, 'reps', value)}
                             placeholder="reps"
                             keyboardType="number-pad"
-                            editable={!set.completed}
                           />
 
                           <TouchableOpacity
