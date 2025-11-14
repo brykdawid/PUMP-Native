@@ -5,27 +5,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Detect if we're running in a browser
 const isWeb = Platform.OS === 'web';
 
-// Cross-platform confirm dialog
+// Cross-platform confirm dialog - używa React Native Alert dla wszystkich platform
 export const confirmDialog = (title, message, onConfirm, onCancel) => {
-  if (isWeb && typeof window !== 'undefined') {
-    // Use native browser confirm dialog
-    const confirmed = window.confirm(`${title}\n\n${message}`);
-    if (confirmed && onConfirm) {
-      onConfirm();
-    } else if (!confirmed && onCancel) {
-      onCancel();
-    }
-  } else {
-    // Use React Native Alert for mobile
-    Alert.alert(
-      title,
-      message,
-      [
-        { text: 'Anuluj', style: 'cancel', onPress: onCancel },
-        { text: 'OK', style: 'destructive', onPress: onConfirm }
-      ]
-    );
-  }
+  Alert.alert(
+    title,
+    message,
+    [
+      { text: 'Anuluj', style: 'cancel', onPress: onCancel },
+      { text: 'OK', style: 'destructive', onPress: onConfirm }
+    ]
+  );
 };
 
 const storage = {
