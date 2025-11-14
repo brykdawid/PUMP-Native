@@ -7,12 +7,48 @@ import {
   StyleSheet,
   Platform,
   Image,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// Skeleton loader z animacją shimmer
+const SkeletonLoader = () => {
+  const animatedValue = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, []);
+
+  const opacity = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <Animated.View style={[styles.skeletonContainer, { opacity }]}>
+      <View style={styles.skeletonImage} />
+    </Animated.View>
+  );
+};
+
 // Zmemoizowany komponent karty mięśni dla lepszej wydajności
-const MuscleCard = React.memo(({ type, isSelected, onPress, imageUri }) => {
+const MuscleCard = React.memo(({ type, isSelected, onPress, imageUri, isLoading }) => {
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -28,7 +64,9 @@ const MuscleCard = React.memo(({ type, isSelected, onPress, imageUri }) => {
         </View>
       )}
 
-      {imageUri ? (
+      {isLoading ? (
+        <SkeletonLoader />
+      ) : imageUri ? (
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: imageUri }}
@@ -61,10 +99,12 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
 
   const [selectedGroups, setSelectedGroups] = useState([]);
   const [categoryImages, setCategoryImages] = useState({});
+  const [isLoadingImages, setIsLoadingImages] = useState(true);
 
   useEffect(() => {
     // Pobierz reprezentatywne zdjęcie dla każdej kategorii - równolegle dla lepszej wydajności
     const fetchCategoryImages = async () => {
+      setIsLoadingImages(true);
       try {
         // Pobierz wszystkie obrazki równolegle zamiast sekwencyjnie
         const fetchPromises = TRAINING_TYPES.map(async (type) => {
@@ -103,6 +143,8 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
         setCategoryImages(images);
       } catch (error) {
         console.error('Error fetching category images:', error);
+      } finally {
+        setIsLoadingImages(false);
       }
     };
 
@@ -204,6 +246,7 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
                 isSelected={isSelected}
                 onPress={() => toggleGroup(type.id)}
                 imageUri={categoryImages[type.id]}
+                isLoading={isLoadingImages}
               />
             );
           })}
@@ -312,6 +355,20 @@ const styles = StyleSheet.create({
   muscleImage: {
     width: '100%',
     height: '100%',
+  },
+  skeletonContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    marginBottom: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  skeletonImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#e5e7eb',
+    borderRadius: 12,
   },
   muscleEmoji: {
     fontSize: 48,
