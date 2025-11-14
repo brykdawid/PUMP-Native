@@ -380,7 +380,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
                             style={styles.actionButtonGradient}
                           >
                             <Ionicons name="play-circle" size={18} color="#ffffff" />
-                            <Text style={styles.actionButtonText}>Rozpocznij</Text>
+                            <Text style={styles.actionButtonText}>Wybierz</Text>
                           </LinearGradient>
                         </TouchableOpacity>
 
