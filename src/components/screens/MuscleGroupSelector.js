@@ -99,53 +99,53 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
 
   const [selectedGroups, setSelectedGroups] = useState([]);
   const [categoryImages, setCategoryImages] = useState({});
-  const [isLoadingImages, setIsLoadingImages] = useState(true);
+  const [loadingImages, setLoadingImages] = useState(new Set());
 
   useEffect(() => {
     // Pobierz reprezentatywne zdjęcie dla każdej kategorii - równolegle dla lepszej wydajności
     const fetchCategoryImages = async () => {
-      setIsLoadingImages(true);
-      try {
-        // Pobierz wszystkie obrazki równolegle zamiast sekwencyjnie
-        const fetchPromises = TRAINING_TYPES.map(async (type) => {
-          try {
-            const response = await fetch(
-              `http://localhost:5000/api/exercises?categories=${type.id}&limit=1`,
-              {
-                // Dodaj timeout dla szybszego failover
-                signal: AbortSignal.timeout(5000),
-              }
-            );
+      // Zaznacz wszystkie jako ładujące się
+      const allIds = new Set(TRAINING_TYPES.map(t => t.id));
+      setLoadingImages(allIds);
 
-            if (response.ok) {
-              const exercises = await response.json();
-              if (exercises.length > 0) {
-                return { id: type.id, image: exercises[0].image };
-              }
+      // Pobierz wszystkie obrazki równolegle
+      TRAINING_TYPES.forEach(async (type) => {
+        try {
+          const response = await fetch(
+            `http://localhost:5000/api/exercises?categories=${type.id}&limit=1`,
+            {
+              // Dodaj timeout dla szybszego failover
+              signal: AbortSignal.timeout(5000),
             }
-          } catch (error) {
-            console.error(`Error fetching image for ${type.id}:`, error);
+          );
+
+          if (response.ok) {
+            const exercises = await response.json();
+            if (exercises.length > 0) {
+              // Aktualizuj obrazek natychmiast po załadowaniu
+              setCategoryImages(prev => ({
+                ...prev,
+                [type.id]: exercises[0].image
+              }));
+
+              // Usuń z listy ładujących się
+              setLoadingImages(prev => {
+                const next = new Set(prev);
+                next.delete(type.id);
+                return next;
+              });
+            }
           }
-          return null;
-        });
-
-        // Czekaj na wszystkie równolegle
-        const results = await Promise.all(fetchPromises);
-
-        // Przekształć wyniki w obiekt
-        const images = {};
-        results.forEach(result => {
-          if (result) {
-            images[result.id] = result.image;
-          }
-        });
-
-        setCategoryImages(images);
-      } catch (error) {
-        console.error('Error fetching category images:', error);
-      } finally {
-        setIsLoadingImages(false);
-      }
+        } catch (error) {
+          console.error(`Error fetching image for ${type.id}:`, error);
+          // Usuń z listy ładujących się nawet przy błędzie
+          setLoadingImages(prev => {
+            const next = new Set(prev);
+            next.delete(type.id);
+            return next;
+          });
+        }
+      });
     };
 
     fetchCategoryImages();
@@ -246,7 +246,7 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
                 isSelected={isSelected}
                 onPress={() => toggleGroup(type.id)}
                 imageUri={categoryImages[type.id]}
-                isLoading={isLoadingImages}
+                isLoading={loadingImages.has(type.id)}
               />
             );
           })}
