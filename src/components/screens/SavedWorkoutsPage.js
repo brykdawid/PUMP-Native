@@ -678,19 +678,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   expandButton: {
-    flex: 1,
+    flex: 1.5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,
     backgroundColor: '#f3f4f6',
     paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     borderRadius: 8,
   },
   expandButtonText: {
     color: '#6b7280',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
   },
   deleteButton: {
