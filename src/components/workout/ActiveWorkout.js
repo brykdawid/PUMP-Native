@@ -462,16 +462,35 @@ function ActiveWorkout({
         style={styles.header}
       >
         <View style={styles.headerContent}>
-          <View style={styles.timerContainer}>
-            <Ionicons name="time-outline" size={24} color="#ffffff" />
-            <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
+          {/* Licznik czasu na środku */}
+          <View style={styles.timerSection}>
+            <Text style={styles.timerLabel}>Czas treningu</Text>
+            <View style={styles.timerContainer}>
+              <Ionicons name="time-outline" size={32} color="#ffffff" />
+              <Text style={styles.timerText}>{formatTime(elapsedTime)}</Text>
+            </View>
           </View>
-          <View style={styles.progressContainer}>
-            <Ionicons name="checkmark-circle" size={20} color="#10b981" />
-            <Text style={styles.progressText}>
-              {completedExercises}/{totalExercises}
-            </Text>
+
+          {/* Licznik ćwiczeń poniżej */}
+          <View style={styles.progressSection}>
+            <Text style={styles.progressLabel}>Wykonane ćwiczenia</Text>
+            <View style={styles.progressContainer}>
+              <Ionicons name="fitness" size={28} color="#10b981" />
+              <Text style={styles.progressText}>
+                {completedExercises}/{totalExercises}
+              </Text>
+            </View>
           </View>
+
+          {/* Przycisk STOP */}
+          <TouchableOpacity
+            onPress={handleEndWorkout}
+            style={styles.stopButton}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="stop-circle" size={28} color="#ffffff" />
+            <Text style={styles.stopButtonText}>STOP</Text>
+          </TouchableOpacity>
         </View>
       </LinearGradient>
 
@@ -907,33 +926,80 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
   },
   headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     alignItems: 'center',
+    gap: 16,
+  },
+  timerSection: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  timerLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9ca3af',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   timerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
   timerText: {
-    fontSize: 24,
+    fontSize: 48,
     fontWeight: 'bold',
     color: '#ffffff',
+    letterSpacing: 2,
+  },
+  progressSection: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  progressLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#9ca3af',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
   progressText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 28,
+    fontWeight: 'bold',
     color: '#ffffff',
+  },
+  stopButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#ef4444',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  stopButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    letterSpacing: 2,
   },
   scrollView: {
     flex: 1,
