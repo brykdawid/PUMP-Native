@@ -25,6 +25,10 @@ function App() {
   const [targetDate, setTargetDate] = useState(null);
   const [preloadedWorkout, setPreloadedWorkout] = useState(null);
   const [workoutHistory, setWorkoutHistory] = useState([]);
+  const [isPaused, setIsPaused] = useState(false);
+  const [totalPausedTime, setTotalPausedTime] = useState(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [pauseStartTime, setPauseStartTime] = useState(null);
   const [userStats, setUserStats] = useState({
     weight: 70,
     height: 175,
@@ -43,6 +47,18 @@ function App() {
   useEffect(() => {
     loadData();
   }, []);
+
+  // Timer dla aktywnego treningu
+  useEffect(() => {
+    if (!workoutStartTime || isPaused) return;
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - workoutStartTime - totalPausedTime;
+      setElapsedTime(Math.floor(elapsed / 1000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [workoutStartTime, isPaused, totalPausedTime]);
 
   const loadData = async () => {
     try {
@@ -303,6 +319,10 @@ function App() {
     setActiveWorkout(null);
     setWorkoutStartTime(null);
     setTargetDate(null);
+    setIsPaused(false);
+    setTotalPausedTime(0);
+    setElapsedTime(0);
+    setPauseStartTime(null);
     setCurrentTab('calendar');
   };
 
@@ -315,13 +335,24 @@ function App() {
   };
 
   const handleTabChange = (tab) => {
+    // Jeśli trening jest aktywny i przełączamy się na kalendarz,
+    // przejdź do workout-active zamiast kalendarza
+    if (tab === 'calendar' && activeWorkout && workoutStartTime) {
+      setCurrentTab('workout-active');
+      return;
+    }
+
     setCurrentTab(tab);
     if (tab === 'calendar') {
-      setActiveWorkout(null);
-      setWorkoutStartTime(null);
       setPlanScreen('landing');
       setPreloadedWorkout(null);
     }
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const renderContent = () => {
@@ -340,6 +371,14 @@ function App() {
           onSaveCompletedWorkoutAsTemplate={handleSaveCompletedWorkoutAsTemplate}
           onRemoveCompletedWorkoutAsTemplate={handleRemoveCompletedWorkoutAsTemplate}
           isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
+          isPaused={false}
+          setIsPaused={() => {}}
+          totalPausedTime={0}
+          setTotalPausedTime={() => {}}
+          elapsedTime={0}
+          setElapsedTime={() => {}}
+          pauseStartTime={null}
+          setPauseStartTime={() => {}}
         />
       );
     }
@@ -358,6 +397,14 @@ function App() {
           onSaveCompletedWorkoutAsTemplate={handleSaveCompletedWorkoutAsTemplate}
           onRemoveCompletedWorkoutAsTemplate={handleRemoveCompletedWorkoutAsTemplate}
           isWorkoutSavedAsTemplate={isWorkoutSavedAsTemplate}
+          isPaused={isPaused}
+          setIsPaused={setIsPaused}
+          totalPausedTime={totalPausedTime}
+          setTotalPausedTime={setTotalPausedTime}
+          elapsedTime={elapsedTime}
+          setElapsedTime={setElapsedTime}
+          pauseStartTime={pauseStartTime}
+          setPauseStartTime={setPauseStartTime}
         />
       );
     }
@@ -510,17 +557,40 @@ function App() {
           onPress={() => handleTabChange('calendar')}
           style={styles.navButtonLarge}
         >
-          <Ionicons
-            name="calendar-outline"
-            size={28}
-            color={currentTab === 'calendar' || currentTab === 'workout-active' ? '#9333ea' : '#9ca3af'}
-          />
-          <Text style={[
-            styles.navText,
-            (currentTab === 'calendar' || currentTab === 'workout-active') && styles.navTextActive
-          ]}>
-            Kalendarz
-          </Text>
+          {activeWorkout && workoutStartTime ? (
+            // Aktywny trening - pokaż timer
+            <>
+              <View style={styles.activeWorkoutIndicator}>
+                <Ionicons
+                  name="fitness-outline"
+                  size={28}
+                  color="#9333ea"
+                />
+              </View>
+              <Text style={[
+                styles.navText,
+                styles.navTextActive,
+                styles.timerText
+              ]}>
+                {formatTime(elapsedTime)}
+              </Text>
+            </>
+          ) : (
+            // Normalny przycisk kalendarza
+            <>
+              <Ionicons
+                name="calendar-outline"
+                size={28}
+                color={currentTab === 'calendar' ? '#9333ea' : '#9ca3af'}
+              />
+              <Text style={[
+                styles.navText,
+                currentTab === 'calendar' && styles.navTextActive
+              ]}>
+                Kalendarz
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
 
         {/* Statistics Tab - Renamed from Body */}
@@ -620,6 +690,20 @@ const styles = StyleSheet.create({
   },
   navTextActive: {
     color: '#9333ea',
+  },
+  activeWorkoutIndicator: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  timerText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  pausedIndicator: {
+    fontSize: 10,
+    color: '#f59e0b',
+    fontWeight: '600',
+    marginTop: 2,
   },
 });
 
