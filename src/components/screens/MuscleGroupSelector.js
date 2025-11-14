@@ -6,8 +6,8 @@ import {
   ScrollView,
   StyleSheet,
   Platform,
-  Image,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -19,25 +19,35 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
   const [categoryImages, setCategoryImages] = useState({});
 
   useEffect(() => {
-    // Pobierz reprezentatywne zdjęcie dla każdej kategorii
+    // Pobierz reprezentatywne zdjęcie dla każdej kategorii - równolegle dla lepszej wydajności
     const fetchCategoryImages = async () => {
-      const images = {};
-      
-      for (const type of TRAINING_TYPES) {
+      // Pobierz wszystkie obrazy równolegle zamiast sekwencyjnie
+      const imagePromises = TRAINING_TYPES.map(async (type) => {
         try {
           const response = await fetch(`http://localhost:5000/api/exercises?categories=${type.id}`);
           if (response.ok) {
             const exercises = await response.json();
             if (exercises.length > 0) {
-              // Weź pierwsze ćwiczenie jako reprezentatywne zdjęcie
-              images[type.id] = exercises[0].image;
+              return { id: type.id, image: exercises[0].image };
             }
           }
         } catch (error) {
           console.error(`Error fetching image for ${type.id}:`, error);
         }
-      }
-      
+        return null;
+      });
+
+      // Czekaj na wszystkie zapytania jednocześnie
+      const results = await Promise.all(imagePromises);
+
+      // Konwertuj wyniki na obiekt
+      const images = {};
+      results.forEach(result => {
+        if (result) {
+          images[result.id] = result.image;
+        }
+      });
+
       setCategoryImages(images);
     };
 
@@ -139,7 +149,12 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
                     <Image
                       source={{ uri: categoryImages[type.id] }}
                       style={styles.muscleImage}
-                      resizeMode="cover"
+                      contentFit="cover"
+                      transition={200}
+                      cachePolicy="memory-disk"
+                      priority="high"
+                      placeholder={{ blurhash: 'L6PZfSi_.AyE_3t7t7R**0o#DgR4' }}
+                      placeholderContentFit="cover"
                     />
                   </View>
                 ) : (
