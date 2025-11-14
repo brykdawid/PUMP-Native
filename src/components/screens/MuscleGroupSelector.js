@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { alertDialog } from '../../utils/storage';
 
 // Skeleton loader z animacją shimmer
 const SkeletonLoader = () => {
@@ -204,7 +205,7 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
   const handleContinue = useCallback(() => {
     console.log('Continue with groups:', selectedGroups);
     if (selectedGroups.length === 0) {
-      alert('Wybierz przynajmniej jedną grupę mięśniową');
+      alertDialog('Uwaga', 'Wybierz przynajmniej jedną grupę mięśniową');
       return;
     }
     onStartWorkout(selectedGroups);

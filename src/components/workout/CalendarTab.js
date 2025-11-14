@@ -6,14 +6,13 @@ import {
   ScrollView,
   StyleSheet,
   Modal,
-  Alert,
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getExercises } from '../../utils/apiHelpers';
 import { getLocalISOString } from '../../utils/workoutHelpers';
-import { confirmDialog } from '../../utils/storage';
+import { confirmDialog, alertDialog } from '../../utils/storage';
 import GifModal from './GifModal';
 
 const MONTHS_PL = [
@@ -209,9 +208,9 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
       if (onRemoveCompletedWorkoutAsTemplate) {
         const result = onRemoveCompletedWorkoutAsTemplate(selectedWorkoutForView);
         if (result.success) {
-          Alert.alert('Sukces', result.message);
+          alertDialog('Sukces', result.message);
         } else {
-          Alert.alert('Błąd', result.message);
+          alertDialog('Błąd', result.message);
         }
       }
     } else {
@@ -219,9 +218,9 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
       if (onSaveCompletedWorkoutAsTemplate) {
         const result = onSaveCompletedWorkoutAsTemplate(selectedWorkoutForView);
         if (result.success) {
-          Alert.alert('Sukces', result.message);
+          alertDialog('Sukces', result.message);
         } else {
-          Alert.alert('Informacja', result.message);
+          alertDialog('Informacja', result.message);
         }
       } else if (onSaveWorkout) {
         // Fallback to old method
@@ -234,7 +233,7 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
           savedAt: getLocalISOString()
         };
         onSaveWorkout(workoutToSave);
-        Alert.alert('Sukces', 'Trening został zapisany w zakładce Zapisane!');
+        alertDialog('Sukces', 'Trening został zapisany w zakładce Zapisane!');
       }
     }
   };

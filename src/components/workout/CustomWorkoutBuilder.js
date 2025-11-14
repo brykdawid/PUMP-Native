@@ -6,14 +6,13 @@ import {
   ScrollView,
   TextInput,
   StyleSheet,
-  Alert,
   Platform,
   KeyboardAvoidingView,
   Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import storage from '../../utils/storage';
+import storage, { alertDialog } from '../../utils/storage';
 import { getExercises } from '../../utils/apiHelpers';
 import { TRAINING_TYPES, CATEGORY_TO_AI_LABELS } from '../data/exercisesData';
 import { getLocalISOString } from '../../utils/workoutHelpers';
@@ -162,7 +161,7 @@ function CustomWorkoutBuilder({
       setAllExercises(data);
     } catch (error) {
       console.error('Error loading exercises:', error);
-      Alert.alert('Błąd', 'Nie udało się połączyć z serwerem');
+      alertDialog('Błąd', 'Nie udało się połączyć z serwerem');
     }
   };
 
@@ -238,7 +237,7 @@ function CustomWorkoutBuilder({
       if (existingGroup) {
         const exerciseExists = existingGroup.exercises.some(ex => ex.name === exercise.name);
         if (exerciseExists) {
-          Alert.alert('Info', `${exercise.name} jest już w tej grupie mięśniowej`, [{ text: 'OK' }]);
+          alertDialog('Info', `${exercise.name} jest już w tej grupie mięśniowej`);
           return;
         }
       }
@@ -270,12 +269,12 @@ function CustomWorkoutBuilder({
       setShowExerciseList(false);
 
       // Pokaż informację o dodaniu
-      Alert.alert('Dodano', `${exercise.name} został dodany do planu treningowego`, [{ text: 'OK' }], { cancelable: true });
+      alertDialog('Dodano', `${exercise.name} został dodany do planu treningowego`);
     } else {
       // Jeśli nie można określić grupy, sprawdź duplikaty w selectedExercises
       const exerciseExists = selectedExercises.some(ex => ex.name === exercise.name);
       if (exerciseExists) {
-        Alert.alert('Info', `${exercise.name} jest już w planie treningowym`, [{ text: 'OK' }]);
+        alertDialog('Info', `${exercise.name} jest już w planie treningowym`);
         return;
       }
 
@@ -290,7 +289,7 @@ function CustomWorkoutBuilder({
       setShowExerciseList(false);
 
       // Pokaż informację o dodaniu
-      Alert.alert('Dodano', `${exercise.name} został dodany do planu treningowego`, [{ text: 'OK' }], { cancelable: true });
+      alertDialog('Dodano', `${exercise.name} został dodany do planu treningowego`);
     }
   };
 
