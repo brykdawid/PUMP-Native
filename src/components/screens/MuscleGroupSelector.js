@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,62 +7,190 @@ import {
   StyleSheet,
   Platform,
   Image,
+  Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// Skeleton loader z animacją shimmer
+const SkeletonLoader = () => {
+  const animatedValue = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(animatedValue, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(animatedValue, {
+          toValue: 0,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, []);
+
+  const opacity = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.7],
+  });
+
+  return (
+    <Animated.View style={[styles.skeletonContainer, { opacity }]}>
+      <View style={styles.skeletonImage} />
+    </Animated.View>
+  );
+};
+
+// Zmemoizowany komponent karty mięśni dla lepszej wydajności
+const MuscleCard = React.memo(({ type, isSelected, onPress, imageUri, isLoading }) => {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[
+        styles.muscleCard,
+        isSelected && styles.muscleCardSelected
+      ]}
+      activeOpacity={0.7}
+    >
+      {isSelected && (
+        <View style={styles.checkmark}>
+          <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
+        </View>
+      )}
+
+      {isLoading ? (
+        <SkeletonLoader />
+      ) : imageUri ? (
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.muscleImage}
+            resizeMode="cover"
+            // Optymalizacje dla lepszej wydajności
+            fadeDuration={100}
+            progressiveRenderingEnabled={true}
+          />
+        </View>
+      ) : (
+        <Text style={styles.muscleEmoji}>💪</Text>
+      )}
+
+      <Text style={[
+        styles.muscleName,
+        isSelected && styles.muscleNameSelected
+      ]}>
+        {type.name}
+      </Text>
+    </TouchableOpacity>
+  );
+});
+
+MuscleCard.displayName = 'MuscleCard';
+
 function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
   console.log('MuscleGroupSelector render');
   console.log('TRAINING_TYPES:', TRAINING_TYPES);
-  
+
   const [selectedGroups, setSelectedGroups] = useState([]);
   const [categoryImages, setCategoryImages] = useState({});
+  const [loadingImages, setLoadingImages] = useState(new Set());
 
   useEffect(() => {
-    // Pobierz reprezentatywne zdjęcie dla każdej kategorii
+    // Pobierz reprezentatywne zdjęcie dla każdej kategorii - równolegle dla lepszej wydajności
     const fetchCategoryImages = async () => {
-      const images = {};
-      
-      for (const type of TRAINING_TYPES) {
+      // Zaznacz wszystkie jako ładujące się
+      const allIds = new Set(TRAINING_TYPES.map(t => t.id));
+      setLoadingImages(allIds);
+
+      // Pobierz wszystkie obrazki równolegle
+      TRAINING_TYPES.forEach(async (type) => {
         try {
-          const response = await fetch(`http://localhost:5000/api/exercises?categories=${type.id}`);
+          const response = await fetch(
+            `http://localhost:5000/api/exercises?categories=${type.id}&limit=1`,
+            {
+              // Dodaj timeout dla szybszego failover
+              signal: AbortSignal.timeout(5000),
+            }
+          );
+
           if (response.ok) {
             const exercises = await response.json();
             if (exercises.length > 0) {
-              // Weź pierwsze ćwiczenie jako reprezentatywne zdjęcie
-              images[type.id] = exercises[0].image;
+              // Aktualizuj obrazek natychmiast po załadowaniu
+              setCategoryImages(prev => ({
+                ...prev,
+                [type.id]: exercises[0].image
+              }));
+
+              // Usuń z listy ładujących się
+              setLoadingImages(prev => {
+                const next = new Set(prev);
+                next.delete(type.id);
+                return next;
+              });
             }
           }
         } catch (error) {
           console.error(`Error fetching image for ${type.id}:`, error);
+          // Usuń z listy ładujących się nawet przy błędzie
+          setLoadingImages(prev => {
+            const next = new Set(prev);
+            next.delete(type.id);
+            return next;
+          });
         }
-      }
-      
-      setCategoryImages(images);
+      });
     };
 
     fetchCategoryImages();
   }, [TRAINING_TYPES]);
 
-  const toggleGroup = (groupId) => {
+  // Prefetch obrazków dla lepszej wydajności
+  useEffect(() => {
+    Object.values(categoryImages).forEach(imageUri => {
+      if (imageUri) {
+        Image.prefetch(imageUri).catch(err => {
+          console.log('Image prefetch failed:', err);
+        });
+      }
+    });
+  }, [categoryImages]);
+
+  // Zmemoizowana funkcja sprawdzania czy fullbody jest zaznaczone
+  const isFullBodySelected = useMemo(() => {
+    const allGroups = TRAINING_TYPES
+      .filter(type => type.id !== 'fullbody')
+      .map(type => type.id);
+    return selectedGroups.length === allGroups.length;
+  }, [selectedGroups, TRAINING_TYPES]);
+
+  // useCallback zapobiega re-renderom komponentów potomnych
+  const toggleGroup = useCallback((groupId) => {
     console.log('Toggle group:', groupId);
-    
+
     // Jeśli kliknięto fullbody, zaznacz wszystkie grupy
     if (groupId === 'fullbody') {
       const allGroups = TRAINING_TYPES
         .filter(type => type.id !== 'fullbody')
         .map(type => type.id);
-      
+
       // Jeśli fullbody już był zaznaczony, odznacz wszystko
-      if (selectedGroups.length === allGroups.length) {
-        setSelectedGroups([]);
-      } else {
-        // Zaznacz wszystkie grupy
-        setSelectedGroups(allGroups);
-      }
+      setSelectedGroups(prev => {
+        if (prev.length === allGroups.length) {
+          return [];
+        } else {
+          return allGroups;
+        }
+      });
       return;
     }
-    
+
     // Standardowe przełączanie dla pojedynczych grup
     setSelectedGroups(prev => {
       if (prev.includes(groupId)) {
@@ -71,23 +199,16 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
         return [...prev, groupId];
       }
     });
-  };
+  }, [TRAINING_TYPES]);
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
     console.log('Continue with groups:', selectedGroups);
     if (selectedGroups.length === 0) {
       alert('Wybierz przynajmniej jedną grupę mięśniową');
       return;
     }
     onStartWorkout(selectedGroups);
-  };
-
-  const isFullBodySelected = () => {
-    const allGroups = TRAINING_TYPES
-      .filter(type => type.id !== 'fullbody')
-      .map(type => type.id);
-    return selectedGroups.length === allGroups.length;
-  };
+  }, [selectedGroups, onStartWorkout]);
 
   return (
     <View style={styles.container}>
@@ -114,45 +235,19 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
 
         <View style={styles.muscleGrid}>
           {TRAINING_TYPES.map(type => {
-            const isSelected = type.id === 'fullbody' 
-              ? isFullBodySelected() 
+            const isSelected = type.id === 'fullbody'
+              ? isFullBodySelected
               : selectedGroups.includes(type.id);
-            
+
             return (
-              <TouchableOpacity
+              <MuscleCard
                 key={type.id}
+                type={type}
+                isSelected={isSelected}
                 onPress={() => toggleGroup(type.id)}
-                style={[
-                  styles.muscleCard,
-                  isSelected && styles.muscleCardSelected
-                ]}
-                activeOpacity={0.7}
-              >
-                {isSelected && (
-                  <View style={styles.checkmark}>
-                    <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
-                  </View>
-                )}
-                
-                {categoryImages[type.id] ? (
-                  <View style={styles.imageContainer}>
-                    <Image
-                      source={{ uri: categoryImages[type.id] }}
-                      style={styles.muscleImage}
-                      resizeMode="cover"
-                    />
-                  </View>
-                ) : (
-                  <Text style={styles.muscleEmoji}>💪</Text>
-                )}
-                
-                <Text style={[
-                  styles.muscleName,
-                  isSelected && styles.muscleNameSelected
-                ]}>
-                  {type.name}
-                </Text>
-              </TouchableOpacity>
+                imageUri={categoryImages[type.id]}
+                isLoading={loadingImages.has(type.id)}
+              />
             );
           })}
         </View>
@@ -260,6 +355,20 @@ const styles = StyleSheet.create({
   muscleImage: {
     width: '100%',
     height: '100%',
+  },
+  skeletonContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    marginBottom: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  skeletonImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#e5e7eb',
+    borderRadius: 12,
   },
   muscleEmoji: {
     fontSize: 48,
