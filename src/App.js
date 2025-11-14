@@ -28,6 +28,7 @@ function App() {
   const [isPaused, setIsPaused] = useState(false);
   const [totalPausedTime, setTotalPausedTime] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [pauseStartTime, setPauseStartTime] = useState(null);
   const [userStats, setUserStats] = useState({
     weight: 70,
     height: 175,
@@ -321,6 +322,7 @@ function App() {
     setIsPaused(false);
     setTotalPausedTime(0);
     setElapsedTime(0);
+    setPauseStartTime(null);
     setCurrentTab('calendar');
   };
 
@@ -375,6 +377,8 @@ function App() {
           setTotalPausedTime={() => {}}
           elapsedTime={0}
           setElapsedTime={() => {}}
+          pauseStartTime={null}
+          setPauseStartTime={() => {}}
         />
       );
     }
@@ -399,6 +403,8 @@ function App() {
           setTotalPausedTime={setTotalPausedTime}
           elapsedTime={elapsedTime}
           setElapsedTime={setElapsedTime}
+          pauseStartTime={pauseStartTime}
+          setPauseStartTime={setPauseStartTime}
         />
       );
     }
@@ -556,7 +562,7 @@ function App() {
             <>
               <View style={styles.activeWorkoutIndicator}>
                 <Ionicons
-                  name={isPaused ? "pause-circle" : "fitness-outline"}
+                  name="fitness-outline"
                   size={28}
                   color="#9333ea"
                 />
@@ -568,9 +574,6 @@ function App() {
               ]}>
                 {formatTime(elapsedTime)}
               </Text>
-              {isPaused && (
-                <Text style={styles.pausedIndicator}>Pauza</Text>
-              )}
             </>
           ) : (
             // Normalny przycisk kalendarza

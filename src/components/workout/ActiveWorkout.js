@@ -38,9 +38,10 @@ function ActiveWorkout({
   totalPausedTime,
   setTotalPausedTime,
   elapsedTime,
-  setElapsedTime
+  setElapsedTime,
+  pauseStartTime,
+  setPauseStartTime
 }) {
-  const [pauseStartTime, setPauseStartTime] = useState(null); // Kiedy rozpoczęto pauzę
   const [exerciseSets, setExerciseSets] = useState({});
   const [expandedExercises, setExpandedExercises] = useState({});
   const [expandedCategories, setExpandedCategories] = useState({});
