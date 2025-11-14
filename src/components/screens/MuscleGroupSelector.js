@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,58 +11,144 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// Zmemoizowany komponent karty mięśni dla lepszej wydajności
+const MuscleCard = React.memo(({ type, isSelected, onPress, imageUri }) => {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[
+        styles.muscleCard,
+        isSelected && styles.muscleCardSelected
+      ]}
+      activeOpacity={0.7}
+    >
+      {isSelected && (
+        <View style={styles.checkmark}>
+          <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
+        </View>
+      )}
+
+      {imageUri ? (
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.muscleImage}
+            resizeMode="cover"
+            // Optymalizacje dla lepszej wydajności
+            fadeDuration={100}
+            progressiveRenderingEnabled={true}
+          />
+        </View>
+      ) : (
+        <Text style={styles.muscleEmoji}>💪</Text>
+      )}
+
+      <Text style={[
+        styles.muscleName,
+        isSelected && styles.muscleNameSelected
+      ]}>
+        {type.name}
+      </Text>
+    </TouchableOpacity>
+  );
+});
+
+MuscleCard.displayName = 'MuscleCard';
+
 function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
   console.log('MuscleGroupSelector render');
   console.log('TRAINING_TYPES:', TRAINING_TYPES);
-  
+
   const [selectedGroups, setSelectedGroups] = useState([]);
   const [categoryImages, setCategoryImages] = useState({});
 
   useEffect(() => {
-    // Pobierz reprezentatywne zdjęcie dla każdej kategorii
+    // Pobierz reprezentatywne zdjęcie dla każdej kategorii - równolegle dla lepszej wydajności
     const fetchCategoryImages = async () => {
-      const images = {};
-      
-      for (const type of TRAINING_TYPES) {
-        try {
-          const response = await fetch(`http://localhost:5000/api/exercises?categories=${type.id}`);
-          if (response.ok) {
-            const exercises = await response.json();
-            if (exercises.length > 0) {
-              // Weź pierwsze ćwiczenie jako reprezentatywne zdjęcie
-              images[type.id] = exercises[0].image;
+      try {
+        // Pobierz wszystkie obrazki równolegle zamiast sekwencyjnie
+        const fetchPromises = TRAINING_TYPES.map(async (type) => {
+          try {
+            const response = await fetch(
+              `http://localhost:5000/api/exercises?categories=${type.id}&limit=1`,
+              {
+                // Dodaj timeout dla szybszego failover
+                signal: AbortSignal.timeout(5000),
+              }
+            );
+
+            if (response.ok) {
+              const exercises = await response.json();
+              if (exercises.length > 0) {
+                return { id: type.id, image: exercises[0].image };
+              }
             }
+          } catch (error) {
+            console.error(`Error fetching image for ${type.id}:`, error);
           }
-        } catch (error) {
-          console.error(`Error fetching image for ${type.id}:`, error);
-        }
+          return null;
+        });
+
+        // Czekaj na wszystkie równolegle
+        const results = await Promise.all(fetchPromises);
+
+        // Przekształć wyniki w obiekt
+        const images = {};
+        results.forEach(result => {
+          if (result) {
+            images[result.id] = result.image;
+          }
+        });
+
+        setCategoryImages(images);
+      } catch (error) {
+        console.error('Error fetching category images:', error);
       }
-      
-      setCategoryImages(images);
     };
 
     fetchCategoryImages();
   }, [TRAINING_TYPES]);
 
-  const toggleGroup = (groupId) => {
+  // Prefetch obrazków dla lepszej wydajności
+  useEffect(() => {
+    Object.values(categoryImages).forEach(imageUri => {
+      if (imageUri) {
+        Image.prefetch(imageUri).catch(err => {
+          console.log('Image prefetch failed:', err);
+        });
+      }
+    });
+  }, [categoryImages]);
+
+  // Zmemoizowana funkcja sprawdzania czy fullbody jest zaznaczone
+  const isFullBodySelected = useMemo(() => {
+    const allGroups = TRAINING_TYPES
+      .filter(type => type.id !== 'fullbody')
+      .map(type => type.id);
+    return selectedGroups.length === allGroups.length;
+  }, [selectedGroups, TRAINING_TYPES]);
+
+  // useCallback zapobiega re-renderom komponentów potomnych
+  const toggleGroup = useCallback((groupId) => {
     console.log('Toggle group:', groupId);
-    
+
     // Jeśli kliknięto fullbody, zaznacz wszystkie grupy
     if (groupId === 'fullbody') {
       const allGroups = TRAINING_TYPES
         .filter(type => type.id !== 'fullbody')
         .map(type => type.id);
-      
+
       // Jeśli fullbody już był zaznaczony, odznacz wszystko
-      if (selectedGroups.length === allGroups.length) {
-        setSelectedGroups([]);
-      } else {
-        // Zaznacz wszystkie grupy
-        setSelectedGroups(allGroups);
-      }
+      setSelectedGroups(prev => {
+        if (prev.length === allGroups.length) {
+          return [];
+        } else {
+          return allGroups;
+        }
+      });
       return;
     }
-    
+
     // Standardowe przełączanie dla pojedynczych grup
     setSelectedGroups(prev => {
       if (prev.includes(groupId)) {
@@ -71,23 +157,16 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
         return [...prev, groupId];
       }
     });
-  };
+  }, [TRAINING_TYPES]);
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
     console.log('Continue with groups:', selectedGroups);
     if (selectedGroups.length === 0) {
       alert('Wybierz przynajmniej jedną grupę mięśniową');
       return;
     }
     onStartWorkout(selectedGroups);
-  };
-
-  const isFullBodySelected = () => {
-    const allGroups = TRAINING_TYPES
-      .filter(type => type.id !== 'fullbody')
-      .map(type => type.id);
-    return selectedGroups.length === allGroups.length;
-  };
+  }, [selectedGroups, onStartWorkout]);
 
   return (
     <View style={styles.container}>
@@ -114,45 +193,18 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
 
         <View style={styles.muscleGrid}>
           {TRAINING_TYPES.map(type => {
-            const isSelected = type.id === 'fullbody' 
-              ? isFullBodySelected() 
+            const isSelected = type.id === 'fullbody'
+              ? isFullBodySelected
               : selectedGroups.includes(type.id);
-            
+
             return (
-              <TouchableOpacity
+              <MuscleCard
                 key={type.id}
+                type={type}
+                isSelected={isSelected}
                 onPress={() => toggleGroup(type.id)}
-                style={[
-                  styles.muscleCard,
-                  isSelected && styles.muscleCardSelected
-                ]}
-                activeOpacity={0.7}
-              >
-                {isSelected && (
-                  <View style={styles.checkmark}>
-                    <Ionicons name="checkmark-circle" size={24} color="#16a34a" />
-                  </View>
-                )}
-                
-                {categoryImages[type.id] ? (
-                  <View style={styles.imageContainer}>
-                    <Image
-                      source={{ uri: categoryImages[type.id] }}
-                      style={styles.muscleImage}
-                      resizeMode="cover"
-                    />
-                  </View>
-                ) : (
-                  <Text style={styles.muscleEmoji}>💪</Text>
-                )}
-                
-                <Text style={[
-                  styles.muscleName,
-                  isSelected && styles.muscleNameSelected
-                ]}>
-                  {type.name}
-                </Text>
-              </TouchableOpacity>
+                imageUri={categoryImages[type.id]}
+              />
             );
           })}
         </View>
