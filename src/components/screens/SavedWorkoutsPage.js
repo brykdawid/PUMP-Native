@@ -15,8 +15,10 @@ import storage, { confirmDialog } from '../../utils/storage';
 import { normalizeWorkout, getTotalExercises as getExerciseCount, getLocalISOString } from '../../utils/workoutHelpers';
 import GifModal from '../workout/GifModal';
 import ExerciseCard from '../workout/ExerciseCard';
+import { useToast } from '../../contexts/ToastContext';
 
 function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onUpdateWorkout, onScheduleWorkout }) {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState('workouts');
   const [expandedWorkout, setExpandedWorkout] = useState(null);
   const [selectedGif, setSelectedGif] = useState(null);
@@ -75,8 +77,16 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
     try {
       await storage.setItem('favoriteExercises', JSON.stringify(updated));
       setSavedExercises(updated);
+
+      // Pokaż toast
+      if (exists) {
+        showToast(`${exercise.name} usunięte z ulubionych`, 'info');
+      } else {
+        showToast(`${exercise.name} dodane do ulubionych`, 'success');
+      }
     } catch (error) {
       console.error('Error saving favorites:', error);
+      showToast('Błąd podczas zapisywania', 'error');
     }
   };
 
@@ -86,8 +96,10 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
 
     try {
       await storage.setItem('favoriteExercises', JSON.stringify(updated));
+      showToast(`${exerciseName} usunięte z zapisanych`, 'info');
     } catch (error) {
       console.error('Error removing saved exercise:', error);
+      showToast('Błąd podczas usuwania', 'error');
     }
   };
 

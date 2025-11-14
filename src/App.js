@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } fr
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import storage from './utils/storage';
+import { ToastProvider } from './contexts/ToastContext';
 import StatsPage from './components/screens/StatsPage';
 import ProfilePage from './components/screens/ProfilePage';
 import SavedWorkoutsPage from './components/screens/SavedWorkoutsPage';
@@ -457,109 +458,111 @@ function App() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
-      
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {renderContent()}
-      </ScrollView>
+    <ToastProvider>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="dark" />
 
-      <View style={styles.bottomNav}>
-        {/* Library Tab - Leftmost */}
-        <TouchableOpacity
-          onPress={() => handleTabChange('library')}
-          style={styles.navButton}
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
         >
-          <Ionicons
-            name="library-outline"
-            size={24}
-            color={currentTab === 'library' ? '#9333ea' : '#9ca3af'}
-          />
-          <Text style={[
-            styles.navText,
-            currentTab === 'library' && styles.navTextActive
-          ]}>
-            Biblioteka
-          </Text>
-        </TouchableOpacity>
+          {renderContent()}
+        </ScrollView>
 
-        {/* Saved Tab */}
-        <TouchableOpacity
-          onPress={() => handleTabChange('saved')}
-          style={styles.navButton}
-        >
-          <Ionicons
-            name="bookmark-outline"
-            size={24}
-            color={currentTab === 'saved' ? '#9333ea' : '#9ca3af'}
-          />
-          <Text style={[
-            styles.navText,
-            currentTab === 'saved' && styles.navTextActive
-          ]}>
-            Zapisane
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.bottomNav}>
+          {/* Library Tab - Leftmost */}
+          <TouchableOpacity
+            onPress={() => handleTabChange('library')}
+            style={styles.navButton}
+          >
+            <Ionicons
+              name="library-outline"
+              size={24}
+              color={currentTab === 'library' ? '#9333ea' : '#9ca3af'}
+            />
+            <Text style={[
+              styles.navText,
+              currentTab === 'library' && styles.navTextActive
+            ]}>
+              Biblioteka
+            </Text>
+          </TouchableOpacity>
 
-        {/* Calendar Tab - Middle, Larger */}
-        <TouchableOpacity
-          onPress={() => handleTabChange('calendar')}
-          style={styles.navButtonLarge}
-        >
-          <Ionicons
-            name="calendar-outline"
-            size={28}
-            color={currentTab === 'calendar' || currentTab === 'workout-active' ? '#9333ea' : '#9ca3af'}
-          />
-          <Text style={[
-            styles.navText,
-            (currentTab === 'calendar' || currentTab === 'workout-active') && styles.navTextActive
-          ]}>
-            Kalendarz
-          </Text>
-        </TouchableOpacity>
+          {/* Saved Tab */}
+          <TouchableOpacity
+            onPress={() => handleTabChange('saved')}
+            style={styles.navButton}
+          >
+            <Ionicons
+              name="bookmark-outline"
+              size={24}
+              color={currentTab === 'saved' ? '#9333ea' : '#9ca3af'}
+            />
+            <Text style={[
+              styles.navText,
+              currentTab === 'saved' && styles.navTextActive
+            ]}>
+              Zapisane
+            </Text>
+          </TouchableOpacity>
 
-        {/* Statistics Tab - Renamed from Body */}
-        <TouchableOpacity
-          onPress={() => handleTabChange('statistics')}
-          style={styles.navButton}
-        >
-          <Ionicons
-            name="stats-chart-outline"
-            size={24}
-            color={currentTab === 'statistics' ? '#9333ea' : '#9ca3af'}
-          />
-          <Text style={[
-            styles.navText,
-            currentTab === 'statistics' && styles.navTextActive
-          ]}>
-            Statystyki
-          </Text>
-        </TouchableOpacity>
+          {/* Calendar Tab - Middle, Larger */}
+          <TouchableOpacity
+            onPress={() => handleTabChange('calendar')}
+            style={styles.navButtonLarge}
+          >
+            <Ionicons
+              name="calendar-outline"
+              size={28}
+              color={currentTab === 'calendar' || currentTab === 'workout-active' ? '#9333ea' : '#9ca3af'}
+            />
+            <Text style={[
+              styles.navText,
+              (currentTab === 'calendar' || currentTab === 'workout-active') && styles.navTextActive
+            ]}>
+              Kalendarz
+            </Text>
+          </TouchableOpacity>
 
-        {/* Profile Tab - Rightmost */}
-        <TouchableOpacity
-          onPress={() => handleTabChange('profile')}
-          style={styles.navButton}
-        >
-          <Ionicons
-            name="person-outline"
-            size={24}
-            color={currentTab === 'profile' ? '#9333ea' : '#9ca3af'}
-          />
-          <Text style={[
-            styles.navText,
-            currentTab === 'profile' && styles.navTextActive
-          ]}>
-            Profil
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+          {/* Statistics Tab - Renamed from Body */}
+          <TouchableOpacity
+            onPress={() => handleTabChange('statistics')}
+            style={styles.navButton}
+          >
+            <Ionicons
+              name="stats-chart-outline"
+              size={24}
+              color={currentTab === 'statistics' ? '#9333ea' : '#9ca3af'}
+            />
+            <Text style={[
+              styles.navText,
+              currentTab === 'statistics' && styles.navTextActive
+            ]}>
+              Statystyki
+            </Text>
+          </TouchableOpacity>
+
+          {/* Profile Tab - Rightmost */}
+          <TouchableOpacity
+            onPress={() => handleTabChange('profile')}
+            style={styles.navButton}
+          >
+            <Ionicons
+              name="person-outline"
+              size={24}
+              color={currentTab === 'profile' ? '#9333ea' : '#9ca3af'}
+            />
+            <Text style={[
+              styles.navText,
+              currentTab === 'profile' && styles.navTextActive
+            ]}>
+              Profil
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </ToastProvider>
   );
 }
 

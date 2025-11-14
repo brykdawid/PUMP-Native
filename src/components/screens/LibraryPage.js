@@ -16,10 +16,12 @@ import { TRAINING_TYPES } from '../data/exercisesData';
 import ExerciseCard from '../workout/ExerciseCard';
 import GifModal from '../workout/GifModal';
 import storage from '../../utils/storage';
+import { useToast } from '../../contexts/ToastContext';
 
 const ITEMS_PER_PAGE = 20;
 
 function LibraryPage() {
+  const { showToast } = useToast();
   const [allExercises, setAllExercises] = useState([]);
   const [filteredExercises, setFilteredExercises] = useState([]);
   const [displayedExercises, setDisplayedExercises] = useState([]);
@@ -74,11 +76,24 @@ function LibraryPage() {
   };
 
   const toggleFavorite = useCallback((exerciseId) => {
-    const newFavorites = favorites.includes(exerciseId)
+    const isCurrentlyFavorite = favorites.includes(exerciseId);
+    const newFavorites = isCurrentlyFavorite
       ? favorites.filter(id => id !== exerciseId)
       : [...favorites, exerciseId];
+
     saveFavorites(newFavorites);
-  }, [favorites]);
+
+    // Znajdź nazwę ćwiczenia dla komunikatu toast
+    const exercise = allExercises.find(ex => (ex.id || ex.name) === exerciseId);
+    const exerciseName = exercise ? exercise.name : 'Ćwiczenie';
+
+    // Pokaż toast
+    if (isCurrentlyFavorite) {
+      showToast(`${exerciseName} usunięte z ulubionych`, 'info');
+    } else {
+      showToast(`${exerciseName} dodane do ulubionych`, 'success');
+    }
+  }, [favorites, allExercises, showToast]);
 
   useEffect(() => {
     filterExercises();
