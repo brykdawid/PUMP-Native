@@ -34,6 +34,8 @@ function ActiveWorkout({
   isWorkoutSavedAsTemplate
 }) {
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [pausedTime, setPausedTime] = useState(0);
   const [exerciseSets, setExerciseSets] = useState({});
   const [expandedExercises, setExpandedExercises] = useState({});
   const [expandedCategories, setExpandedCategories] = useState({});
@@ -61,14 +63,14 @@ function ActiveWorkout({
   }, [workoutExercises]);
 
   useEffect(() => {
-    if (!workoutStartTime) return;
+    if (!workoutStartTime || isPaused) return;
 
     const interval = setInterval(() => {
-      setElapsedTime(Math.floor((Date.now() - workoutStartTime) / 1000));
+      setElapsedTime(Math.floor((Date.now() - workoutStartTime - pausedTime) / 1000));
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [workoutStartTime]);
+  }, [workoutStartTime, isPaused, pausedTime]);
 
   useEffect(() => {
     if (activeWorkout && activeWorkout.exercises) {
@@ -360,6 +362,19 @@ function ActiveWorkout({
     return icons[id] || '💪';
   };
 
+  const handleTogglePause = () => {
+    if (isPaused) {
+      // Wznawiamy timer - zapisujemy całkowity czas pauzy
+      const pauseDuration = Date.now() - pausedTime;
+      setPausedTime(prev => prev + pauseDuration);
+      setIsPaused(false);
+    } else {
+      // Pauzujemy timer - zapisujemy moment pauzy
+      setPausedTime(Date.now());
+      setIsPaused(true);
+    }
+  };
+
   const handleEndWorkout = () => {
     console.log('handleEndWorkout called - showing modal');
     setShowEndWorkoutModal(true);
@@ -482,14 +497,20 @@ function ActiveWorkout({
             </View>
           </View>
 
-          {/* Przycisk STOP */}
+          {/* Przycisk STOP/WZNÓW */}
           <TouchableOpacity
-            onPress={handleEndWorkout}
-            style={styles.stopButton}
+            onPress={handleTogglePause}
+            style={[styles.stopButton, isPaused && styles.resumeButton]}
             activeOpacity={0.8}
           >
-            <Ionicons name="stop-circle" size={28} color="#ffffff" />
-            <Text style={styles.stopButtonText}>STOP</Text>
+            <Ionicons
+              name={isPaused ? "play-circle" : "pause-circle"}
+              size={28}
+              color="#ffffff"
+            />
+            <Text style={styles.stopButtonText}>
+              {isPaused ? "WZNÓW" : "PAUZA"}
+            </Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -984,7 +1005,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#ef4444',
+    backgroundColor: '#f59e0b',
     paddingVertical: 12,
     paddingHorizontal: 32,
     borderRadius: 12,
@@ -994,6 +1015,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  resumeButton: {
+    backgroundColor: '#10b981',
   },
   stopButtonText: {
     fontSize: 18,
