@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -275,6 +275,15 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
     }
     return `${mins} min`;
   };
+
+  // Memoized callbacks for GifModal
+  const handleCloseGifModal = useCallback(() => {
+    setSelectedGifExercise(null);
+  }, []);
+
+  const handleToggleFavoriteGifModal = useCallback(() => {
+    // No-op for calendar view
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -651,8 +660,8 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
       {/* GifModal do animacji ćwiczeń */}
       <GifModal
         exercise={selectedGifExercise}
-        onClose={() => setSelectedGifExercise(null)}
-        onToggleFavorite={() => {}}
+        onClose={handleCloseGifModal}
+        onToggleFavorite={handleToggleFavoriteGifModal}
         isFavorite={false}
       />
     </View>
