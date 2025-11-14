@@ -7,6 +7,10 @@ const ToastNotification = ({ message, visible, onHide, duration = 2000, type = '
 
   useEffect(() => {
     if (visible) {
+      // Reset animations
+      fadeAnim.setValue(0);
+      slideAnim.setValue(-100);
+
       // Animacja pojawienia się
       Animated.parallel([
         Animated.timing(fadeAnim, {
@@ -28,7 +32,7 @@ const ToastNotification = ({ message, visible, onHide, duration = 2000, type = '
 
       return () => clearTimeout(timer);
     }
-  }, [visible]);
+  }, [visible, message]); // Add message to dependencies to reset on new message
 
   const hideToast = () => {
     Animated.parallel([
@@ -52,40 +56,51 @@ const ToastNotification = ({ message, visible, onHide, duration = 2000, type = '
   const backgroundColor = type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3';
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }],
-          backgroundColor,
-        },
-      ]}
-    >
-      <View style={styles.content}>
-        <Text style={styles.icon}>{type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</Text>
-        <Text style={styles.message}>{message}</Text>
-      </View>
-    </Animated.View>
+    <View style={styles.overlay} pointerEvents="box-none">
+      <Animated.View
+        style={[
+          styles.container,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+            backgroundColor,
+          },
+        ]}
+        pointerEvents="auto"
+      >
+        <View style={styles.content}>
+          <Text style={styles.icon}>{type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'}</Text>
+          <Text style={styles.message}>{message}</Text>
+        </View>
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  overlay: {
     position: 'absolute',
-    top: Platform.OS === 'web' ? 20 : 50,
-    left: 20,
-    right: 20,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 99999,
+    elevation: 99999,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: Platform.OS === 'web' ? 20 : 50,
+  },
+  container: {
+    minWidth: Platform.OS === 'web' ? 300 : undefined,
+    maxWidth: Platform.OS === 'web' ? 500 : '90%',
+    marginHorizontal: Platform.OS === 'web' ? undefined : 20,
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 8,
-    zIndex: 9999,
-    alignSelf: 'center',
-    maxWidth: Platform.OS === 'web' ? 400 : '100%',
+    elevation: 10,
   },
   content: {
     flexDirection: 'row',

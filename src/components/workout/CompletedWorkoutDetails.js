@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,72 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import GifModal from './GifModal';
+import { useToast } from '../../contexts/ToastContext';
+import storage from '../../utils/storage';
 
 function CompletedWorkoutDetails({ workout, onClose, onSaveCompletedWorkoutAsTemplate, onRemoveCompletedWorkoutAsTemplate, isWorkoutSavedAsTemplate }) {
+  const { showToast } = useToast();
   const [expandedExercises, setExpandedExercises] = useState({});
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [imageErrors, setImageErrors] = useState({});
+  const [favoriteExercises, setFavoriteExercises] = useState([]);
+
+  useEffect(() => {
+    loadFavorites();
+  }, []);
+
+  const loadFavorites = async () => {
+    try {
+      const saved = await storage.getItem('favoriteExercises');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setFavoriteExercises(parsed);
+      }
+    } catch (error) {
+      console.error('Error loading favorites:', error);
+    }
+  };
+
+  const toggleFavorite = async (exercise) => {
+    if (!exercise) return;
+
+    const exerciseName = exercise.name;
+    const exists = favoriteExercises.find(ex => ex.name === exerciseName);
+
+    let updated;
+    if (exists) {
+      updated = favoriteExercises.filter(ex => ex.name !== exerciseName);
+    } else {
+      updated = [...favoriteExercises, {
+        name: exercise.name,
+        image: exercise.image,
+        description: exercise.description,
+        tips: exercise.tips,
+        labels: exercise.labels,
+        category: exercise.category,
+        savedAt: new Date().toISOString()
+      }];
+    }
+
+    try {
+      await storage.setItem('favoriteExercises', JSON.stringify(updated));
+      setFavoriteExercises(updated);
+
+      if (exists) {
+        showToast(`${exerciseName} usunięte z ulubionych`, 'info');
+      } else {
+        showToast(`${exerciseName} dodane do ulubionych`, 'success');
+      }
+    } catch (error) {
+      console.error('Error saving favorites:', error);
+      showToast('Błąd podczas zapisywania', 'error');
+    }
+  };
+
+  const isFavorite = (exercise) => {
+    if (!exercise) return false;
+    return favoriteExercises.some(ex => ex.name === exercise.name);
+  };
 
   const exercisesByCategory = useMemo(() => {
     const grouped = {};
@@ -287,8 +348,8 @@ function CompletedWorkoutDetails({ workout, onClose, onSaveCompletedWorkoutAsTem
       <GifModal
         exercise={selectedExercise}
         onClose={() => setSelectedExercise(null)}
-        onToggleFavorite={() => {}}
-        isFavorite={false}
+        onToggleFavorite={() => toggleFavorite(selectedExercise)}
+        isFavorite={isFavorite(selectedExercise)}
       />
     </View>
   );
