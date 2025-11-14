@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -201,6 +201,21 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
       }
     );
   };
+
+  // Memoized callbacks for GifModal
+  const handleCloseGifModal = useCallback(() => {
+    setSelectedGif(null);
+  }, []);
+
+  const handleToggleFavoriteGifModal = useCallback(() => {
+    if (selectedGif) {
+      toggleFavorite(selectedGif);
+    }
+  }, [selectedGif, toggleFavorite]);
+
+  const isSelectedGifFavorite = useMemo(() => {
+    return selectedGif ? isFavorite(selectedGif.name) : false;
+  }, [selectedGif, savedExercises]);
 
   return (
     <LinearGradient
@@ -487,9 +502,9 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
 
       <GifModal
         exercise={selectedGif}
-        onClose={() => setSelectedGif(null)}
-        onToggleFavorite={() => selectedGif && toggleFavorite(selectedGif)}
-        isFavorite={selectedGif ? isFavorite(selectedGif.name) : false}
+        onClose={handleCloseGifModal}
+        onToggleFavorite={handleToggleFavoriteGifModal}
+        isFavorite={isSelectedGifFavorite}
       />
     </LinearGradient>
   );

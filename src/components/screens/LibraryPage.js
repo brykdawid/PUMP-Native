@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -73,12 +73,12 @@ function LibraryPage() {
     }
   };
 
-  const toggleFavorite = (exerciseId) => {
+  const toggleFavorite = useCallback((exerciseId) => {
     const newFavorites = favorites.includes(exerciseId)
       ? favorites.filter(id => id !== exerciseId)
       : [...favorites, exerciseId];
     saveFavorites(newFavorites);
-  };
+  }, [favorites]);
 
   useEffect(() => {
     filterExercises();
@@ -148,13 +148,23 @@ function LibraryPage() {
     }).length;
   };
 
-  const handleImageClick = (exercise) => {
+  const handleImageClick = useCallback((exercise) => {
     setSelectedExercise(exercise);
-  };
+  }, []);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setSelectedExercise(null);
-  };
+  }, []);
+
+  const handleToggleFavoriteModal = useCallback(() => {
+    if (selectedExercise) {
+      toggleFavorite(selectedExercise.id || selectedExercise.name);
+    }
+  }, [selectedExercise, toggleFavorite]);
+
+  const isFavoriteSelected = useMemo(() => {
+    return selectedExercise ? favorites.includes(selectedExercise.id || selectedExercise.name) : false;
+  }, [selectedExercise, favorites]);
 
   if (loading) {
     return (
@@ -297,8 +307,8 @@ function LibraryPage() {
       <GifModal
         exercise={selectedExercise}
         onClose={closeModal}
-        onToggleFavorite={() => selectedExercise && toggleFavorite(selectedExercise.id || selectedExercise.name)}
-        isFavorite={selectedExercise ? favorites.includes(selectedExercise.id || selectedExercise.name) : false}
+        onToggleFavorite={handleToggleFavoriteModal}
+        isFavorite={isFavoriteSelected}
       />
     </View>
   );

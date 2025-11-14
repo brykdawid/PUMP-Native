@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -16,6 +16,15 @@ function ExerciseCard({
 }) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+
+  const handleImageLoad = useCallback(() => {
+    setImageLoading(false);
+  }, []);
+
+  const handleImageError = useCallback(() => {
+    setImageLoading(false);
+    setImageError(true);
+  }, []);
 
   // Format sets display - handle string, number, or array
   const formatSets = (sets) => {
@@ -60,11 +69,9 @@ function ExerciseCard({
                 source={{ uri: exercise.image }}
                 style={styles.image}
                 resizeMode="cover"
-                onLoad={() => setImageLoading(false)}
-                onError={() => {
-                  setImageLoading(false);
-                  setImageError(true);
-                }}
+                onLoad={handleImageLoad}
+                onError={handleImageError}
+                fadeDuration={0}
               />
             )}
           </View>
@@ -228,4 +235,18 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ExerciseCard;
+// Memoize component to prevent unnecessary re-renders
+export default memo(ExerciseCard, (prevProps, nextProps) => {
+  return (
+    prevProps.exercise?.id === nextProps.exercise?.id &&
+    prevProps.exercise?.name === nextProps.exercise?.name &&
+    prevProps.exercise?.image === nextProps.exercise?.image &&
+    prevProps.exercise?.sets === nextProps.exercise?.sets &&
+    prevProps.isFavorite === nextProps.isFavorite &&
+    prevProps.onToggle === nextProps.onToggle &&
+    prevProps.onFavorite === nextProps.onFavorite &&
+    prevProps.onAdd === nextProps.onAdd &&
+    prevProps.onRemove === nextProps.onRemove &&
+    prevProps.onReplace === nextProps.onReplace
+  );
+});

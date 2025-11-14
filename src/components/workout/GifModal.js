@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Dimensions,
   StatusBar,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,6 +18,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageLoad = useCallback(() => {
+    setImageLoading(false);
+  }, []);
+
+  const handleImageError = useCallback(() => {
+    setImageLoading(false);
+    setImageError(true);
+  }, []);
+
   if (!exercise) return null;
 
   return (
@@ -76,11 +89,29 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
               {/* GIF/Image */}
               <View style={styles.imageContainer}>
                 {exercise.image ? (
-                  <Image
-                    source={{ uri: exercise.image }}
-                    style={styles.exerciseImage}
-                    resizeMode="contain"
-                  />
+                  <>
+                    {imageLoading && !imageError && (
+                      <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#9333ea" />
+                      </View>
+                    )}
+                    {!imageError && (
+                      <Image
+                        source={{ uri: exercise.image }}
+                        style={styles.exerciseImage}
+                        resizeMode="contain"
+                        onLoad={handleImageLoad}
+                        onError={handleImageError}
+                        fadeDuration={0}
+                      />
+                    )}
+                    {imageError && (
+                      <View style={styles.placeholderContainer}>
+                        <Ionicons name="barbell" size={96} color="#6b7280" />
+                        <Text style={styles.errorText}>Nie można załadować obrazu</Text>
+                      </View>
+                    )}
+                  </>
                 ) : (
                   <View style={styles.placeholderContainer}>
                     <Ionicons name="barbell" size={96} color="#6b7280" />
@@ -216,6 +247,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    zIndex: 1,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#6b7280',
+  },
   infoContainer: {
     padding: 24,
     backgroundColor: '#ffffff',
@@ -273,4 +320,13 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GifModal;
+// Memoize component to prevent unnecessary re-renders
+export default memo(GifModal, (prevProps, nextProps) => {
+  return (
+    prevProps.exercise?.id === nextProps.exercise?.id &&
+    prevProps.exercise?.name === nextProps.exercise?.name &&
+    prevProps.isFavorite === nextProps.isFavorite &&
+    prevProps.onClose === nextProps.onClose &&
+    prevProps.onToggleFavorite === nextProps.onToggleFavorite
+  );
+});
