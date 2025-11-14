@@ -7,7 +7,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,7 +14,7 @@ import { getExercises } from '../../utils/apiHelpers';
 import { TRAINING_TYPES } from '../data/exercisesData';
 import ExerciseCard from '../workout/ExerciseCard';
 import GifModal from '../workout/GifModal';
-import storage from '../../utils/storage';
+import storage, { alertDialog } from '../../utils/storage';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -47,7 +46,7 @@ function LibraryPage() {
       setFilteredExercises(data);
     } catch (error) {
       console.error('Error loading exercises:', error);
-      Alert.alert('Błąd', 'Nie udało się załadować ćwiczeń');
+      alertDialog('Błąd', 'Nie udało się załadować ćwiczeń');
       setAllExercises([]);
       setFilteredExercises([]);
     } finally {

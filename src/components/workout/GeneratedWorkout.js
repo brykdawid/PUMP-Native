@@ -6,12 +6,11 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
-  Alert,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import storage from '../../utils/storage';
+import storage, { alertDialog } from '../../utils/storage';
 import { getExercises } from '../../utils/apiHelpers';
 import { getLocalISOString } from '../../utils/workoutHelpers';
 import GifModal from './GifModal';
@@ -83,7 +82,7 @@ function GeneratedWorkout({
         console.error('Error loading exercises:', error);
         if (mounted) {
           setAllExercises([]);
-          Alert.alert('Błąd', 'Nie udało się załadować ćwiczeń');
+          alertDialog('Błąd', 'Nie udało się załadować ćwiczeń');
         }
       }
     }
@@ -165,7 +164,7 @@ function GeneratedWorkout({
     );
 
     if (availableExercises.length === 0) {
-      Alert.alert('Info', 'Brak innych ćwiczeń w tej kategorii!');
+      alertDialog('Info', 'Brak innych ćwiczeń w tej kategorii!');
       return;
     }
 
@@ -207,7 +206,7 @@ function GeneratedWorkout({
     );
 
     if (availableExercises.length === 0) {
-      Alert.alert('Info', 'Brak innych ćwiczeń w tej kategorii do wymiany!');
+      alertDialog('Info', 'Brak innych ćwiczeń w tej kategorii do wymiany!');
       return;
     }
 

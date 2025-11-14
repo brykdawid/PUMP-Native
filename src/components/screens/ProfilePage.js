@@ -8,7 +8,6 @@ import {
   StyleSheet,
   ScrollView,
   Image,
-  Alert,
   TextInput,
   Modal,
   Platform
@@ -16,7 +15,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import storage from '../../utils/storage';
+import storage, { alertDialog } from '../../utils/storage';
 
 function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
   const [profileImage, setProfileImage] = useState(null);
@@ -89,7 +88,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (permissionResult.granted === false) {
-        Alert.alert('Brak uprawnień', 'Musisz zezwolić na dostęp do zdjęć');
+        alertDialog('Brak uprawnień', 'Musisz zezwolić na dostęp do zdjęć');
         return;
       }
 
@@ -127,7 +126,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Błąd', 'Nie udało się wybrać zdjęcia');
+      alertDialog('Błąd', 'Nie udało się wybrać zdjęcia');
     }
   };
 
@@ -249,15 +248,14 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
       setResetModalVisible(false);
 
       setTimeout(() => {
-        Alert.alert(
+        alertDialog(
           'Gotowe',
-          'Wszystkie dane zostały usunięte. Odśwież aplikację, aby zobaczyć zmiany.',
-          [{ text: 'OK' }]
+          'Wszystkie dane zostały usunięte. Odśwież aplikację, aby zobaczyć zmiany.'
         );
       }, 300);
     } catch (error) {
       console.error('❌ Błąd podczas resetowania danych:', error);
-      Alert.alert('Błąd', 'Nie udało się zresetować wszystkich danych');
+      alertDialog('Błąd', 'Nie udało się zresetować wszystkich danych');
     }
   };
 

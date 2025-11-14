@@ -11,6 +11,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
+import { alertDialog } from '../../utils/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import GifModal from './GifModal';
@@ -324,7 +325,7 @@ function ActiveWorkout({
     );
     
     if (categoryExercises.length === 0) {
-      Alert.alert('Info', 'Brak ćwiczeń dla tej grupy mięśniowej');
+      alertDialog('Info', 'Brak ćwiczeń dla tej grupy mięśniowej');
       return;
     }
     

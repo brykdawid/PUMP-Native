@@ -5,13 +5,12 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert,
   Platform,
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import storage, { confirmDialog } from '../../utils/storage';
+import storage, { confirmDialog, alertDialog } from '../../utils/storage';
 import { normalizeWorkout, getTotalExercises as getExerciseCount, getLocalISOString } from '../../utils/workoutHelpers';
 import GifModal from '../workout/GifModal';
 import ExerciseCard from '../workout/ExerciseCard';
@@ -155,7 +154,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
 
     if (onScheduleWorkout) {
       onScheduleWorkout(workoutData);
-      Alert.alert('Sukces', 'Trening został zaplanowany na dzisiaj!');
+      alertDialog('Sukces', 'Trening został zaplanowany na dzisiaj!');
     }
   };
 
@@ -171,7 +170,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
 
   const saveEditedTitle = (workoutId) => {
     if (!editedTitle.trim()) {
-      Alert.alert('Błąd', 'Tytuł nie może być pusty!');
+      alertDialog('Błąd', 'Tytuł nie może być pusty!');
       return;
     }
 
