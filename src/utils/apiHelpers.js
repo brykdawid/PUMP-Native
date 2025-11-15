@@ -34,6 +34,16 @@ export async function getExercises(categories = null, limit = null) {
     const data = await response.json();
     if (__DEV__) console.log('Exercises fetched:', data.length);
 
+    // Debug: sprawdź przykładowy URL obrazka
+    if (__DEV__ && data.length > 0) {
+      console.log('Sample exercise image URL:', data[0].image);
+      console.log('Sample exercise:', {
+        name: data[0].name,
+        image: data[0].image,
+        category: data[0].category
+      });
+    }
+
     return data;
   } catch (error) {
     if (__DEV__) console.error('Error fetching exercises:', error);
