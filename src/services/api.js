@@ -34,8 +34,8 @@ import { Platform } from 'react-native';
 // Dla fizycznych urządzeń - zmień na swoje lokalne IP
 const PHYSICAL_DEVICE_API_URL = 'http://192.168.1.100:5000/api'; // ← ZMIEŃ NA SWOJE IP!
 
-// Dla produkcji - zmień gdy zahostujesz API
-const PRODUCTION_API_URL = 'https://your-api.railway.app/api'; // ← ZMIEŃ gdy zahostujesz!
+// Dla produkcji - Fly.io API
+const PRODUCTION_API_URL = 'https://ai-api-drlzza.fly.dev/api';
 
 // ============================================
 // AUTOMATYCZNA DETEKCJA URL
@@ -44,39 +44,39 @@ const PRODUCTION_API_URL = 'https://your-api.railway.app/api'; // ← ZMIEŃ gdy
 const getApiUrl = () => {
   // Tryb developerski (localhost)
   if (__DEV__) {
-    console.log('[API CONFIG] Running in DEVELOPMENT mode');
-    
+    if (__DEV__) console.log('[API CONFIG] Running in DEVELOPMENT mode');
+
     // iOS Simulator lub Web Browser
     if (Platform.OS === 'ios' || Platform.OS === 'web') {
-      console.log('[API CONFIG] Platform: iOS/Web - Using localhost');
+      if (__DEV__) console.log('[API CONFIG] Platform: iOS/Web - Using localhost');
       return 'http://localhost:5000/api';
     }
-    
+
     // Android Emulator
     // 10.0.2.2 to specjalny alias dla localhost na Android Emulator
     if (Platform.OS === 'android') {
-      console.log('[API CONFIG] Platform: Android');
-      
+      if (__DEV__) console.log('[API CONFIG] Platform: Android');
+
       // Wykryj czy to emulator czy fizyczne urządzenie
       // W emulatorze użyj 10.0.2.2, na fizycznym urządzeniu użyj lokalnego IP
       const isEmulator = true; // Zmień na false jeśli testujesz na fizycznym urządzeniu
-      
+
       if (isEmulator) {
-        console.log('[API CONFIG] Using Android Emulator address: 10.0.2.2');
+        if (__DEV__) console.log('[API CONFIG] Using Android Emulator address: 10.0.2.2');
         return 'http://10.0.2.2:5000/api';
       } else {
-        console.log('[API CONFIG] Using physical device address');
+        if (__DEV__) console.log('[API CONFIG] Using physical device address');
         return PHYSICAL_DEVICE_API_URL;
       }
     }
-    
+
     // Fallback dla innych platform
-    console.log('[API CONFIG] Unknown platform - Using localhost');
+    if (__DEV__) console.log('[API CONFIG] Unknown platform - Using localhost');
     return 'http://localhost:5000/api';
   }
-  
+
   // Tryb produkcyjny (zahostowane API)
-  console.log('[API CONFIG] Running in PRODUCTION mode');
+  if (__DEV__) console.log('[API CONFIG] Running in PRODUCTION mode');
   return PRODUCTION_API_URL;
 };
 
@@ -84,12 +84,12 @@ const getApiUrl = () => {
 export const API_URL = getApiUrl();
 
 // Debug info - wyświetl w konsoli
-console.log('================================================');
-console.log('[API CONFIG] Configuration:');
-console.log(`[API CONFIG] Platform: ${Platform.OS}`);
-console.log(`[API CONFIG] Dev mode: ${__DEV__}`);
-console.log(`[API CONFIG] API URL: ${API_URL}`);
-console.log('================================================');
+if (__DEV__) console.log('================================================');
+if (__DEV__) console.log('[API CONFIG] Configuration:');
+if (__DEV__) console.log(`[API CONFIG] Platform: ${Platform.OS}`);
+if (__DEV__) console.log(`[API CONFIG] Dev mode: ${__DEV__}`);
+if (__DEV__) console.log(`[API CONFIG] API URL: ${API_URL}`);
+if (__DEV__) console.log('================================================');
 
 // ============================================
 // HELPER FUNCTIONS - Podstawowe wywołania API
@@ -108,9 +108,9 @@ export const apiFetch = async (endpoint, options = {}, timeout = 10000) => {
   
   try {
     const url = `${API_URL}${endpoint}`;
-    console.log(`[API] 📡 Fetching: ${url}`);
-    console.log(`[API] Method: ${options.method || 'GET'}`);
-    
+    if (__DEV__) console.log(`[API] 📡 Fetching: ${url}`);
+    if (__DEV__) console.log(`[API] Method: ${options.method || 'GET'}`);
+
     const response = await fetch(url, {
       ...options,
       headers: {
@@ -125,12 +125,12 @@ export const apiFetch = async (endpoint, options = {}, timeout = 10000) => {
     // Sprawdź status odpowiedzi
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`[API] ❌ Error ${response.status}: ${errorText}`);
+      if (__DEV__) console.error(`[API] ❌ Error ${response.status}: ${errorText}`);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
-    console.log(`[API] ✅ Success: ${endpoint}`);
+    if (__DEV__) console.log(`[API] ✅ Success: ${endpoint}`);
     return data;
     
   } catch (error) {
@@ -138,16 +138,16 @@ export const apiFetch = async (endpoint, options = {}, timeout = 10000) => {
     
     // Lepsze komunikaty błędów
     if (error.name === 'AbortError') {
-      console.error(`[API] ⏱️ Timeout: ${endpoint}`);
+      if (__DEV__) console.error(`[API] ⏱️ Timeout: ${endpoint}`);
       throw new Error('Request timeout - API nie odpowiada');
     }
-    
+
     if (error.message.includes('Network request failed')) {
-      console.error(`[API] 🔌 Network error: ${endpoint}`);
+      if (__DEV__) console.error(`[API] 🔌 Network error: ${endpoint}`);
       throw new Error('Nie można połączyć z API. Upewnij się, że serwer działa.');
     }
-    
-    console.error(`[API] ❌ Error: ${endpoint}:`, error);
+
+    if (__DEV__) console.error(`[API] ❌ Error: ${endpoint}:`, error);
     throw error;
   }
 };
@@ -206,16 +206,16 @@ export const apiDelete = async (endpoint) => {
  */
 export const checkApiStatus = async () => {
   try {
-    console.log('[API] 🏥 Checking API health...');
+    if (__DEV__) console.log('[API] 🏥 Checking API health...');
     const response = await fetch(`${API_URL}/health`, {
       method: 'GET',
       timeout: 5000,
     });
     const isHealthy = response.ok;
-    console.log(`[API] Health check: ${isHealthy ? '✅ OK' : '❌ FAILED'}`);
+    if (__DEV__) console.log(`[API] Health check: ${isHealthy ? '✅ OK' : '❌ FAILED'}`);
     return isHealthy;
   } catch (error) {
-    console.error('[API] ❌ Health check failed:', error.message);
+    if (__DEV__) console.error('[API] ❌ Health check failed:', error.message);
     return false;
   }
 };
@@ -226,12 +226,12 @@ export const checkApiStatus = async () => {
  */
 export const fetchExercises = async () => {
   try {
-    console.log('[API] 💪 Fetching exercises...');
+    if (__DEV__) console.log('[API] 💪 Fetching exercises...');
     const exercises = await apiGet('/exercises');
-    console.log(`[API] ✅ Loaded ${exercises.length} exercises`);
+    if (__DEV__) console.log(`[API] ✅ Loaded ${exercises.length} exercises`);
     return exercises;
   } catch (error) {
-    console.error('[API] ❌ Failed to fetch exercises:', error);
+    if (__DEV__) console.error('[API] ❌ Failed to fetch exercises:', error);
     throw error;
   }
 };
@@ -244,19 +244,19 @@ export const fetchExercises = async () => {
  */
 export const generateWorkout = async (categories, numExercises = 3) => {
   try {
-    console.log('[API] 🤖 Generating AI workout...');
-    console.log(`[API] Categories: ${categories.join(', ')}`);
-    console.log(`[API] Number of exercises: ${numExercises}`);
-    
+    if (__DEV__) console.log('[API] 🤖 Generating AI workout...');
+    if (__DEV__) console.log(`[API] Categories: ${categories.join(', ')}`);
+    if (__DEV__) console.log(`[API] Number of exercises: ${numExercises}`);
+
     const workout = await apiPost('/generate-workout', {
       categories,
       num_exercises: numExercises,
     });
-    
-    console.log(`[API] ✅ Generated workout with ${workout.exercises?.length || 0} exercises`);
+
+    if (__DEV__) console.log(`[API] ✅ Generated workout with ${workout.exercises?.length || 0} exercises`);
     return workout;
   } catch (error) {
-    console.error('[API] ❌ Failed to generate workout:', error);
+    if (__DEV__) console.error('[API] ❌ Failed to generate workout:', error);
     throw error;
   }
 };
@@ -268,12 +268,12 @@ export const generateWorkout = async (categories, numExercises = 3) => {
  */
 export const fetchExerciseById = async (exerciseId) => {
   try {
-    console.log(`[API] 🔍 Fetching exercise ID: ${exerciseId}`);
+    if (__DEV__) console.log(`[API] 🔍 Fetching exercise ID: ${exerciseId}`);
     const exercise = await apiGet(`/exercises/${exerciseId}`);
-    console.log(`[API] ✅ Loaded exercise: ${exercise.name}`);
+    if (__DEV__) console.log(`[API] ✅ Loaded exercise: ${exercise.name}`);
     return exercise;
   } catch (error) {
-    console.error(`[API] ❌ Failed to fetch exercise ${exerciseId}:`, error);
+    if (__DEV__) console.error(`[API] ❌ Failed to fetch exercise ${exerciseId}:`, error);
     throw error;
   }
 };
@@ -285,12 +285,12 @@ export const fetchExerciseById = async (exerciseId) => {
  */
 export const searchExercises = async (query) => {
   try {
-    console.log(`[API] 🔎 Searching exercises: "${query}"`);
+    if (__DEV__) console.log(`[API] 🔎 Searching exercises: "${query}"`);
     const results = await apiGet(`/exercises/search?q=${encodeURIComponent(query)}`);
-    console.log(`[API] ✅ Found ${results.length} results`);
+    if (__DEV__) console.log(`[API] ✅ Found ${results.length} results`);
     return results;
   } catch (error) {
-    console.error('[API] ❌ Search failed:', error);
+    if (__DEV__) console.error('[API] ❌ Search failed:', error);
     throw error;
   }
 };
@@ -311,22 +311,22 @@ export const withRetry = async (apiFunction, maxRetries = 3, delay = 1000) => {
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`[API] 🔄 Attempt ${attempt}/${maxRetries}`);
+      if (__DEV__) console.log(`[API] 🔄 Attempt ${attempt}/${maxRetries}`);
       const result = await apiFunction();
       return result;
     } catch (error) {
       lastError = error;
-      console.warn(`[API] ⚠️ Attempt ${attempt} failed:`, error.message);
-      
+      if (__DEV__) console.warn(`[API] ⚠️ Attempt ${attempt} failed:`, error.message);
+
       if (attempt < maxRetries) {
         const waitTime = delay * Math.pow(2, attempt - 1); // Exponential backoff
-        console.log(`[API] ⏳ Waiting ${waitTime}ms before retry...`);
+        if (__DEV__) console.log(`[API] ⏳ Waiting ${waitTime}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
       }
     }
   }
-  
-  console.error(`[API] ❌ All ${maxRetries} attempts failed`);
+
+  if (__DEV__) console.error(`[API] ❌ All ${maxRetries} attempts failed`);
   throw lastError;
 };
 
@@ -341,13 +341,13 @@ export const withRetry = async (apiFunction, maxRetries = 3, delay = 1000) => {
  */
 export const fetchMultipleExercises = async (exerciseIds) => {
   try {
-    console.log(`[API] 📦 Fetching ${exerciseIds.length} exercises...`);
+    if (__DEV__) console.log(`[API] 📦 Fetching ${exerciseIds.length} exercises...`);
     const promises = exerciseIds.map(id => fetchExerciseById(id));
     const exercises = await Promise.all(promises);
-    console.log(`[API] ✅ Loaded ${exercises.length} exercises`);
+    if (__DEV__) console.log(`[API] ✅ Loaded ${exercises.length} exercises`);
     return exercises;
   } catch (error) {
-    console.error('[API] ❌ Batch fetch failed:', error);
+    if (__DEV__) console.error('[API] ❌ Batch fetch failed:', error);
     throw error;
   }
 };

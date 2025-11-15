@@ -58,7 +58,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
       setExercisesList(exercises);
       setFilteredExercises(exercises);
     } catch (error) {
-      console.error('Failed to load exercises:', error);
+      if (__DEV__) console.error('Failed to load exercises:', error);
     }
   };
 

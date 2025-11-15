@@ -51,7 +51,7 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
           setAllExercises(data);
         }
       } catch (error) {
-        console.error('Error loading exercises:', error);
+        if (__DEV__) console.error('Error loading exercises:', error);
       }
     }
     loadExercises();
@@ -240,24 +240,24 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
 
   // Usuwanie treningu z kalendarza
   const handleDeleteWorkout = (workout) => {
-    console.log('🗑️ Calendar: Attempting to delete workout', workout.id);
+    if (__DEV__) console.log('🗑️ Calendar: Attempting to delete workout', workout.id);
     confirmDialog(
       'Usuń trening',
       'Czy na pewno chcesz usunąć ten trening z kalendarza?',
       () => {
-        console.log('✅ Calendar: User confirmed deletion');
+        if (__DEV__) console.log('✅ Calendar: User confirmed deletion');
         if (setWorkoutHistory) {
           setWorkoutHistory(prev => {
             const filtered = prev.filter(w => w.id !== workout.id);
-            console.log('📊 Calendar: Workouts before:', prev.length, 'after:', filtered.length);
+            if (__DEV__) console.log('📊 Calendar: Workouts before:', prev.length, 'after:', filtered.length);
             return filtered;
           });
         } else {
-          console.error('❌ Calendar: setWorkoutHistory is not defined');
+          if (__DEV__) console.error('❌ Calendar: setWorkoutHistory is not defined');
         }
       },
       () => {
-        console.log('❌ Calendar: User cancelled deletion');
+        if (__DEV__) console.log('❌ Calendar: User cancelled deletion');
       }
     );
   };
