@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -535,12 +535,19 @@ function CustomWorkoutBuilder({
 
   const dateType = getDateType();
 
-  const filteredExercises = allExercises.filter(exercise => {
-    const matchesSearch = exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         exercise.description?.toLowerCase().includes(searchQuery.toLowerCase());
+  // Memoize filtered exercises for better performance
+  const filteredExercises = useMemo(() => {
+    if (!searchQuery || searchQuery.length === 0) return [];
 
-    return matchesSearch;
-  });
+    const query = searchQuery.toLowerCase();
+    const results = allExercises.filter(exercise => {
+      return exercise.name.toLowerCase().includes(query) ||
+             exercise.description?.toLowerCase().includes(query);
+    });
+
+    // Limit to 50 results for better performance
+    return results.slice(0, 50);
+  }, [allExercises, searchQuery]);
 
   const toggleMuscleGroup = (groupId) => {
     setSelectedMuscleGroups(prev =>
@@ -553,9 +560,10 @@ function CustomWorkoutBuilder({
   const getFilteredExercisesForGroup = (muscleGroup, searchQuery) => {
     if (!searchQuery || searchQuery.length === 0) return [];
 
-    return allExercises.filter(exercise => {
-      const matchesSearch = exercise.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           exercise.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const query = searchQuery.toLowerCase();
+    const results = allExercises.filter(exercise => {
+      const matchesSearch = exercise.name.toLowerCase().includes(query) ||
+                           exercise.description?.toLowerCase().includes(query);
 
       if (!matchesSearch) return false;
 
@@ -563,6 +571,9 @@ function CustomWorkoutBuilder({
       const groupLabels = CATEGORY_TO_AI_LABELS[muscleGroup] || [];
       return groupLabels.some(label => exerciseCategories.includes(label));
     });
+
+    // Limit to 50 results for better performance
+    return results.slice(0, 50);
   };
 
   const isExerciseInPlan = (exerciseName, excludeGroupId = null) => {

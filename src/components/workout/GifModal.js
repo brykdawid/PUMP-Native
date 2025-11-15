@@ -196,8 +196,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     position: 'relative',
-    minHeight: SCREEN_HEIGHT * 0.35,
-    maxHeight: SCREEN_HEIGHT * 0.6,
+    height: SCREEN_HEIGHT * 0.45,
     backgroundColor: '#ffffff',
   },
   headerGradient: {
@@ -231,15 +230,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
   },
   imageContainer: {
-    flex: 1,
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#ffffff',
-    overflow: 'hidden',
   },
   exerciseImage: {
-    width: '100%',
-    height: '100%',
+    width: SCREEN_WIDTH * 0.92,
+    height: SCREEN_HEIGHT * 0.45,
   },
   placeholderContainer: {
     width: '100%',

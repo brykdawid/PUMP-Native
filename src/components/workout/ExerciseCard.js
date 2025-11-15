@@ -51,45 +51,50 @@ function ExerciseCard({
   return (
     <View style={styles.container}>
       <View style={styles.cardContent}>
+        {/* Clickable GIF area - opens preview modal */}
         <TouchableOpacity
           onPress={onToggle}
-          style={styles.clickableArea}
+          style={styles.imageContainer}
           activeOpacity={0.7}
         >
-          <View style={styles.imageContainer}>
-            {imageLoading && !imageError && (
-              <View style={styles.imagePlaceholder}>
-                <ActivityIndicator size="small" color="#9333ea" />
-              </View>
-            )}
-            {imageError ? (
-              <View style={styles.imagePlaceholder}>
-                <Ionicons name="image-outline" size={32} color="#d1d5db" />
-              </View>
-            ) : (
-              <Image
-                source={{ uri: exercise.image }}
-                style={styles.image}
-                resizeMode="cover"
-                onLoad={handleImageLoad}
-                onError={handleImageError}
-                fadeDuration={0}
-              />
-            )}
-          </View>
-
-          <View style={styles.textContainer}>
-            <View style={styles.nameRow}>
-              <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{exercise.name}</Text>
-              {showAITag && (
-                <View style={styles.aiTag}>
-                  <Ionicons name="sparkles" size={12} color="#9333ea" />
-                  <Text style={styles.aiTagText}>AI</Text>
-                </View>
-              )}
+          {imageLoading && !imageError && (
+            <View style={styles.imagePlaceholder}>
+              <ActivityIndicator size="small" color="#9333ea" />
             </View>
-            <Text style={styles.exerciseSets}>{formatSets(exercise.sets)}</Text>
+          )}
+          {imageError ? (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="image-outline" size={32} color="#d1d5db" />
+            </View>
+          ) : (
+            <Image
+              source={{ uri: exercise.image }}
+              style={styles.image}
+              resizeMode="cover"
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+              fadeDuration={0}
+            />
+          )}
+        </TouchableOpacity>
+
+        {/* Clickable text/title area - adds exercise if onAdd exists */}
+        <TouchableOpacity
+          onPress={onAdd || onToggle}
+          style={styles.textContainer}
+          activeOpacity={0.7}
+          disabled={!onAdd && !onToggle}
+        >
+          <View style={styles.nameRow}>
+            <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{exercise.name}</Text>
+            {showAITag && (
+              <View style={styles.aiTag}>
+                <Ionicons name="sparkles" size={12} color="#9333ea" />
+                <Text style={styles.aiTagText}>AI</Text>
+              </View>
+            )}
           </View>
+          <Text style={styles.exerciseSets}>{formatSets(exercise.sets)}</Text>
         </TouchableOpacity>
 
         {/* Action buttons - Right edge, centered vertically */}
@@ -163,14 +168,8 @@ const styles = StyleSheet.create({
   cardContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  clickableArea: {
-    flex: 1,
-    paddingLeft: 16,
     paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
+    paddingLeft: 16,
     gap: 16,
   },
   imageContainer: {
