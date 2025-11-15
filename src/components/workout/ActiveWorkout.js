@@ -228,21 +228,37 @@ function ActiveWorkout({
     }));
   };
 
-  const removeExercise = (exerciseName) => {
+  const removeExercise = (exercise) => {
     Alert.alert(
       'Usuń ćwiczenie',
-      'Czy na pewno chcesz usunąć to ćwiczenie z treningu?',
+      `Czy na pewno chcesz usunąć "${exercise.name}" z treningu?`,
       [
         { text: 'Anuluj', style: 'cancel' },
         {
           text: 'Usuń',
           style: 'destructive',
           onPress: () => {
-            setWorkoutExercises(prev => prev.filter(ex => ex.name !== exerciseName));
+            // Używamy ID do usunięcia konkretnego ćwiczenia
+            const exerciseId = exercise.id || exercise.name;
+            setWorkoutExercises(prev => prev.filter(ex => {
+              const currentId = ex.id || ex.name;
+              return currentId !== exerciseId;
+            }));
+
+            // Usuń sets tylko jeśli nie ma już innych ćwiczeń o tej samej nazwie
             setExerciseSets(prev => {
-              const newSets = { ...prev };
-              delete newSets[exerciseName];
-              return newSets;
+              const remainingExercises = workoutExercises.filter(ex => {
+                const currentId = ex.id || ex.name;
+                return currentId !== exerciseId;
+              });
+              const stillHasExercise = remainingExercises.some(ex => ex.name === exercise.name);
+
+              if (!stillHasExercise) {
+                const newSets = { ...prev };
+                delete newSets[exercise.name];
+                return newSets;
+              }
+              return prev;
             });
           }
         }
@@ -611,7 +627,7 @@ function ActiveWorkout({
                     {/* Remove button - Right edge, centered vertically */}
                     <View style={styles.exerciseHeaderRight}>
                       <TouchableOpacity
-                        onPress={() => removeExercise(exercise.name)}
+                        onPress={() => removeExercise(exercise)}
                         style={styles.removeButton}
                         activeOpacity={0.7}
                       >
