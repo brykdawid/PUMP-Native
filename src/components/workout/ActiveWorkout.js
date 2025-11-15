@@ -70,14 +70,20 @@ function ActiveWorkout({
 
   useEffect(() => {
     if (activeWorkout && activeWorkout.exercises) {
-      setWorkoutExercises(activeWorkout.exercises);
+      // Upewnij się, że każde ćwiczenie ma unikalne ID
+      const exercisesWithIds = activeWorkout.exercises.map((exercise, idx) => ({
+        ...exercise,
+        id: exercise.id || `${exercise.name}-${idx}-${Date.now()}`
+      }));
+
+      setWorkoutExercises(exercisesWithIds);
       const initialSets = {};
       const initialExpanded = {};
       const initialExpandedCategories = {};
 
       // Grupuj ćwiczenia po kategorii
       const categories = {};
-      activeWorkout.exercises.forEach(exercise => {
+      exercisesWithIds.forEach(exercise => {
         const category = exercise.category || 'inne';
         if (!categories[category]) {
           categories[category] = true;
@@ -240,25 +246,27 @@ function ActiveWorkout({
           onPress: () => {
             // Używamy ID do usunięcia konkretnego ćwiczenia
             const exerciseId = exercise.id || exercise.name;
-            setWorkoutExercises(prev => prev.filter(ex => {
-              const currentId = ex.id || ex.name;
-              return currentId !== exerciseId;
-            }));
 
-            // Usuń sets tylko jeśli nie ma już innych ćwiczeń o tej samej nazwie
-            setExerciseSets(prev => {
-              const remainingExercises = workoutExercises.filter(ex => {
+            // Najpierw aktualizujemy listę ćwiczeń
+            setWorkoutExercises(prev => {
+              const updated = prev.filter(ex => {
                 const currentId = ex.id || ex.name;
                 return currentId !== exerciseId;
               });
-              const stillHasExercise = remainingExercises.some(ex => ex.name === exercise.name);
 
+              // Sprawdź czy po usunięciu są jeszcze ćwiczenia o tej samej nazwie
+              const stillHasExercise = updated.some(ex => ex.name === exercise.name);
+
+              // Jeśli nie ma już ćwiczeń o tej nazwie, usuń sets
               if (!stillHasExercise) {
-                const newSets = { ...prev };
-                delete newSets[exercise.name];
-                return newSets;
+                setExerciseSets(prevSets => {
+                  const newSets = { ...prevSets };
+                  delete newSets[exercise.name];
+                  return newSets;
+                });
               }
-              return prev;
+
+              return updated;
             });
           }
         }
