@@ -275,6 +275,25 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
     return `${mins} min`;
   };
 
+  // Oblicz całkowitą liczbę powtórzeń z ukończonych serii
+  const calculateTotalReps = (workout) => {
+    if (!workout || !workout.exercises) return 0;
+
+    let totalReps = 0;
+    workout.exercises.forEach(exercise => {
+      if (Array.isArray(exercise.sets)) {
+        exercise.sets.forEach(set => {
+          if (set.completed && set.reps) {
+            const reps = parseFloat(set.reps) || 0;
+            totalReps += reps;
+          }
+        });
+      }
+    });
+
+    return totalReps;
+  };
+
   // Memoized callbacks for GifModal
   const handleCloseGifModal = useCallback(() => {
     setSelectedGifExercise(null);
@@ -438,38 +457,65 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
                       </View>
                     </View>
 
-                  {workout.duration && (
-                    <View style={styles.workoutDuration}>
-                      <Ionicons name="time-outline" size={16} color="#6b7280" />
-                      <Text style={styles.durationText}>
-                        {formatDuration(workout.duration)}
-                      </Text>
+                  {/* Dla ukończonych treningów: wyświetl czas, KG i powtórzenia */}
+                  {!workout.scheduled && (
+                    <View style={styles.completedWorkoutStats}>
+                      {workout.duration && (
+                        <View style={styles.statRow}>
+                          <Ionicons name="time-outline" size={16} color="#6b7280" />
+                          <Text style={styles.statText}>
+                            {formatDuration(workout.duration)}
+                          </Text>
+                        </View>
+                      )}
+
+                      {workout.totalVolume > 0 && (
+                        <View style={styles.statRow}>
+                          <Ionicons name="barbell-outline" size={16} color="#6b7280" />
+                          <Text style={styles.statText}>
+                            {workout.totalVolume.toLocaleString()} kg
+                          </Text>
+                        </View>
+                      )}
+
+                      {calculateTotalReps(workout) > 0 && (
+                        <View style={styles.statRow}>
+                          <Ionicons name="refresh-outline" size={16} color="#6b7280" />
+                          <Text style={styles.statText}>
+                            {calculateTotalReps(workout)} powtórzeń
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   )}
                 </View>
 
+                {/* Ilość ćwiczeń - dla wszystkich treningów */}
                 {workout.exercises && workout.exercises.length > 0 && (
                   <View style={styles.exercisesSummary}>
                     <Text style={styles.exercisesCount}>
                       {workout.exercises.length} {workout.exercises.length === 1 ? 'ćwiczenie' : 'ćwiczeń'}
                     </Text>
 
-                    <View style={styles.exercisesList}>
-                      {workout.exercises.slice(0, 3).map((exercise, idx) => (
-                        <View key={idx} style={styles.exerciseTag}>
-                          <Text style={styles.exerciseTagText} numberOfLines={1}>
-                            {exercise.name}
-                          </Text>
-                        </View>
-                      ))}
-                      {workout.exercises.length > 3 && (
-                        <View style={styles.exerciseTag}>
-                          <Text style={styles.exerciseTagText}>
-                            +{workout.exercises.length - 3}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
+                    {/* Lista ćwiczeń - tylko dla zaplanowanych lub jeśli chcemy pokazać nazwy */}
+                    {!workout.scheduled && (
+                      <View style={styles.exercisesList}>
+                        {workout.exercises.slice(0, 3).map((exercise, idx) => (
+                          <View key={idx} style={styles.exerciseTag}>
+                            <Text style={styles.exerciseTagText} numberOfLines={1}>
+                              {exercise.name}
+                            </Text>
+                          </View>
+                        ))}
+                        {workout.exercises.length > 3 && (
+                          <View style={styles.exerciseTag}>
+                            <Text style={styles.exerciseTagText}>
+                              +{workout.exercises.length - 3}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
                   </View>
                 )}
 
@@ -904,6 +950,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     marginLeft: 4,
+  },
+  completedWorkoutStats: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginTop: 8,
+  },
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  statText: {
+    fontSize: 13,
+    color: '#6b7280',
+    fontWeight: '500',
   },
   exercisesSummary: {
     marginBottom: 12,
