@@ -450,7 +450,10 @@ function CustomWorkoutBuilder({
     const allExercises = [
       ...selectedExercises,
       ...workoutPlan.flatMap(group => group.exercises)
-    ];
+    ].map(ex => ({
+      ...ex,
+      sets: ex.sets || '3-4 serie × 8-12 powtórzeń' // Dodaj format jeśli nie istnieje
+    }));
 
     if (allExercises.length === 0) {
       Alert.alert('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');

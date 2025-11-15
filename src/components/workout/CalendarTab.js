@@ -667,7 +667,10 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
                               // Zaplanowany trening - pokaż ilość serii i powtórzeń
                               <View style={styles.modalSetRow}>
                                 <Text style={styles.modalSetDetails}>
-                                  {exercise.sets} {exercise.sets === 1 ? 'seria' : 'serie'} × {exercise.reps || '—'} powtórzeń
+                                  {typeof exercise.sets === 'string'
+                                    ? exercise.sets
+                                    : `${exercise.sets} ${exercise.sets === 1 ? 'seria' : 'serie'} × ${exercise.reps || '—'} powtórzeń`
+                                  }
                                 </Text>
                               </View>
                             )}
