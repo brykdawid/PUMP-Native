@@ -1,7 +1,6 @@
 // Automatyczna detekcja środowiska
-const API_BASE_URL = __DEV__
-  ? 'http://localhost:5000'  // Development - localhost
-  : 'https://ai-api-drlzza.fly.dev';  // Production - Fly.io
+const API_BASE_URL = 'https://ai-api-zljd-a.fly.dev';  // ✅ DOBRZE
+
 
 export async function getExercises(categories = null) {
   try {
