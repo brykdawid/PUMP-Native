@@ -346,6 +346,7 @@ function GeneratedWorkout({
           allExercises.push({
             ...ex,
             category: category, // Upewnij się że kategoria jest przekazana
+            sets: '3-4 serie × 8-12 powtórzeń', // Dodaj standardowy format serii i powtórzeń
             id: `${ex.name}-${Date.now()}-${Math.random()}`
           });
         });
@@ -392,6 +393,7 @@ function GeneratedWorkout({
           allExercises.push({
             ...ex,
             category: category, // Upewnij się że kategoria jest przekazana
+            sets: '3-4 serie × 8-12 powtórzeń', // Dodaj standardowy format serii i powtórzeń
             id: `${ex.name}-${Date.now()}-${Math.random()}`
           });
         });
@@ -425,6 +427,7 @@ function GeneratedWorkout({
           allExercises.push({
             ...ex,
             category: category, // Upewnij się że kategoria jest przekazana
+            sets: '3-4 serie × 8-12 powtórzeń', // Dodaj standardowy format serii i powtórzeń
             id: `${ex.name}-${Date.now()}-${Math.random()}`
           });
         });

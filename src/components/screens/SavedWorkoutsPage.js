@@ -145,6 +145,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
       title: normalized.title || 'Trening',
       exercises: normalized.exercises.map(ex => ({
         ...ex,
+        sets: typeof ex.sets === 'string' ? ex.sets : '3-4 serie × 8-12 powtórzeń',
         id: `${ex.name}-${Date.now()}-${Math.random()}`
       })),
       type: normalized.type,
