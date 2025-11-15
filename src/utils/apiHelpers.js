@@ -1,27 +1,37 @@
 const API_BASE_URL = 'http://localhost:5000';
 
-export async function getExercises(categories = null) {
+export async function getExercises(categories = null, limit = null) {
   try {
     let url = `${API_BASE_URL}/api/exercises`;
-    
+    const params = new URLSearchParams();
+
     if (categories && categories.length > 0) {
-      const categoriesParam = Array.isArray(categories) 
-        ? categories.join(',') 
+      const categoriesParam = Array.isArray(categories)
+        ? categories.join(',')
         : categories;
-      url += `?categories=${categoriesParam}`;
+      params.append('categories', categoriesParam);
     }
-    
+
+    if (limit) {
+      params.append('limit', limit);
+    }
+
+    const queryString = params.toString();
+    if (queryString) {
+      url += `?${queryString}`;
+    }
+
     console.log('Fetching exercises from:', url);
-    
+
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const data = await response.json();
     console.log('Exercises fetched:', data.length);
-    
+
     return data;
   } catch (error) {
     console.error('Error fetching exercises:', error);
