@@ -9,9 +9,8 @@ import {
   Platform,
   Modal,
   Image,
-  Alert,
 } from 'react-native';
-import { alertDialog } from '../../utils/storage';
+import { alertDialog, confirmDialog } from '../../utils/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import GifModal from './GifModal';
@@ -70,14 +69,29 @@ function ActiveWorkout({
 
   useEffect(() => {
     if (activeWorkout && activeWorkout.exercises) {
-      setWorkoutExercises(activeWorkout.exercises);
+      console.log('=== INICJALIZACJA ĆWICZEŃ ===');
+      console.log('Liczba ćwiczeń z activeWorkout:', activeWorkout.exercises.length);
+
+      // Upewnij się, że każde ćwiczenie ma unikalne ID
+      const exercisesWithIds = activeWorkout.exercises.map((exercise, idx) => ({
+        ...exercise,
+        id: exercise.id || `${exercise.name}-${idx}-${Date.now()}`
+      }));
+
+      console.log('Ćwiczenia z ID:', exercisesWithIds.map(ex => ({
+        name: ex.name,
+        id: ex.id,
+        category: ex.category
+      })));
+
+      setWorkoutExercises(exercisesWithIds);
       const initialSets = {};
       const initialExpanded = {};
       const initialExpandedCategories = {};
 
       // Grupuj ćwiczenia po kategorii
       const categories = {};
-      activeWorkout.exercises.forEach(exercise => {
+      exercisesWithIds.forEach(exercise => {
         const category = exercise.category || 'inne';
         if (!categories[category]) {
           categories[category] = true;
@@ -92,6 +106,17 @@ function ActiveWorkout({
       setExpandedCategories(initialExpandedCategories);
     }
   }, [activeWorkout]);
+
+  // Log zmian w workoutExercises
+  useEffect(() => {
+    console.log('=== ZMIANA workoutExercises ===');
+    console.log('Aktualna liczba ćwiczeń:', workoutExercises.length);
+    console.log('Lista ćwiczeń:', workoutExercises.map(ex => ({
+      name: ex.name,
+      id: ex.id || 'BRAK ID',
+      category: ex.category
+    })));
+  }, [workoutExercises]);
 
   useEffect(() => {
     let mounted = true;
@@ -228,25 +253,65 @@ function ActiveWorkout({
     }));
   };
 
-  const removeExercise = (exerciseName) => {
-    Alert.alert(
+  const removeExercise = (exercise) => {
+    console.log('=== PRÓBA USUNIĘCIA ĆWICZENIA ===');
+    console.log('Ćwiczenie do usunięcia:', {
+      name: exercise.name,
+      id: exercise.id,
+      category: exercise.category
+    });
+
+    confirmDialog(
       'Usuń ćwiczenie',
-      'Czy na pewno chcesz usunąć to ćwiczenie z treningu?',
-      [
-        { text: 'Anuluj', style: 'cancel' },
-        {
-          text: 'Usuń',
-          style: 'destructive',
-          onPress: () => {
-            setWorkoutExercises(prev => prev.filter(ex => ex.name !== exerciseName));
-            setExerciseSets(prev => {
-              const newSets = { ...prev };
-              delete newSets[exerciseName];
+      `Czy na pewno chcesz usunąć "${exercise.name}" z treningu?`,
+      () => {
+        // onConfirm - użytkownik potwierdził
+        console.log('Użytkownik potwierdził usunięcie');
+
+        // Używamy ID do usunięcia konkretnego ćwiczenia
+        const exerciseId = exercise.id || exercise.name;
+        console.log('ID do usunięcia:', exerciseId);
+
+        // Najpierw aktualizujemy listę ćwiczeń
+        setWorkoutExercises(prev => {
+          console.log('Przed usunięciem - liczba ćwiczeń:', prev.length);
+          console.log('Wszystkie ćwiczenia:', prev.map(ex => ({
+            name: ex.name,
+            id: ex.id || 'BRAK ID'
+          })));
+
+          const updated = prev.filter(ex => {
+            const currentId = ex.id || ex.name;
+            const shouldKeep = currentId !== exerciseId;
+            console.log(`Ćwiczenie ${ex.name} (ID: ${currentId}) - ${shouldKeep ? 'ZACHOWAJ' : 'USUŃ'}`);
+            return shouldKeep;
+          });
+
+          console.log('Po usunięciu - liczba ćwiczeń:', updated.length);
+
+          // Sprawdź czy po usunięciu są jeszcze ćwiczenia o tej samej nazwie
+          const stillHasExercise = updated.some(ex => ex.name === exercise.name);
+          console.log(`Czy są jeszcze ćwiczenia "${exercise.name}"?`, stillHasExercise);
+
+          // Jeśli nie ma już ćwiczeń o tej nazwie, usuń sets
+          if (!stillHasExercise) {
+            console.log(`Usuwam sets dla "${exercise.name}"`);
+            setExerciseSets(prevSets => {
+              const newSets = { ...prevSets };
+              delete newSets[exercise.name];
               return newSets;
             });
           }
-        }
-      ]
+
+          return updated;
+        });
+
+        console.log('=== KONIEC USUWANIA ===');
+      },
+      () => {
+        // onCancel - użytkownik anulował
+        console.log('Użytkownik anulował usuwanie');
+      }
     );
   };
 
@@ -611,7 +676,7 @@ function ActiveWorkout({
                     {/* Remove button - Right edge, centered vertically */}
                     <View style={styles.exerciseHeaderRight}>
                       <TouchableOpacity
-                        onPress={() => removeExercise(exercise.name)}
+                        onPress={() => removeExercise(exercise)}
                         style={styles.removeButton}
                         activeOpacity={0.7}
                       >
