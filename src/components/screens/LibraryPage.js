@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,8 @@ function LibraryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [favorites, setFavorites] = useState([]);
+  const saveTimeoutRef = useRef(null);
+  const initialLoadRef = useRef(true);
 
   useEffect(() => {
     loadData();
@@ -63,21 +65,40 @@ function LibraryPage() {
     }
   };
 
-  const saveFavorites = async (newFavorites) => {
-    try {
-      await storage.setItem('favoriteExercises', JSON.stringify(newFavorites));
-      setFavorites(newFavorites);
-    } catch (error) {
-      console.error('Error saving favorites:', error);
+  // Debounced save to storage - wait 300ms after last change
+  useEffect(() => {
+    // Skip saving on initial load
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      return;
     }
-  };
 
-  const toggleFavorite = useCallback((exerciseId) => {
-    const newFavorites = favorites.includes(exerciseId)
-      ? favorites.filter(id => id !== exerciseId)
-      : [...favorites, exerciseId];
-    saveFavorites(newFavorites);
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      storage.setItem('favoriteExercises', JSON.stringify(favorites)).catch(error => {
+        console.error('Error saving favorites:', error);
+      });
+    }, 300);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
   }, [favorites]);
+
+  // Use functional updates to avoid recreating this function
+  const toggleFavorite = useCallback((exerciseId) => {
+    setFavorites(prevFavorites => {
+      const isFavorite = prevFavorites.includes(exerciseId);
+      return isFavorite
+        ? prevFavorites.filter(id => id !== exerciseId)
+        : [...prevFavorites, exerciseId];
+    });
+  }, []);
 
   useEffect(() => {
     filterExercises();
@@ -165,6 +186,31 @@ function LibraryPage() {
     return selectedExercise ? favorites.includes(selectedExercise.id || selectedExercise.name) : false;
   }, [selectedExercise, favorites]);
 
+  // Memoized render function for FlatList items
+  const renderExerciseItem = useCallback(({ item, index }) => {
+    const exerciseId = item.id || item.name;
+    const uniqueId = `${exerciseId}-${index}`;
+
+    return (
+      <ExerciseCard
+        exercise={item}
+        exerciseId={uniqueId}
+        onToggle={() => handleImageClick(item)}
+        onFavorite={() => toggleFavorite(exerciseId)}
+        isFavorite={favorites.includes(exerciseId)}
+      />
+    );
+  }, [favorites, handleImageClick, toggleFavorite]);
+
+  const keyExtractor = useCallback((item, index) => `${item.id || item.name}-${index}`, []);
+
+  // Optimize FlatList performance by providing item layout
+  const getItemLayout = useCallback((data, index) => ({
+    length: 112, // Height of ExerciseCard (80px image + 16px top padding + 16px bottom padding)
+    offset: 112 * index,
+    index,
+  }), []);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -245,19 +291,9 @@ function LibraryPage() {
       {/* Exercise List */}
       <FlatList
         data={displayedExercises}
-        keyExtractor={(item, index) => `${item.id || item.name}-${index}`}
-        renderItem={({ item, index }) => {
-          const uniqueId = `${item.id || item.name}-${index}`;
-          return (
-            <ExerciseCard
-              exercise={item}
-              exerciseId={uniqueId}
-              onToggle={() => handleImageClick(item)}
-              onFavorite={() => toggleFavorite(item.id || item.name)}
-              isFavorite={favorites.includes(item.id || item.name)}
-            />
-          );
-        }}
+        keyExtractor={keyExtractor}
+        renderItem={renderExerciseItem}
+        getItemLayout={getItemLayout}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
             <Ionicons name="fitness-outline" size={64} color="#d1d5db" />

@@ -72,8 +72,10 @@ function CustomWorkoutBuilder({
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   });
-  
+
   const scheduleCalledRef = useRef(false);
+  const saveTimeoutRef = useRef(null);
+  const initialLoadRef = useRef(true);
 
   useEffect(() => {
     loadFavorites();
@@ -146,6 +148,31 @@ function CustomWorkoutBuilder({
     }
   };
 
+  // Debounced save to storage - wait 300ms after last change
+  useEffect(() => {
+    // Skip saving on initial load
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      return;
+    }
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      storage.setItem('favoriteExercises', JSON.stringify(favorites)).catch(error => {
+        console.error('Error saving favorites:', error);
+      });
+    }, 300);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [favorites]);
+
   const loadSavedWorkouts = async () => {
     try {
       const saved = await storage.getItem('savedWorkouts');
@@ -165,13 +192,6 @@ function CustomWorkoutBuilder({
     }
   };
 
-  const saveFavoritesToStorage = async (newFavorites) => {
-    try {
-      await storage.setItem('favoriteExercises', JSON.stringify(newFavorites));
-    } catch (error) {
-      console.error('Error saving favorites:', error);
-    }
-  };
 
   const getCategoryName = (category) => {
     const categoryNames = {
@@ -356,20 +376,20 @@ function CustomWorkoutBuilder({
   };
 
   const toggleFavorite = (exercise) => {
-    const newFavorites = favorites.some(ex => ex.name === exercise.name)
-      ? favorites.filter(ex => ex.name !== exercise.name)
-      : [...favorites, {
-          name: exercise.name,
-          image: exercise.image,
-          description: exercise.description,
-          tips: exercise.tips,
-          labels: exercise.labels,
-          category: exercise.category,
-          savedAt: getLocalISOString()
-        }];
-    
-    setFavorites(newFavorites);
-    saveFavoritesToStorage(newFavorites);
+    setFavorites(prevFavorites => {
+      const isFavorite = prevFavorites.some(ex => ex.name === exercise.name);
+      return isFavorite
+        ? prevFavorites.filter(ex => ex.name !== exercise.name)
+        : [...prevFavorites, {
+            name: exercise.name,
+            image: exercise.image,
+            description: exercise.description,
+            tips: exercise.tips,
+            labels: exercise.labels,
+            category: exercise.category,
+            savedAt: getLocalISOString()
+          }];
+    });
   };
 
   const isFavoriteExercise = (exerciseName) => {

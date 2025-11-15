@@ -43,8 +43,10 @@ function GeneratedWorkout({
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
   });
-  
+
   const scheduleCalledRef = useRef(false);
+  const saveTimeoutRef = useRef(null);
+  const initialLoadRef = useRef(true);
 
   useEffect(() => {
     loadFavorites();
@@ -59,13 +61,30 @@ function GeneratedWorkout({
     }
   };
 
-  const saveFavorites = async (newFavorites) => {
-    try {
-      await storage.setItem('favoriteExercises', JSON.stringify(newFavorites));
-    } catch (error) {
-      console.error('Error saving favorites:', error);
+  // Debounced save to storage - wait 300ms after last change
+  useEffect(() => {
+    // Skip saving on initial load
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      return;
     }
-  };
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    saveTimeoutRef.current = setTimeout(() => {
+      storage.setItem('favoriteExercises', JSON.stringify(favorites)).catch(error => {
+        console.error('Error saving favorites:', error);
+      });
+    }, 300);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [favorites]);
 
   useEffect(() => {
     let mounted = true;
@@ -98,10 +117,6 @@ function GeneratedWorkout({
       generateWorkout();
     }
   }, [selectedTypes, allExercises]);
-
-  useEffect(() => {
-    saveFavorites(favorites);
-  }, [favorites]);
 
   useEffect(() => {
     scheduleCalledRef.current = false;
