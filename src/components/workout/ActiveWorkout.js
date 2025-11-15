@@ -624,7 +624,7 @@ function ActiveWorkout({
                     <View style={styles.setsContainer}>
                       {sets.map((set, idx) => (
                         <View key={idx} style={styles.setRow}>
-                          <Text style={styles.setNumber}>{idx + 1}</Text>
+                          <Text style={styles.setNumber}>{idx + 1})</Text>
                           
                           <TextInput
                             style={[styles.setInput, set.completed && styles.setInputCompleted]}
