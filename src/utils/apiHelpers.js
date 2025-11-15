@@ -2,25 +2,35 @@
 const API_BASE_URL = 'https://ai-api-zljd-a.fly.dev';  // ✅ DOBRZE
 
 
-export async function getExercises(categories = null) {
+export async function getExercises(categories = null, limit = null) {
   try {
     let url = `${API_BASE_URL}/api/exercises`;
+    const params = new URLSearchParams();
 
     if (categories && categories.length > 0) {
       const categoriesParam = Array.isArray(categories)
         ? categories.join(',')
         : categories;
-      url += `?categories=${categoriesParam}`;
+      params.append('categories', categoriesParam);
+    }
+
+    if (limit) {
+      params.append('limit', limit);
+    }
+
+    const queryString = params.toString();
+    if (queryString) {
+      url += `?${queryString}`;
     }
 
     if (__DEV__) console.log('Fetching exercises from:', url);
-    
+
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    
+
     const data = await response.json();
     if (__DEV__) console.log('Exercises fetched:', data.length);
 

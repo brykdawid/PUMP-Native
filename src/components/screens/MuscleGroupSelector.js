@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { alertDialog } from '../../utils/storage';
+import { getExercises } from '../../utils/apiHelpers';
 
 // Skeleton loader z animacją shimmer
 const SkeletonLoader = () => {
@@ -112,30 +113,28 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
       // Pobierz wszystkie obrazki równolegle
       TRAINING_TYPES.forEach(async (type) => {
         try {
-          const response = await fetch(
-            `http://localhost:5000/api/exercises?categories=${type.id}&limit=1`,
-            {
-              // Dodaj timeout dla szybszego failover
-              signal: AbortSignal.timeout(5000),
-            }
-          );
+          const exercises = await getExercises(type.id, 1);
 
-          if (response.ok) {
-            const exercises = await response.json();
-            if (exercises.length > 0) {
-              // Aktualizuj obrazek natychmiast po załadowaniu
-              setCategoryImages(prev => ({
-                ...prev,
-                [type.id]: exercises[0].image
-              }));
+          if (exercises && exercises.length > 0) {
+            // Aktualizuj obrazek natychmiast po załadowaniu
+            setCategoryImages(prev => ({
+              ...prev,
+              [type.id]: exercises[0].image
+            }));
 
-              // Usuń z listy ładujących się
-              setLoadingImages(prev => {
-                const next = new Set(prev);
-                next.delete(type.id);
-                return next;
-              });
-            }
+            // Usuń z listy ładujących się
+            setLoadingImages(prev => {
+              const next = new Set(prev);
+              next.delete(type.id);
+              return next;
+            });
+          } else {
+            // Usuń z listy ładujących się jeśli brak wyników
+            setLoadingImages(prev => {
+              const next = new Set(prev);
+              next.delete(type.id);
+              return next;
+            });
           }
         } catch (error) {
           if (__DEV__) console.error(`Error fetching image for ${type.id}:`, error);
