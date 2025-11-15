@@ -55,7 +55,7 @@ components.forEach(({ path: filePath, name }) => {
   }
   
   fs.writeFileSync(fullPath, placeholder(name));
-  console.log(`✅ Created ${filePath}`);
+  if (typeof __DEV__ !== 'undefined' && __DEV__) console.log(`✅ Created ${filePath}`);
 });
 
-console.log('\n🎉 All placeholder components created!');
+if (typeof __DEV__ !== 'undefined' && __DEV__) console.log('\n🎉 All placeholder components created!');

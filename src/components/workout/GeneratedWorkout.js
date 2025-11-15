@@ -16,16 +16,16 @@ import { getLocalISOString } from '../../utils/workoutHelpers';
 import GifModal from './GifModal';
 import ExerciseCard from './ExerciseCard';
 
-function GeneratedWorkout({ 
-  selectedTypes, 
-  onBack, 
-  onBeginWorkout, 
-  onSaveWorkout, 
-  targetDate, 
-  onScheduleWorkout 
+function GeneratedWorkout({
+  selectedTypes,
+  onBack,
+  onBeginWorkout,
+  onSaveWorkout,
+  targetDate,
+  onScheduleWorkout
 }) {
-  console.log('GeneratedWorkout render - selectedTypes:', selectedTypes);
-  
+  if (__DEV__) console.log('GeneratedWorkout render - selectedTypes:', selectedTypes);
+
   const [workoutPlan, setWorkoutPlan] = useState({});
   const [allExercises, setAllExercises] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +55,7 @@ function GeneratedWorkout({
       const saved = await storage.getItem('favoriteExercises');
       if (saved) setFavorites(JSON.parse(saved));
     } catch (error) {
-      console.error('Error loading favorites:', error);
+      if (__DEV__) console.error('Error loading favorites:', error);
     }
   };
 
@@ -63,7 +63,7 @@ function GeneratedWorkout({
     try {
       await storage.setItem('favoriteExercises', JSON.stringify(newFavorites));
     } catch (error) {
-      console.error('Error saving favorites:', error);
+      if (__DEV__) console.error('Error saving favorites:', error);
     }
   };
 
@@ -72,14 +72,14 @@ function GeneratedWorkout({
     
     async function loadExercises() {
       try {
-        console.log('Loading exercises...');
+        if (__DEV__) console.log('Loading exercises...');
         const data = await getExercises();
-        console.log('Exercises loaded:', data.length);
+        if (__DEV__) console.log('Exercises loaded:', data.length);
         if (mounted) {
           setAllExercises(data);
         }
       } catch (error) {
-        console.error('Error loading exercises:', error);
+        if (__DEV__) console.error('Error loading exercises:', error);
         if (mounted) {
           setAllExercises([]);
           alertDialog('Błąd', 'Nie udało się załadować ćwiczeń');
@@ -94,7 +94,7 @@ function GeneratedWorkout({
 
   useEffect(() => {
     if (allExercises.length > 0) {
-      console.log('Generating workout...');
+      if (__DEV__) console.log('Generating workout...');
       generateWorkout();
     }
   }, [selectedTypes, allExercises]);
@@ -229,11 +229,11 @@ function GeneratedWorkout({
   };
 
   const generateWorkout = async () => {
-    console.log('generateWorkout called');
+    if (__DEV__) console.log('generateWorkout called');
     setLoading(true);
 
     if (allExercises.length === 0) {
-      console.log('No exercises available');
+      if (__DEV__) console.log('No exercises available');
       setLoading(false);
       return;
     }
@@ -244,7 +244,7 @@ function GeneratedWorkout({
   };
 
   const fallbackGeneration = () => {
-    console.log('Fallback generation - selectedTypes:', selectedTypes);
+    if (__DEV__) console.log('Fallback generation - selectedTypes:', selectedTypes);
     const categoryLabels = {
       'barki': 'shoulders',
       'biceps': 'biceps',
@@ -265,18 +265,18 @@ function GeneratedWorkout({
     // Dla FBW używamy 2 ćwiczeń na grupę, dla innych 3
     const exercisesPerGroup = isFBW ? 2 : 3;
 
-    console.log(`Is FBW: ${isFBW}, exercises per group: ${exercisesPerGroup}`);
+    if (__DEV__) console.log(`Is FBW: ${isFBW}, exercises per group: ${exercisesPerGroup}`);
 
     const plan = {};
 
     selectedTypes.forEach(category => {
-      console.log(`Generating for category: ${category}`);
+      if (__DEV__) console.log(`Generating for category: ${category}`);
       const targetLabel = categoryLabels[category];
       const categoryExercises = allExercises.filter(ex =>
         ex.labels && ex.labels.includes(targetLabel)
       );
 
-      console.log(`Found ${categoryExercises.length} exercises for ${category} (label: ${targetLabel})`);
+      if (__DEV__) console.log(`Found ${categoryExercises.length} exercises for ${category} (label: ${targetLabel})`);
 
       const shuffled = [...categoryExercises].sort(() => Math.random() - 0.5);
 
@@ -287,10 +287,10 @@ function GeneratedWorkout({
         category: category // WAŻNE: Ustaw kategorię wybrana przez użytkownika
       }));
 
-      console.log(`Generated ${plan[category].length} exercises for ${category}`);
+      if (__DEV__) console.log(`Generated ${plan[category].length} exercises for ${category}`);
     });
 
-    console.log('Final generated plan:', Object.keys(plan).map(k => `${k}: ${plan[k].length}`));
+    if (__DEV__) console.log('Final generated plan:', Object.keys(plan).map(k => `${k}: ${plan[k].length}`));
     setWorkoutPlan(plan);
   };
 
@@ -367,7 +367,7 @@ function GeneratedWorkout({
         return;
       }
 
-      console.log('Beginning workout with exercises:', allExercises.map(e => `${e.name} (${e.category})`));
+      if (__DEV__) console.log('Beginning workout with exercises:', allExercises.map(e => `${e.name} (${e.category})`));
 
       const workoutData = {
         type: 'generated',
@@ -449,7 +449,7 @@ function GeneratedWorkout({
         return;
       }
 
-      console.log('Scheduling workout with exercises:', allExercises.map(e => `${e.name} (${e.category})`));
+      if (__DEV__) console.log('Scheduling workout with exercises:', allExercises.map(e => `${e.name} (${e.category})`));
 
       const workoutData = {
         id: Date.now(),

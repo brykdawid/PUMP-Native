@@ -50,7 +50,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
   useEffect(() => {
     if (!isLoadedRef.current) return;
     if (profileImage !== null) {
-      console.log('💾 Saving profile image to storage');
+      if (__DEV__) console.log('💾 Saving profile image to storage');
       storage.setItem('profileImage', profileImage);
     }
   }, [profileImage]);
@@ -58,13 +58,13 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
   // Save profile data whenever it changes
   useEffect(() => {
     if (!isLoadedRef.current) return;
-    console.log('💾 Saving profile data to storage');
+    if (__DEV__) console.log('💾 Saving profile data to storage');
     storage.setItem('profileData', JSON.stringify(profileData));
   }, [profileData]);
 
   const loadProfileData = async () => {
     try {
-      console.log('🔍 Loading profile data from storage...');
+      if (__DEV__) console.log('🔍 Loading profile data from storage...');
       const savedImage = await storage.getItem('profileImage');
       const savedData = await storage.getItem('profileData');
 
@@ -76,9 +76,9 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
       }
 
       isLoadedRef.current = true;
-      console.log('✅ Profile data loaded, auto-save enabled');
+      if (__DEV__) console.log('✅ Profile data loaded, auto-save enabled');
     } catch (error) {
-      console.error('❌ Error loading profile data:', error);
+      if (__DEV__) console.error('❌ Error loading profile data:', error);
       isLoadedRef.current = true;
     }
   };
@@ -104,7 +104,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
         const uri = result.assets[0].uri;
 
         if (uri.startsWith('blob:') || uri.startsWith('http')) {
-          console.log('🔄 Converting image to base64 for web storage...');
+          if (__DEV__) console.log('🔄 Converting image to base64 for web storage...');
           try {
             const response = await fetch(uri);
             const blob = await response.blob();
@@ -117,7 +117,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
 
             reader.readAsDataURL(blob);
           } catch (conversionError) {
-            console.error('❌ Error converting image:', conversionError);
+            if (__DEV__) console.error('❌ Error converting image:', conversionError);
             setProfileImage(uri);
           }
         } else {
@@ -125,7 +125,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
         }
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      if (__DEV__) console.error('Error picking image:', error);
       alertDialog('Błąd', 'Nie udało się wybrać zdjęcia');
     }
   };
@@ -214,7 +214,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
 
   const handleResetData = async () => {
     try {
-      console.log('🗑️ Resetowanie wszystkich danych aplikacji...');
+      if (__DEV__) console.log('🗑️ Resetowanie wszystkich danych aplikacji...');
 
       // Usuń wszystkie klucze storage
       await storage.removeItem('profileData');
@@ -225,7 +225,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
       await storage.removeItem('favoriteExercises');
       await storage.removeItem('selectedTargetDate');
 
-      console.log('✅ Wszystkie dane zostały usunięte');
+      if (__DEV__) console.log('✅ Wszystkie dane zostały usunięte');
 
       // Zresetuj lokalny stan
       setProfileData({
@@ -254,7 +254,7 @@ function ProfilePage({ userStats, workoutHistory, onUpdateUserStats }) {
         );
       }, 300);
     } catch (error) {
-      console.error('❌ Błąd podczas resetowania danych:', error);
+      if (__DEV__) console.error('❌ Błąd podczas resetowania danych:', error);
       alertDialog('Błąd', 'Nie udało się zresetować wszystkich danych');
     }
   };

@@ -62,13 +62,13 @@ function App() {
 
   const loadData = async () => {
     try {
-      console.log('🔍 Loading data from storage...');
+      if (__DEV__) console.log('🔍 Loading data from storage...');
       const savedWorkoutsData = await storage.getItem('savedWorkouts');
       const workoutHistoryData = await storage.getItem('workoutHistory');
       const targetDateData = await storage.getItem('selectedTargetDate');
       const userStatsData = await storage.getItem('userStats');
 
-      console.log('📦 Loaded data:', {
+      if (__DEV__) console.log('📦 Loaded data:', {
         savedWorkouts: savedWorkoutsData ? 'found' : 'empty',
         workoutHistory: workoutHistoryData ? 'found' : 'empty',
         targetDate: targetDateData ? 'found' : 'empty',
@@ -92,9 +92,9 @@ function App() {
 
       // Mark as loaded to enable saving
       isLoadedRef.current = true;
-      console.log('✅ Data loaded, auto-save enabled');
+      if (__DEV__) console.log('✅ Data loaded, auto-save enabled');
     } catch (error) {
-      console.error('❌ Error loading data:', error);
+      if (__DEV__) console.error('❌ Error loading data:', error);
       isLoadedRef.current = true; // Enable saving even on error
     }
   };
@@ -107,13 +107,13 @@ function App() {
 
   useEffect(() => {
     if (!isLoadedRef.current) return; // Don't save until data is loaded
-    console.log('💾 Saving savedWorkouts:', savedWorkouts.length, 'workouts');
+    if (__DEV__) console.log('💾 Saving savedWorkouts:', savedWorkouts.length, 'workouts');
     storage.setItem('savedWorkouts', JSON.stringify(savedWorkouts));
   }, [savedWorkouts]);
 
   useEffect(() => {
     if (!isLoadedRef.current) return; // Don't save until data is loaded
-    console.log('💾 Saving workoutHistory:', workoutHistory.length, 'workouts');
+    if (__DEV__) console.log('💾 Saving workoutHistory:', workoutHistory.length, 'workouts');
     storage.setItem('workoutHistory', JSON.stringify(workoutHistory));
   }, [workoutHistory]);
 
@@ -128,7 +128,7 @@ function App() {
 
   useEffect(() => {
     if (!isLoadedRef.current) return; // Don't save until data is loaded
-    console.log('💾 Saving userStats:', userStats);
+    if (__DEV__) console.log('💾 Saving userStats:', userStats);
     storage.setItem('userStats', JSON.stringify(userStats));
   }, [userStats]);
 
@@ -238,10 +238,10 @@ function App() {
   };
 
   const handleDeleteWorkout = (workoutId) => {
-    console.log('🗑️ Deleting workout with ID:', workoutId);
+    if (__DEV__) console.log('🗑️ Deleting workout with ID:', workoutId);
     setSavedWorkouts(prev => {
       const filtered = prev.filter(w => w.id !== workoutId);
-      console.log('📊 Workouts before:', prev.length, 'after:', filtered.length);
+      if (__DEV__) console.log('📊 Workouts before:', prev.length, 'after:', filtered.length);
       return filtered;
     });
   };

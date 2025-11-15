@@ -3,9 +3,12 @@
     "name": "PUMP Workout",
     "slug": "pump-workout",
     "version": "1.0.0",
+    "description": "PUMP Workout - Your personal AI-powered workout companion. Track exercises, create custom workouts, and achieve your fitness goals.",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "platforms": ["ios", "android", "web"],
+    "privacy": "https://github.com/brykdawid/PUMP-Native/blob/main/PRIVACY_POLICY.md",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -16,14 +19,24 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.pump.workout"
+      "bundleIdentifier": "com.pump.workout",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "PUMP Workout needs access to your photos to let you set a profile picture.",
+        "NSPhotoLibraryAddUsageDescription": "PUMP Workout needs permission to save photos to your library."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#9333ea"
       },
-      "package": "com.pump.workout"
+      "package": "com.pump.workout",
+      "versionCode": 1,
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

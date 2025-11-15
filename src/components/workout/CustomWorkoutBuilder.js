@@ -142,7 +142,7 @@ function CustomWorkoutBuilder({
       const saved = await storage.getItem('favoriteExercises');
       if (saved) setFavorites(JSON.parse(saved));
     } catch (error) {
-      console.error('Error loading favorites:', error);
+      if (__DEV__) console.error('Error loading favorites:', error);
     }
   };
 
@@ -151,7 +151,7 @@ function CustomWorkoutBuilder({
       const saved = await storage.getItem('savedWorkouts');
       if (saved) setSavedWorkouts(JSON.parse(saved));
     } catch (error) {
-      console.error('Error loading saved workouts:', error);
+      if (__DEV__) console.error('Error loading saved workouts:', error);
     }
   };
 
@@ -160,7 +160,7 @@ function CustomWorkoutBuilder({
       const data = await getExercises();
       setAllExercises(data);
     } catch (error) {
-      console.error('Error loading exercises:', error);
+      if (__DEV__) console.error('Error loading exercises:', error);
       alertDialog('Błąd', 'Nie udało się połączyć z serwerem');
     }
   };
@@ -169,7 +169,7 @@ function CustomWorkoutBuilder({
     try {
       await storage.setItem('favoriteExercises', JSON.stringify(newFavorites));
     } catch (error) {
-      console.error('Error saving favorites:', error);
+      if (__DEV__) console.error('Error saving favorites:', error);
     }
   };
 

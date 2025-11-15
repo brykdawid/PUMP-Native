@@ -69,8 +69,8 @@ function ActiveWorkout({
 
   useEffect(() => {
     if (activeWorkout && activeWorkout.exercises) {
-      console.log('=== INICJALIZACJA ĆWICZEŃ ===');
-      console.log('Liczba ćwiczeń z activeWorkout:', activeWorkout.exercises.length);
+      if (__DEV__) console.log('=== INICJALIZACJA ĆWICZEŃ ===');
+      if (__DEV__) console.log('Liczba ćwiczeń z activeWorkout:', activeWorkout.exercises.length);
 
       // Upewnij się, że każde ćwiczenie ma unikalne ID
       const exercisesWithIds = activeWorkout.exercises.map((exercise, idx) => ({
@@ -78,7 +78,7 @@ function ActiveWorkout({
         id: exercise.id || `${exercise.name}-${idx}-${Date.now()}`
       }));
 
-      console.log('Ćwiczenia z ID:', exercisesWithIds.map(ex => ({
+      if (__DEV__) console.log('Ćwiczenia z ID:', exercisesWithIds.map(ex => ({
         name: ex.name,
         id: ex.id,
         category: ex.category
@@ -109,9 +109,9 @@ function ActiveWorkout({
 
   // Log zmian w workoutExercises
   useEffect(() => {
-    console.log('=== ZMIANA workoutExercises ===');
-    console.log('Aktualna liczba ćwiczeń:', workoutExercises.length);
-    console.log('Lista ćwiczeń:', workoutExercises.map(ex => ({
+    if (__DEV__) console.log('=== ZMIANA workoutExercises ===');
+    if (__DEV__) console.log('Aktualna liczba ćwiczeń:', workoutExercises.length);
+    if (__DEV__) console.log('Lista ćwiczeń:', workoutExercises.map(ex => ({
       name: ex.name,
       id: ex.id || 'BRAK ID',
       category: ex.category
@@ -127,7 +127,7 @@ function ActiveWorkout({
           setAllExercises(data);
         }
       } catch (error) {
-        console.error('Error loading exercises:', error);
+        if (__DEV__) console.error('Error loading exercises:', error);
       }
     }
     loadExercises();
@@ -254,8 +254,8 @@ function ActiveWorkout({
   };
 
   const removeExercise = (exercise) => {
-    console.log('=== PRÓBA USUNIĘCIA ĆWICZENIA ===');
-    console.log('Ćwiczenie do usunięcia:', {
+    if (__DEV__) console.log('=== PRÓBA USUNIĘCIA ĆWICZENIA ===');
+    if (__DEV__) console.log('Ćwiczenie do usunięcia:', {
       name: exercise.name,
       id: exercise.id,
       category: exercise.category
@@ -266,16 +266,16 @@ function ActiveWorkout({
       `Czy na pewno chcesz usunąć "${exercise.name}" z treningu?`,
       () => {
         // onConfirm - użytkownik potwierdził
-        console.log('Użytkownik potwierdził usunięcie');
+        if (__DEV__) console.log('Użytkownik potwierdził usunięcie');
 
         // Używamy ID do usunięcia konkretnego ćwiczenia
         const exerciseId = exercise.id || exercise.name;
-        console.log('ID do usunięcia:', exerciseId);
+        if (__DEV__) console.log('ID do usunięcia:', exerciseId);
 
         // Najpierw aktualizujemy listę ćwiczeń
         setWorkoutExercises(prev => {
-          console.log('Przed usunięciem - liczba ćwiczeń:', prev.length);
-          console.log('Wszystkie ćwiczenia:', prev.map(ex => ({
+          if (__DEV__) console.log('Przed usunięciem - liczba ćwiczeń:', prev.length);
+          if (__DEV__) console.log('Wszystkie ćwiczenia:', prev.map(ex => ({
             name: ex.name,
             id: ex.id || 'BRAK ID'
           })));
@@ -283,19 +283,19 @@ function ActiveWorkout({
           const updated = prev.filter(ex => {
             const currentId = ex.id || ex.name;
             const shouldKeep = currentId !== exerciseId;
-            console.log(`Ćwiczenie ${ex.name} (ID: ${currentId}) - ${shouldKeep ? 'ZACHOWAJ' : 'USUŃ'}`);
+            if (__DEV__) console.log(`Ćwiczenie ${ex.name} (ID: ${currentId}) - ${shouldKeep ? 'ZACHOWAJ' : 'USUŃ'}`);
             return shouldKeep;
           });
 
-          console.log('Po usunięciu - liczba ćwiczeń:', updated.length);
+          if (__DEV__) console.log('Po usunięciu - liczba ćwiczeń:', updated.length);
 
           // Sprawdź czy po usunięciu są jeszcze ćwiczenia o tej samej nazwie
           const stillHasExercise = updated.some(ex => ex.name === exercise.name);
-          console.log(`Czy są jeszcze ćwiczenia "${exercise.name}"?`, stillHasExercise);
+          if (__DEV__) console.log(`Czy są jeszcze ćwiczenia "${exercise.name}"?`, stillHasExercise);
 
           // Jeśli nie ma już ćwiczeń o tej nazwie, usuń sets
           if (!stillHasExercise) {
-            console.log(`Usuwam sets dla "${exercise.name}"`);
+            if (__DEV__) console.log(`Usuwam sets dla "${exercise.name}"`);
             setExerciseSets(prevSets => {
               const newSets = { ...prevSets };
               delete newSets[exercise.name];
@@ -306,11 +306,11 @@ function ActiveWorkout({
           return updated;
         });
 
-        console.log('=== KONIEC USUWANIA ===');
+        if (__DEV__) console.log('=== KONIEC USUWANIA ===');
       },
       () => {
         // onCancel - użytkownik anulował
-        console.log('Użytkownik anulował usuwanie');
+        if (__DEV__) console.log('Użytkownik anulował usuwanie');
       }
     );
   };
@@ -440,12 +440,12 @@ function ActiveWorkout({
   };
 
   const handleEndWorkout = () => {
-    console.log('handleEndWorkout called - showing modal');
+    if (__DEV__) console.log('handleEndWorkout called - showing modal');
     setShowEndWorkoutModal(true);
   };
 
   const confirmEndWorkout = () => {
-    console.log('User confirmed end workout');
+    if (__DEV__) console.log('User confirmed end workout');
     setShowEndWorkoutModal(false);
 
     // Generate title from categories
@@ -777,7 +777,7 @@ function ActiveWorkout({
 
         <TouchableOpacity
           onPress={() => {
-            console.log('END BUTTON PRESSED!');
+            if (__DEV__) console.log('END BUTTON PRESSED!');
             handleEndWorkout();
           }}
           style={styles.endButton}
@@ -922,7 +922,7 @@ function ActiveWorkout({
             <View style={styles.confirmModalButtons}>
               <TouchableOpacity
                 onPress={() => {
-                  console.log('User cancelled');
+                  if (__DEV__) console.log('User cancelled');
                   setShowEndWorkoutModal(false);
                 }}
                 style={[styles.confirmModalButton, styles.confirmModalButtonCancel]}

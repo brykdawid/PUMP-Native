@@ -95,8 +95,8 @@ const MuscleCard = React.memo(({ type, isSelected, onPress, imageUri, isLoading 
 MuscleCard.displayName = 'MuscleCard';
 
 function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
-  console.log('MuscleGroupSelector render');
-  console.log('TRAINING_TYPES:', TRAINING_TYPES);
+  if (__DEV__) console.log('MuscleGroupSelector render');
+  if (__DEV__) console.log('TRAINING_TYPES:', TRAINING_TYPES);
 
   const [selectedGroups, setSelectedGroups] = useState([]);
   const [categoryImages, setCategoryImages] = useState({});
@@ -138,7 +138,7 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
             }
           }
         } catch (error) {
-          console.error(`Error fetching image for ${type.id}:`, error);
+          if (__DEV__) console.error(`Error fetching image for ${type.id}:`, error);
           // Usuń z listy ładujących się nawet przy błędzie
           setLoadingImages(prev => {
             const next = new Set(prev);
@@ -157,7 +157,7 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
     Object.values(categoryImages).forEach(imageUri => {
       if (imageUri) {
         Image.prefetch(imageUri).catch(err => {
-          console.log('Image prefetch failed:', err);
+          if (__DEV__) console.log('Image prefetch failed:', err);
         });
       }
     });
@@ -173,7 +173,7 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
 
   // useCallback zapobiega re-renderom komponentów potomnych
   const toggleGroup = useCallback((groupId) => {
-    console.log('Toggle group:', groupId);
+    if (__DEV__) console.log('Toggle group:', groupId);
 
     // Jeśli kliknięto fullbody, zaznacz wszystkie grupy
     if (groupId === 'fullbody') {
@@ -203,7 +203,7 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
   }, [TRAINING_TYPES]);
 
   const handleContinue = useCallback(() => {
-    console.log('Continue with groups:', selectedGroups);
+    if (__DEV__) console.log('Continue with groups:', selectedGroups);
     if (selectedGroups.length === 0) {
       alertDialog('Uwaga', 'Wybierz przynajmniej jedną grupę mięśniową');
       return;

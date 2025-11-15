@@ -10,17 +10,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
 function LandingPage({ onSelectMode, targetDate }) {
-  console.log('LandingPage render');
-  console.log('onSelectMode:', typeof onSelectMode);
-  console.log('targetDate:', targetDate);
+  if (__DEV__) console.log('LandingPage render');
+  if (__DEV__) console.log('onSelectMode:', typeof onSelectMode);
+  if (__DEV__) console.log('targetDate:', targetDate);
 
   const handleGenerated = () => {
-    console.log('Generated clicked');
+    if (__DEV__) console.log('Generated clicked');
     onSelectMode('generated');
   };
 
   const handleCustom = () => {
-    console.log('Custom clicked');
+    if (__DEV__) console.log('Custom clicked');
     onSelectMode('custom');
   };
 

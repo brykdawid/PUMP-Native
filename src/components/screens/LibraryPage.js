@@ -45,7 +45,7 @@ function LibraryPage() {
       setAllExercises(data);
       setFilteredExercises(data);
     } catch (error) {
-      console.error('Error loading exercises:', error);
+      if (__DEV__) console.error('Error loading exercises:', error);
       alertDialog('Błąd', 'Nie udało się załadować ćwiczeń');
       setAllExercises([]);
       setFilteredExercises([]);
@@ -59,7 +59,7 @@ function LibraryPage() {
       const saved = await storage.getItem('favoriteExercises');
       if (saved) setFavorites(JSON.parse(saved));
     } catch (error) {
-      console.error('Error loading favorites:', error);
+      if (__DEV__) console.error('Error loading favorites:', error);
     }
   };
 
@@ -68,7 +68,7 @@ function LibraryPage() {
       await storage.setItem('favoriteExercises', JSON.stringify(newFavorites));
       setFavorites(newFavorites);
     } catch (error) {
-      console.error('Error saving favorites:', error);
+      if (__DEV__) console.error('Error saving favorites:', error);
     }
   };
 

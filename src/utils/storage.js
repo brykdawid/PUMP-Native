@@ -46,15 +46,15 @@ const storage = {
       if (isWeb && typeof window !== 'undefined' && window.localStorage) {
         // Use localStorage directly in web browsers
         const value = window.localStorage.getItem(key);
-        console.log(`📖 [Web localStorage] GET ${key}:`, value ? 'found' : 'null');
+        if (__DEV__) console.log(`📖 [Web localStorage] GET ${key}:`, value ? 'found' : 'null');
         return value;
       }
       // Use AsyncStorage for native apps
       const value = await AsyncStorage.getItem(key);
-      console.log(`📖 [AsyncStorage] GET ${key}:`, value ? 'found' : 'null');
+      if (__DEV__) console.log(`📖 [AsyncStorage] GET ${key}:`, value ? 'found' : 'null');
       return value;
     } catch (error) {
-      console.error(`❌ Error getting ${key}:`, error);
+      if (__DEV__) console.error(`❌ Error getting ${key}:`, error);
       return null;
     }
   },
@@ -64,14 +64,14 @@ const storage = {
       if (isWeb && typeof window !== 'undefined' && window.localStorage) {
         // Use localStorage directly in web browsers
         window.localStorage.setItem(key, value);
-        console.log(`💾 [Web localStorage] SET ${key}`);
+        if (__DEV__) console.log(`💾 [Web localStorage] SET ${key}`);
         return;
       }
       // Use AsyncStorage for native apps
       await AsyncStorage.setItem(key, value);
-      console.log(`💾 [AsyncStorage] SET ${key}`);
+      if (__DEV__) console.log(`💾 [AsyncStorage] SET ${key}`);
     } catch (error) {
-      console.error(`❌ Error setting ${key}:`, error);
+      if (__DEV__) console.error(`❌ Error setting ${key}:`, error);
     }
   },
 
@@ -80,14 +80,14 @@ const storage = {
       if (isWeb && typeof window !== 'undefined' && window.localStorage) {
         // Use localStorage directly in web browsers
         window.localStorage.removeItem(key);
-        console.log(`🗑️ [Web localStorage] REMOVE ${key}`);
+        if (__DEV__) console.log(`🗑️ [Web localStorage] REMOVE ${key}`);
         return;
       }
       // Use AsyncStorage for native apps
       await AsyncStorage.removeItem(key);
-      console.log(`🗑️ [AsyncStorage] REMOVE ${key}`);
+      if (__DEV__) console.log(`🗑️ [AsyncStorage] REMOVE ${key}`);
     } catch (error) {
-      console.error(`❌ Error removing ${key}:`, error);
+      if (__DEV__) console.error(`❌ Error removing ${key}:`, error);
     }
   },
 
@@ -96,14 +96,14 @@ const storage = {
       if (isWeb && typeof window !== 'undefined' && window.localStorage) {
         // Use localStorage directly in web browsers
         window.localStorage.clear();
-        console.log('🗑️ [Web localStorage] CLEARED');
+        if (__DEV__) console.log('🗑️ [Web localStorage] CLEARED');
         return;
       }
       // Use AsyncStorage for native apps
       await AsyncStorage.clear();
-      console.log('🗑️ [AsyncStorage] CLEARED');
+      if (__DEV__) console.log('🗑️ [AsyncStorage] CLEARED');
     } catch (error) {
-      console.error('❌ Error clearing storage:', error);
+      if (__DEV__) console.error('❌ Error clearing storage:', error);
     }
   }
 };

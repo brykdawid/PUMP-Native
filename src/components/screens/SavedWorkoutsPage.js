@@ -49,7 +49,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
         setSavedExercises(JSON.parse(saved));
       }
     } catch (error) {
-      console.error('Error loading saved exercises:', error);
+      if (__DEV__) console.error('Error loading saved exercises:', error);
     }
   };
 
@@ -75,7 +75,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
       await storage.setItem('favoriteExercises', JSON.stringify(updated));
       setSavedExercises(updated);
     } catch (error) {
-      console.error('Error saving favorites:', error);
+      if (__DEV__) console.error('Error saving favorites:', error);
     }
   };
 
@@ -86,7 +86,7 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
     try {
       await storage.setItem('favoriteExercises', JSON.stringify(updated));
     } catch (error) {
-      console.error('Error removing saved exercise:', error);
+      if (__DEV__) console.error('Error removing saved exercise:', error);
     }
   };
 
@@ -184,20 +184,20 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
   };
 
   const handleDelete = (workoutId) => {
-    console.log('🗑️ SavedWorkouts: Attempting to delete workout', workoutId);
+    if (__DEV__) console.log('🗑️ SavedWorkouts: Attempting to delete workout', workoutId);
     confirmDialog(
       'Usuń trening',
       'Czy na pewno chcesz usunąć ten trening?',
       () => {
-        console.log('✅ SavedWorkouts: User confirmed deletion, calling onDeleteWorkout');
+        if (__DEV__) console.log('✅ SavedWorkouts: User confirmed deletion, calling onDeleteWorkout');
         if (onDeleteWorkout) {
           onDeleteWorkout(workoutId);
         } else {
-          console.error('❌ SavedWorkouts: onDeleteWorkout is not defined');
+          if (__DEV__) console.error('❌ SavedWorkouts: onDeleteWorkout is not defined');
         }
       },
       () => {
-        console.log('❌ SavedWorkouts: User cancelled deletion');
+        if (__DEV__) console.log('❌ SavedWorkouts: User cancelled deletion');
       }
     );
   };
