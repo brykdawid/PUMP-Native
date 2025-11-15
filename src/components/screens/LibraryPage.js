@@ -25,7 +25,7 @@ function LibraryPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('klatka');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExercise, setSelectedExercise] = useState(null);
   const [favorites, setFavorites] = useState([]);
@@ -93,14 +93,12 @@ function LibraryPage() {
     let filtered = allExercises;
 
     // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(ex => {
-        const categories = Array.isArray(ex.category) ? ex.category : [ex.category];
-        return categories.some(cat =>
-          cat.toLowerCase() === selectedCategory.toLowerCase()
-        );
-      });
-    }
+    filtered = filtered.filter(ex => {
+      const categories = Array.isArray(ex.category) ? ex.category : [ex.category];
+      return categories.some(cat =>
+        cat.toLowerCase() === selectedCategory.toLowerCase()
+      );
+    });
 
     // Filter by search query
     if (searchQuery.trim()) {
@@ -137,8 +135,6 @@ function LibraryPage() {
   };
 
   const getCategoryCount = (categoryId) => {
-    if (categoryId === 'all') return allExercises.length;
-
     return allExercises.filter(ex => {
       const categories = Array.isArray(ex.category) ? ex.category : [ex.category];
       return categories.some(cat =>
@@ -208,21 +204,6 @@ function LibraryPage() {
         style={styles.categoryScroll}
         contentContainerStyle={styles.categoryScrollContent}
       >
-        <TouchableOpacity
-          style={[
-            styles.categoryButton,
-            selectedCategory === 'all' && styles.categoryButtonActive
-          ]}
-          onPress={() => setSelectedCategory('all')}
-        >
-          <Text style={[
-            styles.categoryButtonText,
-            selectedCategory === 'all' && styles.categoryButtonTextActive
-          ]}>
-            Wszystkie ({getCategoryCount('all')})
-          </Text>
-        </TouchableOpacity>
-
         {TRAINING_TYPES.filter(type => type.id !== 'fullbody').map((type) => (
           <TouchableOpacity
             key={type.id}

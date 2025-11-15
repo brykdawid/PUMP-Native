@@ -38,7 +38,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
   const [exercisesList, setExercisesList] = useState([]);
   const [filteredExercises, setFilteredExercises] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('klatka');
 
   // Pobierz ćwiczenia z API przy pierwszym otwarciu modal'a
   useEffect(() => {
@@ -66,9 +66,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
     let filtered = [...exercisesList];
 
     // Filtruj po kategorii
-    if (selectedCategory) {
-      filtered = filtered.filter(ex => ex.category === selectedCategory);
-    }
+    filtered = filtered.filter(ex => ex.category === selectedCategory);
 
     // Filtruj po wyszukiwanej frazie
     if (searchQuery.trim()) {
@@ -182,7 +180,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
 
   const openExercisePickerModal = () => {
     setSearchQuery('');
-    setSelectedCategory(null);
+    setSelectedCategory('klatka');
     setShowExercisePickerModal(true);
   };
 
@@ -1076,15 +1074,6 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
             style={styles.categoriesScrollView}
             contentContainerStyle={styles.categoriesContainer}
           >
-            <TouchableOpacity
-              onPress={() => setSelectedCategory(null)}
-              style={[styles.categoryButton, selectedCategory === null && styles.categoryButtonActive]}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.categoryButtonText, selectedCategory === null && styles.categoryButtonTextActive]}>
-                Wszystkie
-              </Text>
-            </TouchableOpacity>
             {TRAINING_TYPES.filter(type => type.id !== 'fullbody').map(type => (
               <TouchableOpacity
                 key={type.id}
