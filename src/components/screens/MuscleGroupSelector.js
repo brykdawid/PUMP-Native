@@ -234,11 +234,37 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
           </Text>
         </View>
 
+        {/* Przycisk FBW na górze */}
+        <TouchableOpacity
+          onPress={() => toggleGroup('fullbody')}
+          style={[
+            styles.fbwButton,
+            isFullBodySelected && styles.fbwButtonSelected
+          ]}
+          activeOpacity={0.7}
+        >
+          <LinearGradient
+            colors={isFullBodySelected ? ['#16a34a', '#15803d'] : ['#9333ea', '#7e22ce']}
+            style={styles.fbwGradient}
+          >
+            <View style={styles.fbwContent}>
+              <Ionicons
+                name={isFullBodySelected ? "checkmark-circle" : "fitness"}
+                size={24}
+                color="#ffffff"
+              />
+              <Text style={styles.fbwButtonText}>FBW (Full Body Workout)</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <Text style={styles.fbwDescription}>
+          Trening FBW angażuje wszystkie partie mięśniowe - 2 ćwiczenia na każdą grupę
+        </Text>
+
         <View style={styles.muscleGrid}>
-          {TRAINING_TYPES.map(type => {
-            const isSelected = type.id === 'fullbody'
-              ? isFullBodySelected
-              : selectedGroups.includes(type.id);
+          {TRAINING_TYPES.filter(type => type.id !== 'fullbody').map(type => {
+            const isSelected = selectedGroups.includes(type.id);
 
             return (
               <MuscleCard
@@ -317,6 +343,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     textAlign: 'center',
+  },
+  fbwButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 12,
+  },
+  fbwButtonSelected: {
+    shadowColor: '#16a34a',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  fbwGradient: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+  },
+  fbwContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  fbwButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#ffffff',
+  },
+  fbwDescription: {
+    fontSize: 13,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 8,
+    lineHeight: 18,
   },
   muscleGrid: {
     flexDirection: 'row',

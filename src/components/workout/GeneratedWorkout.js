@@ -256,30 +256,40 @@ function GeneratedWorkout({
       'przedramiona': 'forearms',
       'triceps': 'triceps'
     };
-    
+
+    // Sprawdź czy to trening FBW (wszystkie grupy mięśniowe zaznaczone)
+    const allMuscleGroups = Object.keys(categoryLabels);
+    const isFBW = selectedTypes.length === allMuscleGroups.length &&
+                  allMuscleGroups.every(group => selectedTypes.includes(group));
+
+    // Dla FBW używamy 2 ćwiczeń na grupę, dla innych 3
+    const exercisesPerGroup = isFBW ? 2 : 3;
+
+    console.log(`Is FBW: ${isFBW}, exercises per group: ${exercisesPerGroup}`);
+
     const plan = {};
-    
+
     selectedTypes.forEach(category => {
       console.log(`Generating for category: ${category}`);
       const targetLabel = categoryLabels[category];
-      const categoryExercises = allExercises.filter(ex => 
+      const categoryExercises = allExercises.filter(ex =>
         ex.labels && ex.labels.includes(targetLabel)
       );
-      
+
       console.log(`Found ${categoryExercises.length} exercises for ${category} (label: ${targetLabel})`);
-      
+
       const shuffled = [...categoryExercises].sort(() => Math.random() - 0.5);
 
       // POPRAWKA: Dodaj kategorię do każdego ćwiczenia
-      plan[category] = shuffled.slice(0, 3).map((ex, idx) => ({
+      plan[category] = shuffled.slice(0, exercisesPerGroup).map((ex, idx) => ({
         ...ex,
         count: idx + 1,
         category: category // WAŻNE: Ustaw kategorię wybrana przez użytkownika
       }));
-      
+
       console.log(`Generated ${plan[category].length} exercises for ${category}`);
     });
-    
+
     console.log('Final generated plan:', Object.keys(plan).map(k => `${k}: ${plan[k].length}`));
     setWorkoutPlan(plan);
   };
