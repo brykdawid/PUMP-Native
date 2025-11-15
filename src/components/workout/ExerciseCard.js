@@ -12,7 +12,9 @@ function ExerciseCard({
   onAdd,
   onRemove,
   onReplace,
-  replaceButtonText = 'Wymień'
+  replaceButtonText = 'Wymień',
+  // AI tag
+  showAITag = false
 }) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
@@ -77,7 +79,15 @@ function ExerciseCard({
           </View>
 
           <View style={styles.textContainer}>
-            <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{exercise.name}</Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{exercise.name}</Text>
+              {showAITag && (
+                <View style={styles.aiTag}>
+                  <Ionicons name="sparkles" size={12} color="#9333ea" />
+                  <Text style={styles.aiTagText}>AI</Text>
+                </View>
+              )}
+            </View>
             <Text style={styles.exerciseSets}>{formatSets(exercise.sets)}</Text>
           </View>
         </TouchableOpacity>
@@ -190,10 +200,33 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexWrap: 'wrap',
+  },
   exerciseName: {
     color: '#111827',
     fontWeight: '600',
     fontSize: 16,
+    flex: 1,
+  },
+  aiTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#f3e8ff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#d8b4fe',
+  },
+  aiTagText: {
+    color: '#9333ea',
+    fontSize: 11,
+    fontWeight: '700',
   },
   exerciseSets: {
     color: '#9333ea',
@@ -243,6 +276,7 @@ export default memo(ExerciseCard, (prevProps, nextProps) => {
     prevProps.exercise?.image === nextProps.exercise?.image &&
     prevProps.exercise?.sets === nextProps.exercise?.sets &&
     prevProps.isFavorite === nextProps.isFavorite &&
+    prevProps.showAITag === nextProps.showAITag &&
     prevProps.onToggle === nextProps.onToggle &&
     prevProps.onFavorite === nextProps.onFavorite &&
     prevProps.onAdd === nextProps.onAdd &&
