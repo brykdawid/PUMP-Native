@@ -619,6 +619,7 @@ function GeneratedWorkout({
                     onRemove={() => removeExercise(category, exercise)}
                     onReplace={() => replaceExercise(category, exercise)}
                     replaceButtonText="Wymień"
+                    showAITag={true}
                   />
                 ))}
                 <TouchableOpacity

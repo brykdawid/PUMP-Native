@@ -451,9 +451,19 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
                             <Ionicons name="star" size={16} color="#facc15" style={styles.savedStar} />
                           )}
                         </View>
-                        <Text style={styles.workoutType}>
-                          {workout.type === 'custom' ? 'Własny' : 'Wygenerowany'}
-                        </Text>
+                        <View style={styles.workoutTypeBadgeContainer}>
+                          {workout.type === 'generated' ? (
+                            <View style={styles.aiPoweredBadge}>
+                              <Ionicons name="sparkles" size={12} color="#9333ea" />
+                              <Text style={styles.aiPoweredText}>AI Powered</Text>
+                            </View>
+                          ) : (
+                            <View style={styles.customBadge}>
+                              <Ionicons name="construct" size={12} color="#0891b2" />
+                              <Text style={styles.customText}>Custom</Text>
+                            </View>
+                          )}
+                        </View>
                       </View>
                     </View>
 
@@ -943,6 +953,43 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b7280',
     marginTop: 2,
+  },
+  workoutTypeBadgeContainer: {
+    marginTop: 6,
+  },
+  aiPoweredBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#f3e8ff',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#d8b4fe',
+    alignSelf: 'flex-start',
+  },
+  aiPoweredText: {
+    color: '#9333ea',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  customBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#cffafe',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#67e8f9',
+    alignSelf: 'flex-start',
+  },
+  customText: {
+    color: '#0891b2',
+    fontSize: 11,
+    fontWeight: '700',
   },
   workoutDuration: {
     flexDirection: 'row',
