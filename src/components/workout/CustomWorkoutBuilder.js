@@ -18,6 +18,7 @@ import { TRAINING_TYPES, CATEGORY_TO_AI_LABELS } from '../data/exercisesData';
 import { getLocalISOString } from '../../utils/workoutHelpers';
 import GifModal from './GifModal';
 import ExerciseCard from './ExerciseCard';
+import ExerciseSearchModal from './ExerciseSearchModal';
 
 const translateCategory = (category) => {
   const translations = {
@@ -64,6 +65,8 @@ function CustomWorkoutBuilder({
   const [favorites, setFavorites] = useState([]);
   const [savedWorkouts, setSavedWorkouts] = useState([]);
   const [showExerciseList, setShowExerciseList] = useState(false);
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
+  const [groupSearchModalVisible, setGroupSearchModalVisible] = useState(null); // stores groupId
   const [customDate, setCustomDate] = useState(() => {
     if (targetDate) return targetDate;
     const today = new Date();
@@ -284,10 +287,6 @@ function CustomWorkoutBuilder({
         setWorkoutPlan(prev => [...prev, newGroup]);
       }
 
-      // Zamknij search bar i wyniki
-      setSearchQuery('');
-      setShowExerciseList(false);
-
       // Pokaż informację o dodaniu
       alertDialog('Dodano', `${exerciseName} został dodany do planu treningowego`);
 
@@ -310,10 +309,6 @@ function CustomWorkoutBuilder({
         id: exercise.id || `${exerciseName}-${Date.now()}-${Math.random()}`,
       };
       setSelectedExercises(prev => [...prev, newExercise]);
-
-      // Zamknij search bar i wyniki
-      setSearchQuery('');
-      setShowExerciseList(false);
 
       // Pokaż informację o dodaniu
       alertDialog('Dodano', `${exerciseName} został dodany do planu treningowego`);
@@ -389,11 +384,6 @@ function CustomWorkoutBuilder({
         ? { ...group, exercises: [...group.exercises, newExercise] }
         : group
     ));
-
-    // Zamknij search bar i wyniki
-    setSearchQuery('');
-    setShowExerciseList(false);
-    setAddingExerciseToGroup(null);
 
     // Pokaż informację o dodaniu
     alertDialog('Dodano', `${exerciseName} został dodany do grupy`);
@@ -804,64 +794,14 @@ function CustomWorkoutBuilder({
       >
         {activeTab === 'search' && (
           <View style={styles.searchContainer}>
-            <TextInput
+            <TouchableOpacity
               style={styles.searchInput}
-              value={searchQuery}
-              onChangeText={(text) => {
-                setSearchQuery(text);
-                setShowExerciseList(text.length > 0);
-              }}
-              placeholder="Szukaj ćwiczeń..."
-              placeholderTextColor="#9ca3af"
-            />
-
-            {showExerciseList && (
-              <>
-                <Pressable
-                  style={styles.searchBackdrop}
-                  onPress={() => {
-                    setSearchQuery('');
-                    setShowExerciseList(false);
-                  }}
-                />
-                <View style={styles.searchResultsOverlay}>
-                  <ScrollView
-                    style={styles.searchResultsScrollView}
-                    contentContainerStyle={styles.searchResultsContent}
-                    showsVerticalScrollIndicator={true}
-                    nestedScrollEnabled={true}
-                  >
-                    {filteredExercises.map((exercise, idx) => {
-                      const { inPlan, groupName } = isExerciseInPlan(exercise.name);
-                      return (
-                        <View
-                          key={`search-${exercise.name}-${idx}`}
-                          style={[
-                            styles.searchExerciseItem,
-                            inPlan && styles.searchExerciseItemInPlan
-                          ]}
-                        >
-                          {inPlan && (
-                            <View style={styles.inPlanBadge}>
-                              <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
-                              <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
-                            </View>
-                          )}
-                          <View style={inPlan ? styles.exerciseCardDimmed : null}>
-                            <ExerciseCard
-                              exercise={exercise}
-                              exerciseId={idx}
-                              onToggle={() => handleImageClick(exercise)}
-                              onAdd={() => addExercise(exercise)}
-                            />
-                          </View>
-                        </View>
-                      );
-                    })}
-                  </ScrollView>
-                </View>
-              </>
-            )}
+              onPress={() => setSearchModalVisible(true)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="search" size={20} color="#9ca3af" />
+              <Text style={styles.searchPlaceholder}>Szukaj ćwiczeń...</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -990,78 +930,15 @@ function CustomWorkoutBuilder({
                     ))}
 
                     {/* Lokalny search bar dla grupy */}
-                    <View style={[
-                      styles.groupSearchSection,
-                      groupSearchQueries[group.id] && groupSearchQueries[group.id].length > 0 && styles.groupSearchSectionExpanded
-                    ]}>
-                      <TextInput
+                    <View style={styles.groupSearchSection}>
+                      <TouchableOpacity
                         style={styles.groupSearchInput}
-                        value={groupSearchQueries[group.id] || ''}
-                        onChangeText={(text) => {
-                          setGroupSearchQueries(prev => ({
-                            ...prev,
-                            [group.id]: text
-                          }));
-                        }}
-                        placeholder="Szukaj ćwiczeń do dodania..."
-                        placeholderTextColor="#9ca3af"
-                      />
-
-                      {groupSearchQueries[group.id] && groupSearchQueries[group.id].length > 0 && (
-                        <>
-                          <Pressable
-                            style={styles.groupSearchBackdrop}
-                            onPress={() => {
-                              setGroupSearchQueries(prev => ({
-                                ...prev,
-                                [group.id]: ''
-                              }));
-                            }}
-                          />
-                          <View style={styles.groupSearchResultsOverlay}>
-                            <ScrollView
-                              style={styles.groupSearchResultsScrollView}
-                              contentContainerStyle={styles.groupSearchResultsContent}
-                              showsVerticalScrollIndicator={true}
-                              nestedScrollEnabled={true}
-                            >
-                              {getFilteredExercisesForGroup(group.muscleGroup, groupSearchQueries[group.id]).map((exercise, idx) => {
-                                const { inPlan, groupName } = isExerciseInPlan(exercise.name);
-                                return (
-                                  <View
-                                    key={`group-search-${group.id}-${exercise.name}-${idx}`}
-                                    style={[
-                                      styles.groupSearchResultItem,
-                                      inPlan && styles.searchExerciseItemInPlan
-                                    ]}
-                                  >
-                                    {inPlan && (
-                                      <View style={styles.inPlanBadge}>
-                                        <Ionicons name="checkmark-circle" size={16} color="#ef4444" />
-                                        <Text style={styles.inPlanBadgeText}>W planie: {groupName}</Text>
-                                      </View>
-                                    )}
-                                    <View style={inPlan ? styles.exerciseCardDimmed : null}>
-                                      <ExerciseCard
-                                        exercise={exercise}
-                                        exerciseId={`group-${group.id}-${idx}`}
-                                        onToggle={() => handleImageClick(exercise)}
-                                        onAdd={() => {
-                                          addExerciseToGroup(group.id, exercise);
-                                          setGroupSearchQueries(prev => ({
-                                            ...prev,
-                                            [group.id]: ''
-                                          }));
-                                        }}
-                                      />
-                                    </View>
-                                  </View>
-                                );
-                              })}
-                            </ScrollView>
-                          </View>
-                        </>
-                      )}
+                        onPress={() => setGroupSearchModalVisible(group.id)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="search" size={20} color="#9ca3af" />
+                        <Text style={styles.searchPlaceholder}>Szukaj ćwiczeń do dodania...</Text>
+                      </TouchableOpacity>
                     </View>
                   </>
                 )}
@@ -1078,6 +955,44 @@ function CustomWorkoutBuilder({
             </TouchableOpacity>
           </View>
       </ScrollView>
+
+      {/* Main search modal */}
+      <ExerciseSearchModal
+        visible={searchModalVisible}
+        onClose={() => setSearchModalVisible(false)}
+        exercises={allExercises}
+        onAddExercise={addExercise}
+        onImageClick={handleImageClick}
+        isExerciseInPlan={isExerciseInPlan}
+        title="Dodaj ćwiczenie"
+        placeholder="Szukaj ćwiczeń..."
+      />
+
+      {/* Group search modal */}
+      {groupSearchModalVisible && (() => {
+        const group = workoutPlan.find(g => g.id === groupSearchModalVisible);
+        const muscleGroupName = group?.muscleGroup
+          ? getCategoryName(group.muscleGroup)
+          : 'grupę mięśniową';
+
+        return (
+          <ExerciseSearchModal
+            visible={true}
+            onClose={() => setGroupSearchModalVisible(null)}
+            exercises={allExercises.filter(exercise => {
+              if (!exercise || !exercise.name || !group?.muscleGroup) return false;
+              const exerciseCategories = exercise.labels || [];
+              const groupLabels = CATEGORY_TO_AI_LABELS[group.muscleGroup] || [];
+              return groupLabels.some(label => exerciseCategories.includes(label));
+            })}
+            onAddExercise={(exercise) => addExerciseToGroup(groupSearchModalVisible, exercise)}
+            onImageClick={handleImageClick}
+            isExerciseInPlan={(exerciseName) => isExerciseInPlan(exerciseName, groupSearchModalVisible)}
+            title={`Dodaj ćwiczenia dla ${muscleGroupName}`}
+            placeholder="Szukaj ćwiczeń..."
+          />
+        );
+      })()}
 
       <GifModal
         exercise={selectedExercise}
@@ -1198,54 +1113,23 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   searchContainer: {
-    position: 'relative',
-    zIndex: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
   searchInput: {
-    margin: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     padding: 12,
     backgroundColor: '#ffffff',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#e5e7eb',
+  },
+  searchPlaceholder: {
     fontSize: 16,
-    zIndex: 1,
-  },
-  searchBackdrop: {
-    position: 'absolute',
-    top: -1000,
-    left: -1000,
-    right: -1000,
-    height: 10000,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    zIndex: 50,
-  },
-  searchResultsOverlay: {
-    position: 'absolute',
-    top: 68,
-    left: 16,
-    right: 16,
-    zIndex: 100,
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-    maxHeight: 500,
-  },
-  searchResultsScrollView: {
-    maxHeight: 500,
-  },
-  searchResultsContent: {
-    padding: 8,
-    gap: 12,
+    color: '#9ca3af',
+    flex: 1,
   },
   muscleGroupsScroll: {
     maxHeight: 50,
@@ -1536,72 +1420,20 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   groupSearchSection: {
-    position: 'relative',
     padding: 16,
     backgroundColor: '#f9fafb',
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
-    zIndex: 5,
-  },
-  groupSearchSectionExpanded: {
-    minHeight: 450,
   },
   groupSearchInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     padding: 12,
     backgroundColor: '#ffffff',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    fontSize: 14,
-    zIndex: 1,
-  },
-  groupSearchBackdrop: {
-    position: 'absolute',
-    top: -1000,
-    left: -1000,
-    right: -1000,
-    height: 10000,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    zIndex: 25,
-  },
-  groupSearchResultsOverlay: {
-    position: 'absolute',
-    top: 70,
-    left: 16,
-    right: 16,
-    zIndex: 50,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 8,
-    maxHeight: 400,
-  },
-  groupSearchResultsScrollView: {
-    maxHeight: 400,
-  },
-  groupSearchResultsContent: {
-    padding: 8,
-    gap: 8,
-  },
-  groupSearchResults: {
-    marginTop: 12,
-    gap: 8,
-  },
-  groupSearchResultItem: {
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    overflow: 'hidden',
-    position: 'relative',
   },
   searchExerciseItemInPlan: {
     borderColor: '#fca5a5',
