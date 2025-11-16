@@ -50,6 +50,16 @@
       "eas": {
         "projectId": "169a0b3d-6289-4de3-9acf-ae30fda1360b"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "buildReactNativeFromSource": true
+          }
+        }
+      ]
+    ]
   }
 }
