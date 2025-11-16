@@ -122,7 +122,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
 
             {/* Info Section */}
             <View style={styles.infoContainer}>
-              <Text style={styles.exerciseName}>{exercise.name}</Text>
+              <Text style={styles.exerciseName}>{exercise.name || 'Bez nazwy'}</Text>
 
               {exercise.description && (
                 <View style={styles.section}>
@@ -131,7 +131,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
                 </View>
               )}
 
-              {exercise.tips && exercise.tips.length > 0 && (
+              {exercise.tips && Array.isArray(exercise.tips) && exercise.tips.length > 0 && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Wskazówki:</Text>
                   <View style={styles.tipsContainer}>
@@ -160,7 +160,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 60,
+    paddingHorizontal: 20,
   },
   backdrop: {
     position: 'absolute',
@@ -170,9 +171,9 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   modalContainer: {
-    width: SCREEN_WIDTH * 0.92,
-    maxWidth: 600,
-    maxHeight: SCREEN_HEIGHT * 0.85,
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: SCREEN_HEIGHT * 0.8,
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     position: 'relative',
-    height: SCREEN_HEIGHT * 0.45,
+    height: Math.min(SCREEN_HEIGHT * 0.28, 320),
     backgroundColor: '#ffffff',
   },
   headerGradient: {
@@ -237,12 +238,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   exerciseImage: {
-    width: SCREEN_WIDTH * 0.92,
-    height: SCREEN_HEIGHT * 0.45,
+    width: '100%',
+    height: '100%',
   },
   placeholderContainer: {
     width: '100%',
-    height: 256,
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -263,23 +264,23 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   infoContainer: {
-    padding: 24,
+    padding: 16,
     backgroundColor: '#ffffff',
   },
   exerciseName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#111827',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   section: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   descriptionText: {
     fontSize: 14,
@@ -287,14 +288,14 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   tipsContainer: {
-    gap: 8,
+    gap: 6,
   },
   tipItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 12,
+    gap: 10,
     backgroundColor: '#f3e8ff',
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
   },
   tipNumber: {

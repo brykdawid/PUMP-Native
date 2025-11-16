@@ -225,6 +225,15 @@ function CustomWorkoutBuilder({
   }, {});
 
   const addExercise = (exercise) => {
+    // Safety check
+    if (!exercise) {
+      alertDialog('Błąd', 'Nieprawidłowe ćwiczenie');
+      return;
+    }
+
+    // Ensure exercise has a name
+    const exerciseName = exercise.name || 'Bez nazwy';
+
     // Określ kategorię i grupę mięśniową
     const category = getPrimaryCategory(exercise);
     const muscleGroup = categoryToMuscleGroup(category);
@@ -235,16 +244,17 @@ function CustomWorkoutBuilder({
 
       // Sprawdź czy ćwiczenie już istnieje w tej grupie
       if (existingGroup) {
-        const exerciseExists = existingGroup.exercises.some(ex => ex.name === exercise.name);
+        const exerciseExists = existingGroup.exercises.some(ex => (ex.name || 'Bez nazwy') === exerciseName);
         if (exerciseExists) {
-          alertDialog('Info', `${exercise.name} jest już w tej grupie mięśniowej`);
+          alertDialog('Info', `${exerciseName} jest już w tej grupie mięśniowej`);
           return;
         }
       }
 
       const newExercise = {
         ...exercise,
-        id: `${exercise.name}-${Date.now()}-${Math.random()}`,
+        name: exerciseName,
+        id: exercise.id || `${exerciseName}-${Date.now()}-${Math.random()}`,
       };
 
       if (existingGroup) {
@@ -269,18 +279,19 @@ function CustomWorkoutBuilder({
       setShowExerciseList(false);
 
       // Pokaż informację o dodaniu
-      alertDialog('Dodano', `${exercise.name} został dodany do planu treningowego`);
+      alertDialog('Dodano', `${exerciseName} został dodany do planu treningowego`);
     } else {
       // Jeśli nie można określić grupy, sprawdź duplikaty w selectedExercises
-      const exerciseExists = selectedExercises.some(ex => ex.name === exercise.name);
+      const exerciseExists = selectedExercises.some(ex => (ex.name || 'Bez nazwy') === exerciseName);
       if (exerciseExists) {
-        alertDialog('Info', `${exercise.name} jest już w planie treningowym`);
+        alertDialog('Info', `${exerciseName} jest już w planie treningowym`);
         return;
       }
 
       const newExercise = {
         ...exercise,
-        id: `${exercise.name}-${Date.now()}-${Math.random()}`,
+        name: exerciseName,
+        id: exercise.id || `${exerciseName}-${Date.now()}-${Math.random()}`,
       };
       setSelectedExercises(prev => [...prev, newExercise]);
 
@@ -289,7 +300,7 @@ function CustomWorkoutBuilder({
       setShowExerciseList(false);
 
       // Pokaż informację o dodaniu
-      alertDialog('Dodano', `${exercise.name} został dodany do planu treningowego`);
+      alertDialog('Dodano', `${exerciseName} został dodany do planu treningowego`);
     }
   };
 
@@ -317,19 +328,29 @@ function CustomWorkoutBuilder({
   };
 
   const addExerciseToGroup = (groupId, exercise) => {
+    // Safety check
+    if (!exercise) {
+      alertDialog('Błąd', 'Nieprawidłowe ćwiczenie');
+      return;
+    }
+
+    // Ensure exercise has a name
+    const exerciseName = exercise.name || 'Bez nazwy';
+
     // Znajdź grupę i sprawdź czy ćwiczenie już istnieje
     const group = workoutPlan.find(g => g.id === groupId);
     if (group) {
-      const exerciseExists = group.exercises.some(ex => ex.name === exercise.name);
+      const exerciseExists = group.exercises.some(ex => (ex.name || 'Bez nazwy') === exerciseName);
       if (exerciseExists) {
-        Alert.alert('Info', `${exercise.name} jest już w tej grupie`, [{ text: 'OK' }]);
+        alertDialog('Info', `${exerciseName} jest już w tej grupie`);
         return;
       }
     }
 
     const newExercise = {
       ...exercise,
-      id: `${exercise.name}-${Date.now()}-${Math.random()}`,
+      name: exerciseName,
+      id: exercise.id || `${exerciseName}-${Date.now()}-${Math.random()}`,
     };
 
     setWorkoutPlan(prev => prev.map(group =>
@@ -344,7 +365,7 @@ function CustomWorkoutBuilder({
     setAddingExerciseToGroup(null);
 
     // Pokaż informację o dodaniu
-    Alert.alert('Dodano', `${exercise.name} został dodany do grupy`, [{ text: 'OK' }], { cancelable: true });
+    alertDialog('Dodano', `${exerciseName} został dodany do grupy`);
   };
 
   const removeExerciseFromGroup = (groupId, exerciseId) => {
@@ -356,10 +377,13 @@ function CustomWorkoutBuilder({
   };
 
   const toggleFavorite = (exercise) => {
-    const newFavorites = favorites.some(ex => ex.name === exercise.name)
-      ? favorites.filter(ex => ex.name !== exercise.name)
+    if (!exercise) return;
+
+    const exerciseName = exercise.name || 'Bez nazwy';
+    const newFavorites = favorites.some(ex => (ex.name || 'Bez nazwy') === exerciseName)
+      ? favorites.filter(ex => (ex.name || 'Bez nazwy') !== exerciseName)
       : [...favorites, {
-          name: exercise.name,
+          name: exerciseName,
           image: exercise.image,
           description: exercise.description,
           tips: exercise.tips,
@@ -367,13 +391,14 @@ function CustomWorkoutBuilder({
           category: exercise.category,
           savedAt: getLocalISOString()
         }];
-    
+
     setFavorites(newFavorites);
     saveFavoritesToStorage(newFavorites);
   };
 
   const isFavoriteExercise = (exerciseName) => {
-    return favorites.some(ex => ex.name === exerciseName);
+    if (!exerciseName) return false;
+    return favorites.some(ex => (ex.name || 'Bez nazwy') === exerciseName);
   };
 
   const toggleCategory = (category) => {
@@ -541,6 +566,7 @@ function CustomWorkoutBuilder({
 
     const query = searchQuery.toLowerCase();
     const results = allExercises.filter(exercise => {
+      if (!exercise || !exercise.name) return false;
       return exercise.name.toLowerCase().includes(query) ||
              exercise.description?.toLowerCase().includes(query);
     });
@@ -562,6 +588,8 @@ function CustomWorkoutBuilder({
 
     const query = searchQuery.toLowerCase();
     const results = allExercises.filter(exercise => {
+      if (!exercise || !exercise.name) return false;
+
       const matchesSearch = exercise.name.toLowerCase().includes(query) ||
                            exercise.description?.toLowerCase().includes(query);
 
@@ -577,16 +605,18 @@ function CustomWorkoutBuilder({
   };
 
   const isExerciseInPlan = (exerciseName, excludeGroupId = null) => {
+    if (!exerciseName) return { inPlan: false, groupName: null };
+
     // Sprawdź w workoutPlan
     for (const group of workoutPlan) {
       if (excludeGroupId && group.id === excludeGroupId) continue;
-      if (group.exercises.some(ex => ex.name === exerciseName)) {
+      if (group.exercises.some(ex => (ex.name || 'Bez nazwy') === exerciseName)) {
         return { inPlan: true, groupName: TRAINING_TYPES.find(t => t.id === group.muscleGroup)?.name || 'Nieznana grupa' };
       }
     }
 
     // Sprawdź w selectedExercises
-    if (selectedExercises.some(ex => ex.name === exerciseName)) {
+    if (selectedExercises.some(ex => (ex.name || 'Bez nazwy') === exerciseName)) {
       return { inPlan: true, groupName: 'Plan treningowy' };
     }
 

@@ -19,6 +19,11 @@ function ExerciseCard({
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
+  // Safety check - if exercise is null/undefined, render nothing
+  if (!exercise) {
+    return null;
+  }
+
   const handleImageLoad = useCallback(() => {
     setImageLoading(false);
   }, []);
@@ -62,7 +67,7 @@ function ExerciseCard({
               <ActivityIndicator size="small" color="#9333ea" />
             </View>
           )}
-          {imageError ? (
+          {imageError || !exercise.image ? (
             <View style={styles.imagePlaceholder}>
               <Ionicons name="image-outline" size={32} color="#d1d5db" />
             </View>
@@ -86,7 +91,7 @@ function ExerciseCard({
           disabled={!onAdd && !onToggle}
         >
           <View style={styles.nameRow}>
-            <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{exercise.name}</Text>
+            <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{exercise.name || 'Bez nazwy'}</Text>
             {showAITag && (
               <View style={styles.aiTag}>
                 <Ionicons name="sparkles" size={12} color="#9333ea" />
