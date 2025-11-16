@@ -122,7 +122,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
 
             {/* Info Section */}
             <View style={styles.infoContainer}>
-              <Text style={styles.exerciseName}>{exercise.name}</Text>
+              <Text style={styles.exerciseName}>{exercise.name || 'Bez nazwy'}</Text>
 
               {exercise.description && (
                 <View style={styles.section}>
@@ -131,7 +131,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
                 </View>
               )}
 
-              {exercise.tips && exercise.tips.length > 0 && (
+              {exercise.tips && Array.isArray(exercise.tips) && exercise.tips.length > 0 && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Wskazówki:</Text>
                   <View style={styles.tipsContainer}>
