@@ -178,6 +178,35 @@ export const apiDelete = async (endpoint) => {
 };
 
 // ============================================
+// HELPERS - URL conversion
+// ============================================
+
+/**
+ * Konwertuje względny URL obrazka na absolutny
+ * @param {string} imageUrl - Względny lub absolutny URL obrazka
+ * @returns {string} Absolutny URL obrazka
+ */
+const getAbsoluteImageUrl = (imageUrl) => {
+  if (!imageUrl) return null;
+
+  // Jeśli URL jest już absolutny (zaczyna się od http:// lub https://), zwróć go bez zmian
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    return imageUrl;
+  }
+
+  // Pobierz bazowy URL z API_URL (bez /api na końcu)
+  const baseUrl = API_URL.replace('/api', '');
+
+  // Jeśli URL jest względny (zaczyna się od /), dodaj bazowy URL
+  if (imageUrl.startsWith('/')) {
+    return `${baseUrl}${imageUrl}`;
+  }
+
+  // W innych przypadkach, dodaj bazowy URL i /
+  return `${baseUrl}/${imageUrl}`;
+};
+
+// ============================================
 // API ENDPOINTS - Konkretne wywołania
 // ============================================
 
@@ -214,8 +243,20 @@ export const fetchExercises = async (forceRefresh = false) => {
     async () => {
       if (__DEV__) console.log('[API] 💪 Fetching exercises from server...');
       const exercises = await apiGet('/exercises');
+
+      // Konwertuj wszystkie względne URL-e obrazków na absolutne
+      const exercisesWithAbsoluteUrls = exercises.map(exercise => ({
+        ...exercise,
+        image: getAbsoluteImageUrl(exercise.image)
+      }));
+
+      // Debug: sprawdź przykładowy URL obrazka
+      if (__DEV__ && exercisesWithAbsoluteUrls.length > 0) {
+        console.log('[API] Sample exercise image URL (after conversion):', exercisesWithAbsoluteUrls[0].image);
+      }
+
       if (__DEV__) console.log(`[API] ✅ Loaded ${exercises.length} exercises from server`);
-      return exercises;
+      return exercisesWithAbsoluteUrls;
     },
     {
       ttl: CACHE_CONFIG.TTL.EXERCISES,
@@ -247,6 +288,14 @@ export const generateWorkout = async (categories, numExercises = 3, forceRefresh
         num_exercises: numExercises,
       });
 
+      // Konwertuj URL-e obrazków w exercises na absolutne (jeśli workout zawiera exercises)
+      if (workout.exercises && Array.isArray(workout.exercises)) {
+        workout.exercises = workout.exercises.map(exercise => ({
+          ...exercise,
+          image: getAbsoluteImageUrl(exercise.image)
+        }));
+      }
+
       if (__DEV__) console.log(`[API] ✅ Generated workout with ${workout.exercises?.length || 0} exercises`);
       return workout;
     },
@@ -272,8 +321,15 @@ export const fetchExerciseById = async (exerciseId, forceRefresh = false) => {
     async () => {
       if (__DEV__) console.log(`[API] 🔍 Fetching exercise ID from server: ${exerciseId}`);
       const exercise = await apiGet(`/exercises/${exerciseId}`);
+
+      // Konwertuj URL obrazka na absolutny
+      const exerciseWithAbsoluteUrl = {
+        ...exercise,
+        image: getAbsoluteImageUrl(exercise.image)
+      };
+
       if (__DEV__) console.log(`[API] ✅ Loaded exercise: ${exercise.name}`);
-      return exercise;
+      return exerciseWithAbsoluteUrl;
     },
     {
       ttl: CACHE_CONFIG.TTL.EXERCISES,
@@ -297,8 +353,15 @@ export const searchExercises = async (query, forceRefresh = false) => {
     async () => {
       if (__DEV__) console.log(`[API] 🔎 Searching exercises from server: "${query}"`);
       const results = await apiGet(`/exercises/search?q=${encodeURIComponent(query)}`);
+
+      // Konwertuj URL-e obrazków na absolutne
+      const resultsWithAbsoluteUrls = results.map(exercise => ({
+        ...exercise,
+        image: getAbsoluteImageUrl(exercise.image)
+      }));
+
       if (__DEV__) console.log(`[API] ✅ Found ${results.length} results`);
-      return results;
+      return resultsWithAbsoluteUrls;
     },
     {
       ttl: CACHE_CONFIG.TTL.SEARCH,

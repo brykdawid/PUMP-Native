@@ -55,7 +55,13 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
 
   const loadExercises = async () => {
     try {
-      const exercises = await fetchExercises();
+      // Force refresh to bypass cache and get fresh data with absolute URLs
+      const exercises = await fetchExercises(true);
+      if (__DEV__) console.log('[StatsPage] Loaded exercises count:', exercises.length);
+      if (__DEV__ && exercises.length > 0) {
+        console.log('[StatsPage] Sample exercise image URL:', exercises[0].image);
+        console.log('[StatsPage] Sample exercise:', exercises[0]);
+      }
       setExercisesList(exercises);
       setFilteredExercises(exercises);
     } catch (error) {
@@ -1123,6 +1129,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
                   <View style={styles.exerciseListImageWrapper}>
                     {exercise.image ? (
                       <>
+                        {__DEV__ && idx === 0 && console.log('[StatsPage] Rendering first exercise image:', exercise.image)}
                         {imageLoadingStates[`picker-${exercise.name}`] && !imageErrors[`picker-${exercise.name}`] && (
                           <View style={styles.exerciseListImageLoadingOverlay}>
                             <ActivityIndicator size="small" color="#9333ea" />
@@ -1135,10 +1142,12 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
                             resizeMode="cover"
                             fadeDuration={0}
                             onLoad={() => {
+                              if (__DEV__) console.log('[StatsPage] Image loaded successfully:', exercise.name);
                               setImageLoadingStates(prev => ({ ...prev, [`picker-${exercise.name}`]: false }));
                             }}
-                            onError={() => {
-                              if (__DEV__) console.log('Picker image load error for', exercise.name, ':', exercise.image);
+                            onError={(error) => {
+                              if (__DEV__) console.log('[StatsPage] ❌ Image load error for', exercise.name, ':', exercise.image);
+                              if (__DEV__) console.log('[StatsPage] Error details:', error.nativeEvent);
                               setImageLoadingStates(prev => ({ ...prev, [`picker-${exercise.name}`]: false }));
                               setImageErrors(prev => ({ ...prev, [`picker-${exercise.name}`]: true }));
                             }}
