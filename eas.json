@@ -24,6 +24,10 @@
       "autoIncrement": true,
       "env": {
         "NODE_ENV": "production"
+      },
+      "ios": {
+        "image": "latest",
+        "cocoapods": "1.15.2"
       }
     }
   },
