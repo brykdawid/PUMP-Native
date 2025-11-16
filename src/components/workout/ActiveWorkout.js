@@ -9,6 +9,7 @@ import {
   Platform,
   Modal,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { alertDialog, confirmDialog } from '../../utils/storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -52,6 +53,8 @@ function ActiveWorkout({
   const [showMuscleGroupModal, setShowMuscleGroupModal] = useState(false);
   const [showEndWorkoutModal, setShowEndWorkoutModal] = useState(false);
   const [validationError, setValidationError] = useState(null);
+  const [imageLoadingStates, setImageLoadingStates] = useState({});
+  const [imageErrors, setImageErrors] = useState({});
 
   const workoutType = activeWorkout?.type || 'custom';
 
@@ -643,11 +646,40 @@ function ActiveWorkout({
                         style={styles.exerciseImageContainer}
                         activeOpacity={0.8}
                       >
-                        <Image
-                          source={{ uri: exercise.image }}
-                          style={styles.exerciseImage}
-                          resizeMode="cover"
-                        />
+                        {exercise.image ? (
+                          <>
+                            {imageLoadingStates[exercise.id || exercise.name] && !imageErrors[exercise.id || exercise.name] && (
+                              <View style={styles.imageLoadingOverlay}>
+                                <ActivityIndicator size="small" color="#9333ea" />
+                              </View>
+                            )}
+                            {!imageErrors[exercise.id || exercise.name] && (
+                              <Image
+                                source={{ uri: exercise.image }}
+                                style={styles.exerciseImage}
+                                resizeMode="cover"
+                                fadeDuration={0}
+                                onLoad={() => {
+                                  setImageLoadingStates(prev => ({ ...prev, [exercise.id || exercise.name]: false }));
+                                }}
+                                onError={(error) => {
+                                  if (__DEV__) console.log('Image load error for', exercise.name, ':', exercise.image);
+                                  setImageLoadingStates(prev => ({ ...prev, [exercise.id || exercise.name]: false }));
+                                  setImageErrors(prev => ({ ...prev, [exercise.id || exercise.name]: true }));
+                                }}
+                              />
+                            )}
+                            {imageErrors[exercise.id || exercise.name] && (
+                              <View style={styles.exerciseImagePlaceholder}>
+                                <Ionicons name="barbell-outline" size={32} color="#d1d5db" />
+                              </View>
+                            )}
+                          </>
+                        ) : (
+                          <View style={styles.exerciseImagePlaceholder}>
+                            <Ionicons name="barbell-outline" size={32} color="#d1d5db" />
+                          </View>
+                        )}
                       </TouchableOpacity>
 
                       {/* Exercise Info */}
@@ -834,11 +866,40 @@ function ActiveWorkout({
                     activeOpacity={0.7}
                   >
                     <View style={styles.searchResultImageContainer}>
-                      <Image
-                        source={{ uri: exercise.image }}
-                        style={styles.searchResultImage}
-                        resizeMode="cover"
-                      />
+                      {exercise.image ? (
+                        <>
+                          {imageLoadingStates[`search-${exercise.name}`] && !imageErrors[`search-${exercise.name}`] && (
+                            <View style={styles.searchImageLoadingOverlay}>
+                              <ActivityIndicator size="small" color="#9333ea" />
+                            </View>
+                          )}
+                          {!imageErrors[`search-${exercise.name}`] && (
+                            <Image
+                              source={{ uri: exercise.image }}
+                              style={styles.searchResultImage}
+                              resizeMode="cover"
+                              fadeDuration={0}
+                              onLoad={() => {
+                                setImageLoadingStates(prev => ({ ...prev, [`search-${exercise.name}`]: false }));
+                              }}
+                              onError={() => {
+                                if (__DEV__) console.log('Search image load error for', exercise.name, ':', exercise.image);
+                                setImageLoadingStates(prev => ({ ...prev, [`search-${exercise.name}`]: false }));
+                                setImageErrors(prev => ({ ...prev, [`search-${exercise.name}`]: true }));
+                              }}
+                            />
+                          )}
+                          {imageErrors[`search-${exercise.name}`] && (
+                            <View style={styles.searchResultImagePlaceholder}>
+                              <Ionicons name="barbell-outline" size={24} color="#d1d5db" />
+                            </View>
+                          )}
+                        </>
+                      ) : (
+                        <View style={styles.searchResultImagePlaceholder}>
+                          <Ionicons name="barbell-outline" size={24} color="#d1d5db" />
+                        </View>
+                      )}
                     </View>
                     <Text style={styles.searchResultText}>{exercise.name}</Text>
                   </TouchableOpacity>
@@ -1191,6 +1252,24 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  imageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    zIndex: 1,
+  },
+  exerciseImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+  },
   exerciseHeaderLeft: {
     flex: 1,
   },
@@ -1400,6 +1479,24 @@ const styles = StyleSheet.create({
   searchResultImage: {
     width: '100%',
     height: '100%',
+  },
+  searchImageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    zIndex: 1,
+  },
+  searchResultImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
   },
   searchResultText: {
     flex: 1,
