@@ -83,12 +83,12 @@ function ExerciseCard({
           )}
         </TouchableOpacity>
 
-        {/* Clickable text/title area - adds exercise if onAdd exists */}
+        {/* Clickable text/title area - opens preview modal */}
         <TouchableOpacity
-          onPress={onAdd || onToggle}
+          onPress={onToggle}
           style={styles.textContainer}
           activeOpacity={0.7}
-          disabled={!onAdd && !onToggle}
+          disabled={!onToggle}
         >
           <View style={styles.nameRow}>
             <Text style={styles.exerciseName} numberOfLines={2} ellipsizeMode="tail">{exercise.name || 'Bez nazwy'}</Text>

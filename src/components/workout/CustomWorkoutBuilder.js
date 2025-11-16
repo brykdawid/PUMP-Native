@@ -74,6 +74,7 @@ function CustomWorkoutBuilder({
   });
   
   const scheduleCalledRef = useRef(false);
+  const addingInProgressRef = useRef(false);
 
   useEffect(() => {
     loadFavorites();
@@ -225,11 +226,20 @@ function CustomWorkoutBuilder({
   }, {});
 
   const addExercise = (exercise) => {
+    // Prevent multiple rapid clicks
+    if (addingInProgressRef.current) {
+      if (__DEV__) console.log('[CustomWorkoutBuilder] Add already in progress, ignoring...');
+      return;
+    }
+
     // Safety check
     if (!exercise) {
       alertDialog('Błąd', 'Nieprawidłowe ćwiczenie');
       return;
     }
+
+    // Set flag to prevent double-clicks
+    addingInProgressRef.current = true;
 
     // Ensure exercise has a name
     const exerciseName = exercise.name || 'Bez nazwy';
@@ -280,11 +290,17 @@ function CustomWorkoutBuilder({
 
       // Pokaż informację o dodaniu
       alertDialog('Dodano', `${exerciseName} został dodany do planu treningowego`);
+
+      // Reset flag after a short delay
+      setTimeout(() => {
+        addingInProgressRef.current = false;
+      }, 500);
     } else {
       // Jeśli nie można określić grupy, sprawdź duplikaty w selectedExercises
       const exerciseExists = selectedExercises.some(ex => (ex.name || 'Bez nazwy') === exerciseName);
       if (exerciseExists) {
         alertDialog('Info', `${exerciseName} jest już w planie treningowym`);
+        addingInProgressRef.current = false;
         return;
       }
 
@@ -301,6 +317,11 @@ function CustomWorkoutBuilder({
 
       // Pokaż informację o dodaniu
       alertDialog('Dodano', `${exerciseName} został dodany do planu treningowego`);
+
+      // Reset flag after a short delay
+      setTimeout(() => {
+        addingInProgressRef.current = false;
+      }, 500);
     }
   };
 
@@ -328,11 +349,20 @@ function CustomWorkoutBuilder({
   };
 
   const addExerciseToGroup = (groupId, exercise) => {
+    // Prevent multiple rapid clicks
+    if (addingInProgressRef.current) {
+      if (__DEV__) console.log('[CustomWorkoutBuilder] Add to group already in progress, ignoring...');
+      return;
+    }
+
     // Safety check
     if (!exercise) {
       alertDialog('Błąd', 'Nieprawidłowe ćwiczenie');
       return;
     }
+
+    // Set flag to prevent double-clicks
+    addingInProgressRef.current = true;
 
     // Ensure exercise has a name
     const exerciseName = exercise.name || 'Bez nazwy';
@@ -343,6 +373,7 @@ function CustomWorkoutBuilder({
       const exerciseExists = group.exercises.some(ex => (ex.name || 'Bez nazwy') === exerciseName);
       if (exerciseExists) {
         alertDialog('Info', `${exerciseName} jest już w tej grupie`);
+        addingInProgressRef.current = false;
         return;
       }
     }
@@ -366,6 +397,11 @@ function CustomWorkoutBuilder({
 
     // Pokaż informację o dodaniu
     alertDialog('Dodano', `${exerciseName} został dodany do grupy`);
+
+    // Reset flag after a short delay
+    setTimeout(() => {
+      addingInProgressRef.current = false;
+    }, 500);
   };
 
   const removeExerciseFromGroup = (groupId, exerciseId) => {
