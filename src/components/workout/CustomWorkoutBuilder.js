@@ -287,9 +287,6 @@ function CustomWorkoutBuilder({
         setWorkoutPlan(prev => [...prev, newGroup]);
       }
 
-      // Zamknij modal
-      setSearchModalVisible(false);
-
       // Pokaż informację o dodaniu
       alertDialog('Dodano', `${exerciseName} został dodany do planu treningowego`);
 
@@ -312,9 +309,6 @@ function CustomWorkoutBuilder({
         id: exercise.id || `${exerciseName}-${Date.now()}-${Math.random()}`,
       };
       setSelectedExercises(prev => [...prev, newExercise]);
-
-      // Zamknij modal
-      setSearchModalVisible(false);
 
       // Pokaż informację o dodaniu
       alertDialog('Dodano', `${exerciseName} został dodany do planu treningowego`);
@@ -390,10 +384,6 @@ function CustomWorkoutBuilder({
         ? { ...group, exercises: [...group.exercises, newExercise] }
         : group
     ));
-
-    // Zamknij modal grupy
-    setGroupSearchModalVisible(null);
-    setAddingExerciseToGroup(null);
 
     // Pokaż informację o dodaniu
     alertDialog('Dodano', `${exerciseName} został dodany do grupy`);
