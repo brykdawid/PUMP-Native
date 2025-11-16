@@ -60,11 +60,14 @@ export function normalizeWorkout(workout) {
       workout.workoutPlan.forEach(group => {
         if (group.exercises && Array.isArray(group.exercises)) {
           group.exercises.forEach(ex => {
-            allExercises.push({
-              ...ex,
-              category: group.muscleGroup || 'inne',
-              sets: ex.sets || ex.count || 3
-            });
+            if (ex && ex.name) {
+              allExercises.push({
+                ...ex,
+                name: ex.name || 'Bez nazwy',
+                category: group.muscleGroup || 'inne',
+                sets: ex.sets || ex.count || 3
+              });
+            }
           });
         }
       });
@@ -84,13 +87,18 @@ export function normalizeWorkout(workout) {
 
     // Generated workout - workoutPlan jest obiektem {category: [exercises]}
     Object.entries(workout.workoutPlan).forEach(([category, exercises]) => {
-      exercises.forEach(ex => {
-        allExercises.push({
-          ...ex,
-          category: category,
-          sets: ex.count || ex.sets || 3
+      if (Array.isArray(exercises)) {
+        exercises.forEach(ex => {
+          if (ex && ex.name) {
+            allExercises.push({
+              ...ex,
+              name: ex.name || 'Bez nazwy',
+              category: category,
+              sets: ex.count || ex.sets || 3
+            });
+          }
         });
-      });
+      }
     });
 
     return {
@@ -113,10 +121,15 @@ export function normalizeWorkout(workout) {
       id: workout.id,
       title: workout.title || 'Custom Workout',
       type: 'custom',
-      exercises: workout.exercises.map(ex => ({
-        ...ex,
-        sets: ex.sets || ex.count || 3
-      })),
+      exercises: Array.isArray(workout.exercises)
+        ? workout.exercises
+            .filter(ex => ex && ex.name)
+            .map(ex => ({
+              ...ex,
+              name: ex.name || 'Bez nazwy',
+              sets: ex.sets || ex.count || 3
+            }))
+        : [],
       metadata: {
         isFavorite: workout.isFavorite || false
       },

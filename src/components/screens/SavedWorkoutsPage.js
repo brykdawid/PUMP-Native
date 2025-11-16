@@ -54,11 +54,13 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
   };
 
   const toggleFavorite = async (exercise) => {
-    const exists = savedExercises.find(ex => ex.name === exercise.name);
+    if (!exercise || !exercise.name) return;
+
+    const exists = savedExercises.find(ex => (ex.name || '') === exercise.name);
 
     let updated;
     if (exists) {
-      updated = savedExercises.filter(ex => ex.name !== exercise.name);
+      updated = savedExercises.filter(ex => (ex.name || '') !== exercise.name);
     } else {
       updated = [...savedExercises, {
         name: exercise.name,
@@ -111,20 +113,32 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
 
   const toggleExpand = (workoutId) => {
     setExpandedWorkout(expandedWorkout === workoutId ? null : workoutId);
-    setExpandedExercise(null);
   };
 
   const handleStartWorkout = (workout) => {
     const normalized = normalizeWorkout(workout);
 
+    if (!normalized.exercises || !Array.isArray(normalized.exercises) || normalized.exercises.length === 0) {
+      alertDialog('Błąd', 'Ten trening nie zawiera żadnych ćwiczeń!');
+      return;
+    }
+
     const workoutData = {
       title: normalized.title || 'Trening',
-      exercises: normalized.exercises.map(ex => ({
-        ...ex,
-        id: `${ex.name}-${Date.now()}-${Math.random()}`
-      })),
+      exercises: normalized.exercises
+        .filter(ex => ex && ex.name)
+        .map(ex => ({
+          ...ex,
+          name: ex.name || 'Bez nazwy',
+          id: ex.id || `${ex.name}-${Date.now()}-${Math.random()}`
+        })),
       type: normalized.type
     };
+
+    if (workoutData.exercises.length === 0) {
+      alertDialog('Błąd', 'Ten trening nie zawiera żadnych prawidłowych ćwiczeń!');
+      return;
+    }
 
     if (onBeginWorkout) {
       onBeginWorkout(workoutData, null, false);
@@ -133,6 +147,11 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
 
   const handleScheduleWorkout = (workout) => {
     const normalized = normalizeWorkout(workout);
+
+    if (!normalized.exercises || !Array.isArray(normalized.exercises) || normalized.exercises.length === 0) {
+      alertDialog('Błąd', 'Ten trening nie zawiera żadnych ćwiczeń!');
+      return;
+    }
 
     const today = new Date();
     const year = today.getFullYear();
@@ -143,15 +162,23 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
     const workoutData = {
       id: Date.now(),
       title: normalized.title || 'Trening',
-      exercises: normalized.exercises.map(ex => ({
-        ...ex,
-        sets: typeof ex.sets === 'string' ? ex.sets : '3-4 serie × 8-12 powtórzeń',
-        id: `${ex.name}-${Date.now()}-${Math.random()}`
-      })),
+      exercises: normalized.exercises
+        .filter(ex => ex && ex.name)
+        .map(ex => ({
+          ...ex,
+          name: ex.name || 'Bez nazwy',
+          sets: typeof ex.sets === 'string' ? ex.sets : '3-4 serie × 8-12 powtórzeń',
+          id: ex.id || `${ex.name}-${Date.now()}-${Math.random()}`
+        })),
       type: normalized.type,
       date: todayString,
       scheduled: true
     };
+
+    if (workoutData.exercises.length === 0) {
+      alertDialog('Błąd', 'Ten trening nie zawiera żadnych prawidłowych ćwiczeń!');
+      return;
+    }
 
     if (onScheduleWorkout) {
       onScheduleWorkout(workoutData);
@@ -425,16 +452,20 @@ function SavedWorkoutsPage({ savedWorkouts, onDeleteWorkout, onBeginWorkout, onU
                       {/* Expanded Content */}
                       {isExpanded && (
                         <View style={styles.expandedContent}>
-                          {normalized.exercises && normalized.exercises.length > 0 && (
+                          {normalized.exercises && Array.isArray(normalized.exercises) && normalized.exercises.length > 0 ? (
                             <View style={styles.exercisesList}>
-                              {normalized.exercises.map((ex, idx) => (
+                              {normalized.exercises.filter(ex => ex && ex.name).map((ex, idx) => (
                                 <ExerciseCard
-                                  key={idx}
+                                  key={`${ex.name}-${idx}`}
                                   exercise={ex}
                                   exerciseId={idx}
                                   onToggle={() => setSelectedGif(ex)}
                                 />
                               ))}
+                            </View>
+                          ) : (
+                            <View style={styles.emptyExercises}>
+                              <Text style={styles.emptyExercisesText}>Brak ćwiczeń w tym treningu</Text>
                             </View>
                           )}
                         </View>
@@ -763,6 +794,15 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     paddingHorizontal: 12,
     paddingBottom: 12,
+  },
+  emptyExercises: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  emptyExercisesText: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
   },
 });
 
