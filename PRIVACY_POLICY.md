@@ -1,7 +1,3 @@
-Oczywiście — poniżej znajdziesz **zaktualizowaną Politykę Prywatności**, w której **nie ma żadnych linków do Twojego prywatnego API**, a opis traktuje generator AI jako usługę backendową bez ujawniania adresu:
-
----
-
 # **Polityka Prywatności — PUMP Workout**
 
 **Data aktualizacji: 15 listopada 2025**
