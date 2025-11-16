@@ -12,7 +12,6 @@
       "android",
       "web"
     ],
-    "privacy": "https://github.com/brykdawid/PUMP-Native/blob/main/PRIVACY_POLICY.md",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
