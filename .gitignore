@@ -8,6 +8,9 @@ npm-debug.*
 *.p12
 *.key
 *.mobileprovision
+
+# Private credentials
+private/
 *.orig.*
 web-build/
 .DS_Store
