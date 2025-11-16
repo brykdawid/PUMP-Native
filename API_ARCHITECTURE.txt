@@ -1,0 +1,188 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                   PUMP-Native API Architecture Overview                      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          EXTERNAL SERVICES                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌────────────────────────────────────────────────────────────┐              │
+│  │  Fly.io (Free Tier) - UNSTABLE PERFORMANCE                │              │
+│  ├────────────────────────────────────────────────────────────┤              │
+│  │  Primary:   https://ai-api-drlzza.fly.dev/api             │              │
+│  │  Secondary: https://ai-api-zljd-a.fly.dev      ⚠️ ISSUE!  │              │
+│  │                                                             │              │
+│  │  Endpoints:                                                 │              │
+│  │  • GET  /health           - Health check                   │              │
+│  │  • GET  /exercises        - All exercises (30 min cache)   │              │
+│  │  • GET  /exercises/{id}   - Single exercise (30 min cache) │              │
+│  │  • GET  /exercises/search - Search (10 min cache)          │              │
+│  │  • POST /generate-workout - AI generation (5 min cache)    │              │
+│  │  • GET  /categories       - Muscle groups (no cache)       │              │
+│  └────────────────────────────────────────────────────────────┘              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           REACT NATIVE APP                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ┌─ API LAYER ───────────────────────────────────────────────┐               │
+│  │                                                             │               │
+│  │  /src/services/api.js (WITH CACHING)    ✅                │               │
+│  │  ├─ apiFetch()          - Universal fetch wrapper         │               │
+│  │  ├─ fetchExercises()    - Get all exercises               │               │
+│  │  ├─ generateWorkout()   - AI workout generation           │               │
+│  │  ├─ fetchExerciseById() - Get single exercise             │               │
+│  │  ├─ searchExercises()   - Search exercises                │               │
+│  │  └─ withRetry()         - Exponential backoff retry       │               │
+│  │                                                             │               │
+│  │  /src/utils/apiHelpers.js (NO CACHING)  ⚠️                │               │
+│  │  ├─ getExercises()      - Get exercises (DUPLICATED!)     │               │
+│  │  ├─ generateWorkout()   - AI generation (DUPLICATED!)     │               │
+│  │  ├─ getAbsoluteImageUrl() - URL conversion               │               │
+│  │  └─ getCategories()     - Get categories (DUPLICATED!)    │               │
+│  │                                                             │               │
+│  └─────────────────────────────────────────────────────────────┘             │
+│                                                                               │
+│  ┌─ CACHE LAYER ─────────────────────────────────────────────┐              │
+│  │ /src/utils/apiCache.js                                    │              │
+│  │                                                             │              │
+│  │  REQUEST FLOW:                                             │              │
+│  │  Incoming Request                                          │              │
+│  │    │                                                        │              │
+│  │    ├─► Memory Cache (100 entries, LRU)                    │              │
+│  │    │   ├─ Hit    → Return instantly (0ms)                 │              │
+│  │    │   └─ Miss                                            │              │
+│  │    │                                                        │              │
+│  │    ├─► Persistent Cache (AsyncStorage, 500 entries)       │              │
+│  │    │   ├─ Hit    → Return + store in memory               │              │
+│  │    │   └─ Miss                                            │              │
+│  │    │                                                        │              │
+│  │    ├─► Request Deduplication Check                        │              │
+│  │    │   ├─ Pending → Wait for result                       │              │
+│  │    │   └─ New                                             │              │
+│  │    │                                                        │              │
+│  │    ├─► Network Quality Monitoring                         │              │
+│  │    │   └─ Adapt timeout (5s-30s)                          │              │
+│  │    │                                                        │              │
+│  │    ├─► API Request                                        │              │
+│  │    │   ├─ Success   → Cache + return                      │              │
+│  │    │   ├─ Timeout   → Serve stale data if available       │              │
+│  │    │   └─ Error     → Serve stale data if available       │              │
+│  │    │                                                        │              │
+│  │    └─► Return Data to Component                           │              │
+│  │                                                             │              │
+│  │  CACHE STRATEGY: Stale-While-Revalidate                   │              │
+│  │  • Return cached data immediately (even if expired)       │              │
+│  │  • Refresh in background if stale                         │              │
+│  │  • If API fails, serve expired data (better than nothing) │              │
+│  │                                                             │              │
+│  └─────────────────────────────────────────────────────────────┘             │
+│                                                                               │
+│  ┌─ IMAGE LOADING LAYER ──────────────────────────────────────┐             │
+│  │ /src/utils/imagePrefetch.js                               │             │
+│  │                                                             │             │
+│  │  IMAGE FLOW:                                              │             │
+│  │  Exercise Data                                            │             │
+│  │    ├─► Extract image URLs                                │             │
+│  │    │                                                       │             │
+│  │    ├─► Add to Prefetch Queue (by priority)               │             │
+│  │    │   ├─ High priority (current screen)                 │             │
+│  │    │   ├─ Medium priority (visible)                      │             │
+│  │    │   └─ Low priority (background)                      │             │
+│  │    │                                                       │             │
+│  │    ├─► Process Queue (3 concurrent max)                  │             │
+│  │    │   ├─ Image.prefetch() call                          │             │
+│  │    │   ├─ Success → Track as prefetched                  │             │
+│  │    │   ├─ Retry (up to 3 times)                          │             │
+│  │    │   └─ Failure → Track as failed                      │             │
+│  │    │                                                       │             │
+│  │    └─► React Native Image Cache                          │             │
+│  │        └─ Instant display when needed                    │             │
+│  │                                                             │             │
+│  │  FEATURES:                                                │             │
+│  │  • Prioritized queue (important images first)            │             │
+│  │  • Concurrency control (3 simultaneous downloads)        │             │
+│  │  • Retry logic with backoff                              │             │
+│  │  • Failed image tracking (skip retries)                  │             │
+│  │                                                             │             │
+│  └─────────────────────────────────────────────────────────────┘             │
+│                                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        COMPONENT USAGE MAPPING                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  App.js                                                                      │
+│  └─► prefetchExercises() ──────────► ✅ CACHED via api.js                   │
+│                                                                               │
+│  LibraryPage.js                                                              │
+│  └─► getExercises() ───────────────► ❌ NOT CACHED (apiHelpers.js)          │
+│                                                                               │
+│  MuscleGroupSelector.js                                                      │
+│  └─► getExercises() ───────────────► ❌ NOT CACHED (apiHelpers.js)          │
+│                                                                               │
+│  GeneratedWorkout.js                                                         │
+│  ├─► getExercises() ───────────────► ❌ NOT CACHED (apiHelpers.js)          │
+│  └─► prefetchExerciseImages() ─────► ✅ Prefetch manager                    │
+│                                                                               │
+│  StatsPage.js                                                                │
+│  └─► fetchExercises() ────────────► ✅ CACHED via api.js                    │
+│                                                                               │
+│  GifModal.js                                                                 │
+│  └─► Image component ──────────────► Uses native React Native caching       │
+│                                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       PERFORMANCE METRICS                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  FIRST LOAD (No Cache):                                                     │
+│  • GET /exercises              5-10 seconds (Fly.io cold start)             │
+│  • Prefetch 100+ GIFs          30-60 seconds (3 concurrent, 1MB each)       │
+│  • Display results             Total: 35-70 seconds                         │
+│                                                                               │
+│  CACHED LOAD (Memory):                                                      │
+│  • GET /exercises              ~0ms (instant)                               │
+│  • Prefetch (if not done)      5-10 seconds                                 │
+│  • Display results             Total: ~0ms (if images cached)               │
+│                                                                               │
+│  AI WORKOUT GENERATION:                                                     │
+│  • POST /generate-workout      10-30 seconds (Fly.io)                       │
+│  • Extract + prefetch GIFs     5-15 seconds                                 │
+│  • Display results             Total: 15-45 seconds                         │
+│                                                                               │
+│  NETWORK QUALITY ADAPTATION:                                                │
+│  • FAST (< 1s)    → 5s timeout                                              │
+│  • NORMAL (1-3s)  → 10s timeout                                             │
+│  • SLOW (3-8s)    → 20s timeout                                             │
+│  • POOR (> 8s)    → 30s timeout                                             │
+│                                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         KEY ISSUES SUMMARY                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                               │
+│  ⚠️  CRITICAL ISSUES:                                                       │
+│  ├─ Duplicate API endpoints (two different base URLs)                       │
+│  ├─ No cache system in apiHelpers.js (many network hits)                    │
+│  ├─ Different components using different API files inconsistently           │
+│  └─ Fly.io free tier highly unstable (0.5s to 10s+ response times)         │
+│                                                                               │
+│  ⚠️  PERFORMANCE ISSUES:                                                    │
+│  ├─ Image loading very slow (2-5MB per GIF, 1-3s each)                     │
+│  ├─ No compression (images not optimized for mobile)                        │
+│  ├─ No CDN (all images from Fly.io backend)                                │
+│  └─ Limited concurrency (3 GIF downloads max, 10+ causes 30s wait)         │
+│                                                                               │
+│  ⚠️  ARCHITECTURE ISSUES:                                                   │
+│  ├─ Code duplication across api.js and apiHelpers.js                        │
+│  ├─ No centralized API configuration                                        │
+│  ├─ Environment variables not actually used                                 │
+│  └─ Image URL handling inconsistent                                         │
+│                                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
