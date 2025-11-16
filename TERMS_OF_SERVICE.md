@@ -52,7 +52,7 @@ You must be at least 13 years old to use this App. If you are under 18, you must
 
 - All workout data, statistics, and personal information you enter into the App ("User Data") is stored locally on your device
 - We do not collect, store, or share your User Data on external servers, except for:
-  - Exercise generation requests sent to our AI API (https://ai-api-drlzza.fly.dev/api)
+  - Exercise generation requests sent to our AI API (https://ai-api-bz4x-a-production.up.railway.app/api)
   - No personally identifiable information (PII) is transmitted in these API requests
 
 ### 4.2 Data Ownership
@@ -91,7 +91,7 @@ You must be at least 13 years old to use this App. If you are under 18, you must
 ### 6.1 AI API Service
 
 The App uses a third-party AI service hosted at:
-- **https://ai-api-drlzza.fly.dev/api**
+- **https://ai-api-bz4x-a-production.up.railway.app/api**
 
 This service is used to:
 - Generate exercise recommendations

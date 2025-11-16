@@ -1,5 +1,5 @@
 // Automatyczna detekcja środowiska
-const API_BASE_URL = 'https://ai-api-bz4x-a.fly.dev';  // ✅ DOBRZE
+const API_BASE_URL = 'https://ai-api-bz4x-a-production.up.railway.app';  // ✅ Railway API
 
 /**
  * Konwertuje względny URL obrazka na absolutny
