@@ -11,7 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import storage, { alertDialog } from '../../utils/storage';
-import { getExercises } from '../../utils/apiHelpers';
+import { getHybridExercises, generateHybridWorkout, getNetworkStatus } from '../../services/hybridWorkoutService';
 import { getLocalISOString } from '../../utils/workoutHelpers';
 import { prefetchExerciseImages } from '../../utils/imagePrefetch';
 import GifModal from './GifModal';
@@ -73,9 +73,15 @@ function GeneratedWorkout({
 
     async function loadExercises() {
       try {
-        if (__DEV__) console.log('Loading exercises...');
-        const data = await getExercises();
-        if (__DEV__) console.log('Exercises loaded:', data.length);
+        if (__DEV__) {
+          console.log('Loading exercises with hybrid service...');
+          const networkStatus = getNetworkStatus();
+          console.log('Network status:', networkStatus.qualityDescription);
+        }
+
+        const data = await getHybridExercises();
+
+        if (__DEV__) console.log('Exercises loaded:', data.length, 'exercises');
         if (mounted) {
           setAllExercises(data);
 
@@ -89,7 +95,7 @@ function GeneratedWorkout({
         if (__DEV__) console.error('Error loading exercises:', error);
         if (mounted) {
           setAllExercises([]);
-          alertDialog('Błąd', 'Nie udało się załadować ćwiczeń');
+          alertDialog('Błąd', 'Nie udało się załadować ćwiczeń. Tryb offline może być ograniczony.');
         }
       }
     }

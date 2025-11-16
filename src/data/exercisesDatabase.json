@@ -1,0 +1,642 @@
+[
+  {
+    "id": 1,
+    "name": "Bench Press",
+    "category": "chest",
+    "description": "Wyciskanie sztangi na ławce poziomej - podstawowe ćwiczenie na klatkę piersiową",
+    "equipment": "Barbell",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/barbell-bench-press.gif",
+    "instructions": [
+      "Połóż się na ławce poziomej",
+      "Chwyć sztangę nieco szerzej niż szerokość barków",
+      "Opuść sztangę kontrolowanie do klatki piersiowej",
+      "Wypchnij sztangę do góry do pełnego wyprostu ramion"
+    ],
+    "targetMuscles": ["chest", "triceps", "shoulders"],
+    "sets": "3-4",
+    "reps": "8-12",
+    "rest": "90-120s",
+    "tips": "Utrzymuj łopatki ściągnięte, stopy płasko na podłodze"
+  },
+  {
+    "id": 2,
+    "name": "Incline Dumbbell Press",
+    "category": "chest",
+    "description": "Wyciskanie hantli na ławce skośnej - rozwija górną część klatki piersiowej",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/incline-dumbbell-press.gif",
+    "instructions": [
+      "Ustaw ławkę pod kątem 30-45 stopni",
+      "Usiądź z hantlami na kolanach",
+      "Wypchnij hantle do góry, unikając ich zderzania",
+      "Opuść kontrolowanie do poziomu ramion"
+    ],
+    "targetMuscles": ["chest", "shoulders", "triceps"],
+    "sets": "3-4",
+    "reps": "10-12",
+    "rest": "90s",
+    "tips": "Nie ustawiaj ławki zbyt stromo (max 45°)"
+  },
+  {
+    "id": 3,
+    "name": "Cable Chest Fly",
+    "category": "chest",
+    "description": "Rozpiętki na wyciągu - izolacja klatki piersiowej",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/cable-chest-fly.gif",
+    "instructions": [
+      "Ustaw uchwyty wyciągu na wysokości ramion",
+      "Chwyć uchwyty i zrób krok do przodu",
+      "Z lekko ugiętymi łokciami prowadź ręce do przodu",
+      "Wróć kontrolowanie do pozycji wyjściowej"
+    ],
+    "targetMuscles": ["chest"],
+    "sets": "3",
+    "reps": "12-15",
+    "rest": "60s",
+    "tips": "Utrzymuj stałe ugięcie w łokciach przez cały ruch"
+  },
+  {
+    "id": 4,
+    "name": "Push-Ups",
+    "category": "chest",
+    "description": "Pompki - klasyczne ćwiczenie z własnym ciężarem ciała",
+    "equipment": "Bodyweight",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/push-ups.gif",
+    "instructions": [
+      "Przyjmij pozycję deski, ręce na szerokość barków",
+      "Opuść ciało aż klatka niemal dotknie podłoża",
+      "Wypchnij się z powrotem do pozycji wyjściowej",
+      "Utrzymuj ciało w linii prostej"
+    ],
+    "targetMuscles": ["chest", "triceps", "shoulders"],
+    "sets": "3-4",
+    "reps": "15-25",
+    "rest": "60s",
+    "tips": "Napnij brzuch, nie opuszczaj bioder"
+  },
+  {
+    "id": 5,
+    "name": "Pull-Ups",
+    "category": "back",
+    "description": "Podciąganie nachwytem - król ćwiczeń na plecy",
+    "equipment": "Pull-up Bar",
+    "difficulty": "Intermediate",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/pull-ups.gif",
+    "instructions": [
+      "Chwyć drążek nachwytem nieco szerzej niż barki",
+      "Zwiń się ruchem łokci do tyłu i w dół",
+      "Podciągnij się aż broda przejdzie nad drążek",
+      "Opuść się kontrolowanie do pełnego wyprostu"
+    ],
+    "targetMuscles": ["back", "lats", "biceps"],
+    "sets": "3-4",
+    "reps": "6-12",
+    "rest": "120s",
+    "tips": "Rozpoczynaj ruch od ściągnięcia łopatek"
+  },
+  {
+    "id": 6,
+    "name": "Barbell Row",
+    "category": "back",
+    "description": "Wiosłowanie sztangą w opadzie - masywne plecy",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/barbell-bent-over-row.gif",
+    "instructions": [
+      "Pochyl się w biodrach, trzymając sztangę",
+      "Utrzymuj plecy proste, kolana lekko ugięte",
+      "Przyciągnij sztangę do dolnej części brzucha",
+      "Opuść kontrolowanie do pozycji wyjściowej"
+    ],
+    "targetMuscles": ["back", "lats", "biceps"],
+    "sets": "3-4",
+    "reps": "8-12",
+    "rest": "90s",
+    "tips": "Nie zaokrąglaj pleców, prowadź ruch łokciami"
+  },
+  {
+    "id": 7,
+    "name": "Lat Pulldown",
+    "category": "back",
+    "description": "Ściąganie drążka wyciągu górnego - rozwija szerokość pleców",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/lat-pulldown.gif",
+    "instructions": [
+      "Usiądź na maszynie, chwyć drążek szeroko",
+      "Ściągnij drążek do górnej części klatki",
+      "Wychyl się lekko do tyłu",
+      "Wróć kontrolowanie do pozycji wyjściowej"
+    ],
+    "targetMuscles": ["back", "lats", "biceps"],
+    "sets": "3-4",
+    "reps": "10-12",
+    "rest": "90s",
+    "tips": "Prowadź ruch łokciami, nie ramionami"
+  },
+  {
+    "id": 8,
+    "name": "Deadlift",
+    "category": "back",
+    "description": "Martwy ciąg - najlepsze ćwiczenie wielostawowe",
+    "equipment": "Barbell",
+    "difficulty": "Advanced",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/barbell-deadlift.gif",
+    "instructions": [
+      "Stań z nogami na szerokość bioder",
+      "Pochyl się i chwyć sztangę",
+      "Utrzymaj plecy proste, unieś sztangę prostując biodra",
+      "Opuść sztangę kontrolowanie"
+    ],
+    "targetMuscles": ["back", "legs", "glutes", "hamstrings"],
+    "sets": "3-4",
+    "reps": "5-8",
+    "rest": "180s",
+    "tips": "Trzymaj sztangę blisko ciała, nie zaokrąglaj pleców"
+  },
+  {
+    "id": 9,
+    "name": "Barbell Squat",
+    "category": "legs",
+    "description": "Przysiad ze sztangą - król ćwiczeń na nogi",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/barbell-squat.gif",
+    "instructions": [
+      "Umieść sztangę na górnej części pleców",
+      "Stań z nogami na szerokość barków",
+      "Opuść się aż uda będą równoległe do podłoża",
+      "Wypchnij się z pięt do pozycji wyjściowej"
+    ],
+    "targetMuscles": ["quads", "glutes", "hamstrings"],
+    "sets": "3-4",
+    "reps": "8-12",
+    "rest": "120s",
+    "tips": "Kolana w linii palców, plecy proste"
+  },
+  {
+    "id": 10,
+    "name": "Leg Press",
+    "category": "legs",
+    "description": "Prasa nóg - bezpieczna alternatywa dla przysiadu",
+    "equipment": "Machine",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/leg-press.gif",
+    "instructions": [
+      "Usiądź w maszynie, stopy na platformie",
+      "Opuść platformę kontrolowanie",
+      "Wypchnij platformę używając całej stopy",
+      "Nie blokuj kolan w górnej pozycji"
+    ],
+    "targetMuscles": ["quads", "glutes", "hamstrings"],
+    "sets": "3-4",
+    "reps": "10-15",
+    "rest": "90s",
+    "tips": "Nie odrywaj dolnej części pleców od oparcia"
+  },
+  {
+    "id": 11,
+    "name": "Romanian Deadlift",
+    "category": "legs",
+    "description": "Martwy ciąg rumuński - izolacja tylnej części uda",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/barbell-romanian-deadlift.gif",
+    "instructions": [
+      "Stań z nogami na szerokość bioder, trzymaj sztangę",
+      "Pochyl się w biodrach, kolana lekko ugięte",
+      "Opuść sztangę wzdłuż nóg do połowy goleni",
+      "Wyprostuj biodra wracając do pozycji wyjściowej"
+    ],
+    "targetMuscles": ["hamstrings", "glutes", "back"],
+    "sets": "3-4",
+    "reps": "8-12",
+    "rest": "90s",
+    "tips": "Czuj rozciągnięcie w tylnej części uda"
+  },
+  {
+    "id": 12,
+    "name": "Lunges",
+    "category": "legs",
+    "description": "Wykroki - jednostronne ćwiczenie na nogi",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/dumbbell-lunges.gif",
+    "instructions": [
+      "Stań prosto z hantlami po bokach",
+      "Zrób krok do przodu jedną nogą",
+      "Opuść biodro aż tylne kolano niemal dotknie podłoża",
+      "Wypchnij się z przedniej nogi do pozycji wyjściowej"
+    ],
+    "targetMuscles": ["quads", "glutes", "hamstrings"],
+    "sets": "3",
+    "reps": "10-12 na nogę",
+    "rest": "60s",
+    "tips": "Przednie kolano nie powinno wychodzić za palce"
+  },
+  {
+    "id": 13,
+    "name": "Overhead Press",
+    "category": "shoulders",
+    "description": "Wyciskanie sztangi nad głowę - podstawowe ćwiczenie na barki",
+    "equipment": "Barbell",
+    "difficulty": "Intermediate",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/barbell-overhead-press.gif",
+    "instructions": [
+      "Stań z nogami na szerokość barków",
+      "Trzymaj sztangę na wysokości ramion",
+      "Wypchnij sztangę prosto nad głowę",
+      "Opuść kontrolowanie do pozycji wyjściowej"
+    ],
+    "targetMuscles": ["shoulders", "triceps"],
+    "sets": "3-4",
+    "reps": "8-10",
+    "rest": "90s",
+    "tips": "Napnij brzuch, nie wyginaj się w krzyżu"
+  },
+  {
+    "id": 14,
+    "name": "Lateral Raise",
+    "category": "shoulders",
+    "description": "Unoszenie hantli bokiem - izolacja środkowej części barków",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/dumbbell-lateral-raise.gif",
+    "instructions": [
+      "Stań z hantlami po bokach ciała",
+      "Unieś hantle na boki do wysokości ramion",
+      "Utrzymaj lekkie ugięcie w łokciach",
+      "Opuść kontrolowanie"
+    ],
+    "targetMuscles": ["shoulders"],
+    "sets": "3-4",
+    "reps": "12-15",
+    "rest": "60s",
+    "tips": "Nie podrzucaj ciężarów, kontrolowany ruch"
+  },
+  {
+    "id": 15,
+    "name": "Face Pull",
+    "category": "shoulders",
+    "description": "Przyciąganie liny do twarzy - tylne partie barków",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/cable-face-pull.gif",
+    "instructions": [
+      "Ustaw wyciąg na wysokości oczu",
+      "Chwyć linę nachwytem",
+      "Przyciągnij linę do twarzy, rozdzielając ręce",
+      "Wróć kontrolowanie do pozycji wyjściowej"
+    ],
+    "targetMuscles": ["shoulders", "back"],
+    "sets": "3-4",
+    "reps": "15-20",
+    "rest": "60s",
+    "tips": "Ściągaj łopatki, łokcie wysoko"
+  },
+  {
+    "id": 16,
+    "name": "Arnold Press",
+    "category": "shoulders",
+    "description": "Wyciskanie Arnolda - kompleksowy rozwój barków",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/dumbbell-arnold-press.gif",
+    "instructions": [
+      "Usiądź z hantlami przed sobą, dłonie do siebie",
+      "Wypchnij hantle obracając dłonie na zewnątrz",
+      "W górnej pozycji dłonie skierowane do przodu",
+      "Wróć obracając dłonie z powrotem"
+    ],
+    "targetMuscles": ["shoulders", "triceps"],
+    "sets": "3",
+    "reps": "10-12",
+    "rest": "90s",
+    "tips": "Kontrolowany, płynny ruch rotacji"
+  },
+  {
+    "id": 17,
+    "name": "Barbell Curl",
+    "category": "biceps",
+    "description": "Uginanie ramion ze sztangą - klasyczne ćwiczenie na biceps",
+    "equipment": "Barbell",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/barbell-curl.gif",
+    "instructions": [
+      "Stań z nogami na szerokość barków",
+      "Chwyć sztangę podchwytem",
+      "Ugnij ramiona prowadząc sztangę do ramion",
+      "Opuść kontrolowanie bez kołysania"
+    ],
+    "targetMuscles": ["biceps"],
+    "sets": "3-4",
+    "reps": "10-12",
+    "rest": "60s",
+    "tips": "Łokcie przy ciele, bez kołysania tułowiem"
+  },
+  {
+    "id": 18,
+    "name": "Hammer Curl",
+    "category": "biceps",
+    "description": "Uginanie ramion młotkiem - biceps i przedramiona",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/dumbbell-hammer-curl.gif",
+    "instructions": [
+      "Stań z hantlami po bokach, dłonie do siebie",
+      "Ugnij ramiona utrzymując neutralny chwyt",
+      "Nie obracaj nadgarstków",
+      "Opuść kontrolowanie"
+    ],
+    "targetMuscles": ["biceps", "forearms"],
+    "sets": "3",
+    "reps": "10-12",
+    "rest": "60s",
+    "tips": "Neutralny chwyt przez cały ruch"
+  },
+  {
+    "id": 19,
+    "name": "Concentration Curl",
+    "category": "biceps",
+    "description": "Uginanie ramion w siadzie - izolacja bicepsa",
+    "equipment": "Dumbbell",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/dumbbell-concentration-curl.gif",
+    "instructions": [
+      "Usiądź, oprzyj łokieć o wewnętrzną część uda",
+      "Ugnij ramię prowadząc hantel do ramienia",
+      "Skoncentruj się na pracy bicepsa",
+      "Opuść kontrolowanie"
+    ],
+    "targetMuscles": ["biceps"],
+    "sets": "3",
+    "reps": "12-15 na rękę",
+    "rest": "45s",
+    "tips": "Pełny zakres ruchu, kontrola"
+  },
+  {
+    "id": 20,
+    "name": "Tricep Dips",
+    "category": "triceps",
+    "description": "Pompki na poręczach - masa tricepsów",
+    "equipment": "Dip Bar",
+    "difficulty": "Intermediate",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/tricep-dips.gif",
+    "instructions": [
+      "Chwyć poręcze, ciało wyprostowane",
+      "Opuść się uginając łokcie do 90 stopni",
+      "Trzymaj łokcie blisko ciała",
+      "Wypchnij się do pozycji wyjściowej"
+    ],
+    "targetMuscles": ["triceps", "chest", "shoulders"],
+    "sets": "3-4",
+    "reps": "8-12",
+    "rest": "90s",
+    "tips": "Pochyl się do przodu dla klatki, pionowo dla tricepsów"
+  },
+  {
+    "id": 21,
+    "name": "Tricep Pushdown",
+    "category": "triceps",
+    "description": "Prostowanie ramion na wyciągu - izolacja tricepsów",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/cable-tricep-pushdown.gif",
+    "instructions": [
+      "Chwyć drążek nachwytem, łokcie przy ciele",
+      "Wyprostuj ramiona prowadząc drążek w dół",
+      "Utrzymaj łokcie nieruchomo",
+      "Wróć kontrolowanie"
+    ],
+    "targetMuscles": ["triceps"],
+    "sets": "3-4",
+    "reps": "12-15",
+    "rest": "60s",
+    "tips": "Tylko przedramiona się poruszają"
+  },
+  {
+    "id": 22,
+    "name": "Overhead Tricep Extension",
+    "category": "triceps",
+    "description": "Prostowanie ramion nad głową - długa głowa tricepsa",
+    "equipment": "Dumbbell",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/dumbbell-overhead-tricep-extension.gif",
+    "instructions": [
+      "Stań lub usiądź, unieś hantel nad głowę",
+      "Trzymaj łokcie blisko głowy",
+      "Opuść hantel za głowę",
+      "Wyprostuj ramiona wracając do góry"
+    ],
+    "targetMuscles": ["triceps"],
+    "sets": "3",
+    "reps": "10-12",
+    "rest": "60s",
+    "tips": "Łokcie skierowane do przodu, nie rozstawiaj ich"
+  },
+  {
+    "id": 23,
+    "name": "Plank",
+    "category": "abs",
+    "description": "Deska - podstawowe ćwiczenie stabilizacyjne",
+    "equipment": "Bodyweight",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/plank.gif",
+    "instructions": [
+      "Przyjmij pozycję podparcia na przedramionach",
+      "Ciało w linii prostej od głowy do pięt",
+      "Napnij brzuch i pośladki",
+      "Utrzymuj pozycję"
+    ],
+    "targetMuscles": ["abs", "core"],
+    "sets": "3",
+    "reps": "30-60s",
+    "rest": "60s",
+    "tips": "Nie opuszczaj bioder, oddychaj spokojnie"
+  },
+  {
+    "id": 24,
+    "name": "Crunches",
+    "category": "abs",
+    "description": "Brzuszki - klasyczne ćwiczenie na brzuch",
+    "equipment": "Bodyweight",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/crunches.gif",
+    "instructions": [
+      "Leż na plecach, kolana ugięte",
+      "Ręce za głową lub skrzyżowane na klatce",
+      "Unieś łopatki od podłoża",
+      "Opuść kontrolowanie"
+    ],
+    "targetMuscles": ["abs"],
+    "sets": "3-4",
+    "reps": "15-20",
+    "rest": "45s",
+    "tips": "Nie ciągnij za głowę, używaj mięśni brzucha"
+  },
+  {
+    "id": 25,
+    "name": "Russian Twist",
+    "category": "abs",
+    "description": "Skręty rosyjskie - ukośne mięśnie brzucha",
+    "equipment": "Dumbbell",
+    "difficulty": "Intermediate",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/russian-twist.gif",
+    "instructions": [
+      "Usiądź z ugiętymi kolanami, stopy uniesione",
+      "Trzymaj hantel przed sobą",
+      "Obracaj tułów na boki",
+      "Dotykaj hantlem podłoża przy biodrze"
+    ],
+    "targetMuscles": ["abs", "obliques"],
+    "sets": "3",
+    "reps": "20-30 (10-15 na stronę)",
+    "rest": "60s",
+    "tips": "Ruch kontrolowany, pełny zakres rotacji"
+  },
+  {
+    "id": 26,
+    "name": "Leg Raise",
+    "category": "abs",
+    "description": "Unoszenie nóg - dolna część brzucha",
+    "equipment": "Bodyweight",
+    "difficulty": "Intermediate",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/leg-raise.gif",
+    "instructions": [
+      "Leż na plecach, nogi wyprostowane",
+      "Unieś nogi do pozycji pionowej",
+      "Utrzymaj kontrolę, nie kołysz",
+      "Opuść nogi nie dotykając podłoża"
+    ],
+    "targetMuscles": ["abs", "hip flexors"],
+    "sets": "3",
+    "reps": "12-15",
+    "rest": "60s",
+    "tips": "Przyciskaj dolną część pleców do podłoża"
+  },
+  {
+    "id": 27,
+    "name": "Hip Thrust",
+    "category": "glutes",
+    "description": "Wypychanie bioder - najlepsze ćwiczenie na pośladki",
+    "equipment": "Barbell",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/barbell-hip-thrust.gif",
+    "instructions": [
+      "Oprzyj plecy o ławkę, sztanga na biodrach",
+      "Stopy płasko na podłodze",
+      "Wypchnij biodra do góry napinając pośladki",
+      "Opuść kontrolowanie"
+    ],
+    "targetMuscles": ["glutes", "hamstrings"],
+    "sets": "3-4",
+    "reps": "10-15",
+    "rest": "90s",
+    "tips": "Pełny zakres ruchu, ściśnij pośladki w górze"
+  },
+  {
+    "id": 28,
+    "name": "Bulgarian Split Squat",
+    "category": "glutes",
+    "description": "Przysiad bułgarski - pośladki i uda",
+    "equipment": "Dumbbells",
+    "difficulty": "Intermediate",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/dumbbell-bulgarian-split-squat.gif",
+    "instructions": [
+      "Stań plecami do ławki, tylna noga na ławce",
+      "Trzymaj hantle po bokach",
+      "Opuść się w przysiad na przedniej nodze",
+      "Wypchnij się przez piętę przedniej nogi"
+    ],
+    "targetMuscles": ["glutes", "quads", "hamstrings"],
+    "sets": "3",
+    "reps": "10-12 na nogę",
+    "rest": "90s",
+    "tips": "Tułów pionowo, nie pochylaj się"
+  },
+  {
+    "id": 29,
+    "name": "Cable Kickback",
+    "category": "glutes",
+    "description": "Wykopy na wyciągu - izolacja pośladków",
+    "equipment": "Cable",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/cable-glute-kickback.gif",
+    "instructions": [
+      "Załóż mankiet na kostkę, chwyć maszynę",
+      "Wyprostuj nogę do tyłu i w górę",
+      "Napnij pośladek w górnej pozycji",
+      "Wróć kontrolowanie"
+    ],
+    "targetMuscles": ["glutes"],
+    "sets": "3",
+    "reps": "15-20 na nogę",
+    "rest": "45s",
+    "tips": "Nie wyginaj się w krzyżu, ruch z biodra"
+  },
+  {
+    "id": 30,
+    "name": "Wrist Curl",
+    "category": "forearms",
+    "description": "Uginanie nadgarstków - przedramiona od wewnątrz",
+    "equipment": "Barbell",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/barbell-wrist-curl.gif",
+    "instructions": [
+      "Usiądź, oprzyj przedramiona o uda",
+      "Chwyć sztangę podchwytem",
+      "Ugnij nadgarstki w górę",
+      "Opuść kontrolowanie"
+    ],
+    "targetMuscles": ["forearms"],
+    "sets": "3",
+    "reps": "15-20",
+    "rest": "45s",
+    "tips": "Tylko nadgarstki się poruszają"
+  },
+  {
+    "id": 31,
+    "name": "Reverse Wrist Curl",
+    "category": "forearms",
+    "description": "Odwrotne uginanie nadgarstków - przedramiona od zewnątrz",
+    "equipment": "Barbell",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/barbell-reverse-wrist-curl.gif",
+    "instructions": [
+      "Usiądź, oprzyj przedramiona o uda",
+      "Chwyć sztangę nachwytem",
+      "Ugnij nadgarstki w górę",
+      "Opuść kontrolowanie"
+    ],
+    "targetMuscles": ["forearms"],
+    "sets": "3",
+    "reps": "15-20",
+    "rest": "45s",
+    "tips": "Lżejsze ciężary niż przy zwykłym wrist curl"
+  },
+  {
+    "id": 32,
+    "name": "Farmer's Walk",
+    "category": "forearms",
+    "description": "Chód farmera - siła chwytu i przedramiona",
+    "equipment": "Dumbbells",
+    "difficulty": "Beginner",
+    "image": "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/dumbbell-farmers-walk.gif",
+    "instructions": [
+      "Chwyć ciężkie hantle po bokach ciała",
+      "Idź prosto z napiętym brzuchem",
+      "Utrzymuj ramiona opuszczone",
+      "Idź przez określony dystans lub czas"
+    ],
+    "targetMuscles": ["forearms", "grip", "core"],
+    "sets": "3",
+    "reps": "30-60s lub 20-30m",
+    "rest": "90s",
+    "tips": "Silny chwyt, ciało wyprostowane"
+  }
+]

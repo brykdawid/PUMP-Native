@@ -10,7 +10,7 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getExercises } from '../../utils/apiHelpers';
+import { getHybridExercises } from '../../services/hybridWorkoutService';
 import { TRAINING_TYPES } from '../data/exercisesData';
 import ExerciseCard from '../workout/ExerciseCard';
 import GifModal from '../workout/GifModal';
@@ -41,12 +41,17 @@ function LibraryPage() {
   const loadExercises = async () => {
     try {
       setLoading(true);
-      const data = await getExercises();
+      if (__DEV__) console.log('📚 Loading library exercises with hybrid service...');
+
+      const data = await getHybridExercises();
+
+      if (__DEV__) console.log(`✅ Loaded ${data.length} exercises for library`);
+
       setAllExercises(data);
       setFilteredExercises(data);
     } catch (error) {
       if (__DEV__) console.error('Error loading exercises:', error);
-      alertDialog('Błąd', 'Nie udało się załadować ćwiczeń');
+      alertDialog('Błąd', 'Nie udało się załadować ćwiczeń. Tryb offline może być ograniczony.');
       setAllExercises([]);
       setFilteredExercises([]);
     } finally {

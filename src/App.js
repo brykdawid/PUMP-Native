@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import storage from './utils/storage';
 import { prefetchExercises } from './services/api';
+import { initializeNetworkMonitoring } from './services/hybridWorkoutService';
 import StatsPage from './components/screens/StatsPage';
 import ProfilePage from './components/screens/ProfilePage';
 import SavedWorkoutsPage from './components/screens/SavedWorkoutsPage';
@@ -46,6 +47,10 @@ function App() {
   const isLoadedRef = useRef(false); // Flag to prevent saving before loading
 
   useEffect(() => {
+    // Initialize hybrid service network monitoring
+    if (__DEV__) console.log('🌐 Initializing network monitoring...');
+    initializeNetworkMonitoring();
+
     loadData();
   }, []);
 
