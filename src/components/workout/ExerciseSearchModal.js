@@ -135,10 +135,8 @@ function ExerciseSearchModal({
                   : { inPlan: false, groupName: null };
 
                 return (
-                  <TouchableOpacity
+                  <View
                     key={`search-modal-${exercise.name}-${idx}`}
-                    onPress={() => handleExercisePress(exercise)}
-                    activeOpacity={0.7}
                     style={[
                       styles.exerciseItem,
                       inPlan && styles.exerciseItemInPlan
@@ -158,7 +156,7 @@ function ExerciseSearchModal({
                         onAdd={() => handleExercisePress(exercise)}
                       />
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 );
               })}
             </View>
