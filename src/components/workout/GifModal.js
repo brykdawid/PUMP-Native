@@ -169,6 +169,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    zIndex: 1,
   },
   modalContainer: {
     width: '100%',
@@ -177,6 +178,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
+    zIndex: 2,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
