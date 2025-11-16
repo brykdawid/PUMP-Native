@@ -42,41 +42,9 @@ const PRODUCTION_API_URL = 'https://ai-api-drlzza.fly.dev/api';
 // ============================================
 
 const getApiUrl = () => {
-  // Tryb developerski (localhost)
-  if (__DEV__) {
-    if (__DEV__) console.log('[API CONFIG] Running in DEVELOPMENT mode');
-
-    // iOS Simulator lub Web Browser
-    if (Platform.OS === 'ios' || Platform.OS === 'web') {
-      if (__DEV__) console.log('[API CONFIG] Platform: iOS/Web - Using localhost');
-      return 'http://localhost:5000/api';
-    }
-
-    // Android Emulator
-    // 10.0.2.2 to specjalny alias dla localhost na Android Emulator
-    if (Platform.OS === 'android') {
-      if (__DEV__) console.log('[API CONFIG] Platform: Android');
-
-      // Wykryj czy to emulator czy fizyczne urządzenie
-      // W emulatorze użyj 10.0.2.2, na fizycznym urządzeniu użyj lokalnego IP
-      const isEmulator = true; // Zmień na false jeśli testujesz na fizycznym urządzeniu
-
-      if (isEmulator) {
-        if (__DEV__) console.log('[API CONFIG] Using Android Emulator address: 10.0.2.2');
-        return 'http://10.0.2.2:5000/api';
-      } else {
-        if (__DEV__) console.log('[API CONFIG] Using physical device address');
-        return PHYSICAL_DEVICE_API_URL;
-      }
-    }
-
-    // Fallback dla innych platform
-    if (__DEV__) console.log('[API CONFIG] Unknown platform - Using localhost');
-    return 'http://localhost:5000/api';
-  }
-
-  // Tryb produkcyjny (zahostowane API)
-  if (__DEV__) console.log('[API CONFIG] Running in PRODUCTION mode');
+  // ZAWSZE używaj produkcyjnego API Fly.io
+  // Lokalne API nie jest potrzebne
+  if (__DEV__) console.log('[API CONFIG] Using production Fly.io API');
   return PRODUCTION_API_URL;
 };
 

@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { alertDialog } from '../../utils/storage';
+import { getExercises } from '../../utils/apiHelpers';
 
 // Skeleton loader z animacją shimmer
 const SkeletonLoader = () => {
@@ -50,6 +51,8 @@ const SkeletonLoader = () => {
 
 // Zmemoizowany komponent karty mięśni dla lepszej wydajności
 const MuscleCard = React.memo(({ type, isSelected, onPress, imageUri, isLoading }) => {
+  const [imageError, setImageError] = React.useState(false);
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -67,7 +70,7 @@ const MuscleCard = React.memo(({ type, isSelected, onPress, imageUri, isLoading 
 
       {isLoading ? (
         <SkeletonLoader />
-      ) : imageUri ? (
+      ) : imageUri && !imageError ? (
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: imageUri }}
@@ -76,6 +79,7 @@ const MuscleCard = React.memo(({ type, isSelected, onPress, imageUri, isLoading 
             // Optymalizacje dla lepszej wydajności
             fadeDuration={100}
             progressiveRenderingEnabled={true}
+            onError={() => setImageError(true)}
           />
         </View>
       ) : (
@@ -112,30 +116,28 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
       // Pobierz wszystkie obrazki równolegle
       TRAINING_TYPES.forEach(async (type) => {
         try {
-          const response = await fetch(
-            `http://localhost:5000/api/exercises?categories=${type.id}&limit=1`,
-            {
-              // Dodaj timeout dla szybszego failover
-              signal: AbortSignal.timeout(5000),
-            }
-          );
+          const exercises = await getExercises(type.id, 1);
 
-          if (response.ok) {
-            const exercises = await response.json();
-            if (exercises.length > 0) {
-              // Aktualizuj obrazek natychmiast po załadowaniu
-              setCategoryImages(prev => ({
-                ...prev,
-                [type.id]: exercises[0].image
-              }));
+          if (exercises && exercises.length > 0) {
+            // Aktualizuj obrazek natychmiast po załadowaniu
+            setCategoryImages(prev => ({
+              ...prev,
+              [type.id]: exercises[0].image
+            }));
 
-              // Usuń z listy ładujących się
-              setLoadingImages(prev => {
-                const next = new Set(prev);
-                next.delete(type.id);
-                return next;
-              });
-            }
+            // Usuń z listy ładujących się
+            setLoadingImages(prev => {
+              const next = new Set(prev);
+              next.delete(type.id);
+              return next;
+            });
+          } else {
+            // Usuń z listy ładujących się jeśli brak wyników
+            setLoadingImages(prev => {
+              const next = new Set(prev);
+              next.delete(type.id);
+              return next;
+            });
           }
         } catch (error) {
           if (__DEV__) console.error(`Error fetching image for ${type.id}:`, error);
@@ -152,15 +154,19 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
     fetchCategoryImages();
   }, [TRAINING_TYPES]);
 
-  // Prefetch obrazków dla lepszej wydajności
+  // Prefetch obrazków dla lepszej wydajności (tylko na natywnych platformach)
   useEffect(() => {
-    Object.values(categoryImages).forEach(imageUri => {
-      if (imageUri) {
-        Image.prefetch(imageUri).catch(err => {
-          if (__DEV__) console.log('Image prefetch failed:', err);
-        });
-      }
-    });
+    // Image.prefetch nie działa poprawnie w React Native Web
+    // Przeglądarka automatycznie buforuje obrazy, więc prefetch nie jest potrzebny
+    if (Platform.OS !== 'web' && Image.prefetch) {
+      Object.values(categoryImages).forEach(imageUri => {
+        if (imageUri) {
+          Image.prefetch(imageUri).catch(err => {
+            if (__DEV__) console.log('Image prefetch failed:', err);
+          });
+        }
+      });
+    }
   }, [categoryImages]);
 
   // Zmemoizowana funkcja sprawdzania czy fullbody jest zaznaczone
