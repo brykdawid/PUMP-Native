@@ -160,8 +160,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 40,
-    paddingHorizontal: 16,
+    paddingVertical: 60,
+    paddingHorizontal: 20,
   },
   backdrop: {
     position: 'absolute',
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     width: '100%',
     maxWidth: 500,
-    maxHeight: SCREEN_HEIGHT * 0.9,
+    maxHeight: SCREEN_HEIGHT * 0.8,
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     position: 'relative',
-    height: Math.min(SCREEN_HEIGHT * 0.35, 400),
+    height: Math.min(SCREEN_HEIGHT * 0.28, 320),
     backgroundColor: '#ffffff',
   },
   headerGradient: {
@@ -264,23 +264,23 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   infoContainer: {
-    padding: 20,
+    padding: 16,
     backgroundColor: '#ffffff',
   },
   exerciseName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#111827',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   section: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#111827',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   descriptionText: {
     fontSize: 14,
@@ -288,14 +288,14 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   tipsContainer: {
-    gap: 8,
+    gap: 6,
   },
   tipItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 12,
+    gap: 10,
     backgroundColor: '#f3e8ff',
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
   },
   tipNumber: {
