@@ -23,7 +23,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.pump.workout",
+      "bundleIdentifier": "app.gym.pump",
       "buildNumber": "1",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "PUMP Workout needs access to your photos to let you set a profile picture.",

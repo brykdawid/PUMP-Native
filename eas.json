@@ -30,7 +30,8 @@
       "ios": {
         "image": "latest",
         "cocoapods": "1.15.2",
-        "buildConfiguration": "Release"
+        "buildConfiguration": "Release",
+        "simulator": false
       }
     }
   },
