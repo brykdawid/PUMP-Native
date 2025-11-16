@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 13.2.0"
+    "version": ">= 13.2.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -23,6 +24,7 @@
       "node": "22.11.0",
       "autoIncrement": true,
       "env": {
+        "node": "22.11.0",
         "NODE_ENV": "production"
       }
     }
