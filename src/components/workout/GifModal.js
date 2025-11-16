@@ -164,12 +164,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   backdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
+    ...StyleSheet.absoluteFillObject,
   },
   modalContainer: {
     width: '100%',
@@ -178,7 +173,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
-    zIndex: 2,
+    zIndex: 999,
+    elevation: 999,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -187,7 +183,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
       },
       android: {
-        elevation: 8,
+        elevation: 999,
       },
     }),
   },
