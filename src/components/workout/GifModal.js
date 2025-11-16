@@ -160,7 +160,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
+    paddingVertical: 40,
+    paddingHorizontal: 16,
   },
   backdrop: {
     position: 'absolute',
@@ -170,9 +171,9 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   modalContainer: {
-    width: SCREEN_WIDTH * 0.92,
-    maxWidth: 600,
-    maxHeight: SCREEN_HEIGHT * 0.85,
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: SCREEN_HEIGHT * 0.9,
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     position: 'relative',
-    height: SCREEN_HEIGHT * 0.45,
+    height: Math.min(SCREEN_HEIGHT * 0.35, 400),
     backgroundColor: '#ffffff',
   },
   headerGradient: {
@@ -237,12 +238,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   exerciseImage: {
-    width: SCREEN_WIDTH * 0.92,
-    height: SCREEN_HEIGHT * 0.45,
+    width: '100%',
+    height: '100%',
   },
   placeholderContainer: {
     width: '100%',
-    height: 256,
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
   infoContainer: {
-    padding: 24,
+    padding: 20,
     backgroundColor: '#ffffff',
   },
   exerciseName: {
