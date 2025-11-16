@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 13.2.0"
+    "version": ">= 13.2.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
@@ -20,8 +21,10 @@
       }
     },
     "production": {
+      "node": "22.11.0",
       "autoIncrement": true,
       "env": {
+        "node": "22.11.0",
         "NODE_ENV": "production"
       }
     }
@@ -29,9 +32,9 @@
   "submit": {
     "production": {
       "ios": {
-        "ascApiKeyPath": "./private/AuthKey.p8",
-        "ascApiKeyId": "YOUR_KEY_ID",
-        "ascApiKeyIssuerId": "YOUR_ISSUER_ID"
+        "ascApiKeyPath": "./private/AuthKey_YY2KC425HU.p8",
+        "ascApiKeyId": "YY2KC425HU",
+        "ascApiKeyIssuerId": "283eb7e7-e049-4aae-afe2-d6873f45b981"
       },
       "android": {
         "serviceAccountKeyPath": "./private/service-account.json"

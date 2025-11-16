@@ -7,7 +7,11 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "privacy": "https://github.com/brykdawid/PUMP-Native/blob/main/PRIVACY_POLICY.md",
     "splash": {
       "image": "./assets/splash.png",
@@ -23,7 +27,8 @@
       "buildNumber": "1",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "PUMP Workout needs access to your photos to let you set a profile picture.",
-        "NSPhotoLibraryAddUsageDescription": "PUMP Workout needs permission to save photos to your library."
+        "NSPhotoLibraryAddUsageDescription": "PUMP Workout needs permission to save photos to your library.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -40,6 +45,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "169a0b3d-6289-4de3-9acf-ae30fda1360b"
+      }
     }
   }
 }

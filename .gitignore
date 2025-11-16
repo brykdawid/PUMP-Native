@@ -8,6 +8,10 @@ npm-debug.*
 *.p12
 *.key
 *.mobileprovision
+
+# Private credentials (ignore files, but keep directory and README)
+private/*
+!private/README.md
 *.orig.*
 web-build/
 .DS_Store
