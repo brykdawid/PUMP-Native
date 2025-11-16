@@ -1121,29 +1121,34 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
                   activeOpacity={0.7}
                 >
                   <View style={styles.exerciseListImageWrapper}>
-                    {exercise.image && !imageErrors[`picker-${exercise.name}`] ? (
+                    {exercise.image ? (
                       <>
-                        {imageLoadingStates[`picker-${exercise.name}`] && (
+                        {imageLoadingStates[`picker-${exercise.name}`] && !imageErrors[`picker-${exercise.name}`] && (
                           <View style={styles.exerciseListImageLoadingOverlay}>
                             <ActivityIndicator size="small" color="#9333ea" />
                           </View>
                         )}
-                        <Image
-                          source={{ uri: exercise.image }}
-                          style={styles.exerciseListImage}
-                          resizeMode="cover"
-                          fadeDuration={0}
-                          onLoadStart={() => {
-                            setImageLoadingStates(prev => ({ ...prev, [`picker-${exercise.name}`]: true }));
-                          }}
-                          onLoad={() => {
-                            setImageLoadingStates(prev => ({ ...prev, [`picker-${exercise.name}`]: false }));
-                          }}
-                          onError={() => {
-                            setImageLoadingStates(prev => ({ ...prev, [`picker-${exercise.name}`]: false }));
-                            setImageErrors(prev => ({ ...prev, [`picker-${exercise.name}`]: true }));
-                          }}
-                        />
+                        {!imageErrors[`picker-${exercise.name}`] && (
+                          <Image
+                            source={{ uri: exercise.image }}
+                            style={styles.exerciseListImage}
+                            resizeMode="cover"
+                            fadeDuration={0}
+                            onLoad={() => {
+                              setImageLoadingStates(prev => ({ ...prev, [`picker-${exercise.name}`]: false }));
+                            }}
+                            onError={() => {
+                              if (__DEV__) console.log('Picker image load error for', exercise.name, ':', exercise.image);
+                              setImageLoadingStates(prev => ({ ...prev, [`picker-${exercise.name}`]: false }));
+                              setImageErrors(prev => ({ ...prev, [`picker-${exercise.name}`]: true }));
+                            }}
+                          />
+                        )}
+                        {imageErrors[`picker-${exercise.name}`] && (
+                          <View style={styles.exerciseListImagePlaceholder}>
+                            <Ionicons name="barbell-outline" size={32} color="#d1d5db" />
+                          </View>
+                        )}
                       </>
                     ) : (
                       <View style={styles.exerciseListImagePlaceholder}>
@@ -1196,29 +1201,34 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
               {selectedExerciseFromApi ? (
                 <View style={styles.selectedExerciseContainer}>
                   <View style={styles.selectedExerciseImageWrapper}>
-                    {selectedExerciseFromApi.image && !imageErrors[`selected-${selectedExerciseFromApi.name}`] ? (
+                    {selectedExerciseFromApi.image ? (
                       <>
-                        {imageLoadingStates[`selected-${selectedExerciseFromApi.name}`] && (
+                        {imageLoadingStates[`selected-${selectedExerciseFromApi.name}`] && !imageErrors[`selected-${selectedExerciseFromApi.name}`] && (
                           <View style={styles.selectedExerciseImageLoadingOverlay}>
                             <ActivityIndicator size="large" color="#9333ea" />
                           </View>
                         )}
-                        <Image
-                          source={{ uri: selectedExerciseFromApi.image }}
-                          style={styles.selectedExerciseImage}
-                          resizeMode="cover"
-                          fadeDuration={0}
-                          onLoadStart={() => {
-                            setImageLoadingStates(prev => ({ ...prev, [`selected-${selectedExerciseFromApi.name}`]: true }));
-                          }}
-                          onLoad={() => {
-                            setImageLoadingStates(prev => ({ ...prev, [`selected-${selectedExerciseFromApi.name}`]: false }));
-                          }}
-                          onError={() => {
-                            setImageLoadingStates(prev => ({ ...prev, [`selected-${selectedExerciseFromApi.name}`]: false }));
-                            setImageErrors(prev => ({ ...prev, [`selected-${selectedExerciseFromApi.name}`]: true }));
-                          }}
-                        />
+                        {!imageErrors[`selected-${selectedExerciseFromApi.name}`] && (
+                          <Image
+                            source={{ uri: selectedExerciseFromApi.image }}
+                            style={styles.selectedExerciseImage}
+                            resizeMode="cover"
+                            fadeDuration={0}
+                            onLoad={() => {
+                              setImageLoadingStates(prev => ({ ...prev, [`selected-${selectedExerciseFromApi.name}`]: false }));
+                            }}
+                            onError={() => {
+                              if (__DEV__) console.log('Selected image load error for', selectedExerciseFromApi.name, ':', selectedExerciseFromApi.image);
+                              setImageLoadingStates(prev => ({ ...prev, [`selected-${selectedExerciseFromApi.name}`]: false }));
+                              setImageErrors(prev => ({ ...prev, [`selected-${selectedExerciseFromApi.name}`]: true }));
+                            }}
+                          />
+                        )}
+                        {imageErrors[`selected-${selectedExerciseFromApi.name}`] && (
+                          <View style={styles.selectedExerciseImagePlaceholder}>
+                            <Ionicons name="barbell-outline" size={48} color="#d1d5db" />
+                          </View>
+                        )}
                       </>
                     ) : (
                       <View style={styles.selectedExerciseImagePlaceholder}>

@@ -646,29 +646,34 @@ function ActiveWorkout({
                         style={styles.exerciseImageContainer}
                         activeOpacity={0.8}
                       >
-                        {exercise.image && !imageErrors[exercise.id || exercise.name] ? (
+                        {exercise.image ? (
                           <>
-                            {imageLoadingStates[exercise.id || exercise.name] && (
+                            {imageLoadingStates[exercise.id || exercise.name] && !imageErrors[exercise.id || exercise.name] && (
                               <View style={styles.imageLoadingOverlay}>
                                 <ActivityIndicator size="small" color="#9333ea" />
                               </View>
                             )}
-                            <Image
-                              source={{ uri: exercise.image }}
-                              style={styles.exerciseImage}
-                              resizeMode="cover"
-                              fadeDuration={0}
-                              onLoadStart={() => {
-                                setImageLoadingStates(prev => ({ ...prev, [exercise.id || exercise.name]: true }));
-                              }}
-                              onLoad={() => {
-                                setImageLoadingStates(prev => ({ ...prev, [exercise.id || exercise.name]: false }));
-                              }}
-                              onError={() => {
-                                setImageLoadingStates(prev => ({ ...prev, [exercise.id || exercise.name]: false }));
-                                setImageErrors(prev => ({ ...prev, [exercise.id || exercise.name]: true }));
-                              }}
-                            />
+                            {!imageErrors[exercise.id || exercise.name] && (
+                              <Image
+                                source={{ uri: exercise.image }}
+                                style={styles.exerciseImage}
+                                resizeMode="cover"
+                                fadeDuration={0}
+                                onLoad={() => {
+                                  setImageLoadingStates(prev => ({ ...prev, [exercise.id || exercise.name]: false }));
+                                }}
+                                onError={(error) => {
+                                  if (__DEV__) console.log('Image load error for', exercise.name, ':', exercise.image);
+                                  setImageLoadingStates(prev => ({ ...prev, [exercise.id || exercise.name]: false }));
+                                  setImageErrors(prev => ({ ...prev, [exercise.id || exercise.name]: true }));
+                                }}
+                              />
+                            )}
+                            {imageErrors[exercise.id || exercise.name] && (
+                              <View style={styles.exerciseImagePlaceholder}>
+                                <Ionicons name="barbell-outline" size={32} color="#d1d5db" />
+                              </View>
+                            )}
                           </>
                         ) : (
                           <View style={styles.exerciseImagePlaceholder}>
@@ -861,29 +866,34 @@ function ActiveWorkout({
                     activeOpacity={0.7}
                   >
                     <View style={styles.searchResultImageContainer}>
-                      {exercise.image && !imageErrors[`search-${exercise.name}`] ? (
+                      {exercise.image ? (
                         <>
-                          {imageLoadingStates[`search-${exercise.name}`] && (
+                          {imageLoadingStates[`search-${exercise.name}`] && !imageErrors[`search-${exercise.name}`] && (
                             <View style={styles.searchImageLoadingOverlay}>
                               <ActivityIndicator size="small" color="#9333ea" />
                             </View>
                           )}
-                          <Image
-                            source={{ uri: exercise.image }}
-                            style={styles.searchResultImage}
-                            resizeMode="cover"
-                            fadeDuration={0}
-                            onLoadStart={() => {
-                              setImageLoadingStates(prev => ({ ...prev, [`search-${exercise.name}`]: true }));
-                            }}
-                            onLoad={() => {
-                              setImageLoadingStates(prev => ({ ...prev, [`search-${exercise.name}`]: false }));
-                            }}
-                            onError={() => {
-                              setImageLoadingStates(prev => ({ ...prev, [`search-${exercise.name}`]: false }));
-                              setImageErrors(prev => ({ ...prev, [`search-${exercise.name}`]: true }));
-                            }}
-                          />
+                          {!imageErrors[`search-${exercise.name}`] && (
+                            <Image
+                              source={{ uri: exercise.image }}
+                              style={styles.searchResultImage}
+                              resizeMode="cover"
+                              fadeDuration={0}
+                              onLoad={() => {
+                                setImageLoadingStates(prev => ({ ...prev, [`search-${exercise.name}`]: false }));
+                              }}
+                              onError={() => {
+                                if (__DEV__) console.log('Search image load error for', exercise.name, ':', exercise.image);
+                                setImageLoadingStates(prev => ({ ...prev, [`search-${exercise.name}`]: false }));
+                                setImageErrors(prev => ({ ...prev, [`search-${exercise.name}`]: true }));
+                              }}
+                            />
+                          )}
+                          {imageErrors[`search-${exercise.name}`] && (
+                            <View style={styles.searchResultImagePlaceholder}>
+                              <Ionicons name="barbell-outline" size={24} color="#d1d5db" />
+                            </View>
+                          )}
                         </>
                       ) : (
                         <View style={styles.searchResultImagePlaceholder}>
