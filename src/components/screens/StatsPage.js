@@ -28,6 +28,7 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
   const [workoutPeriod, setWorkoutPeriod] = useState('weekly'); // 'weekly' or 'monthly'
   const [expandedExercises, setExpandedExercises] = useState({});
   const [imageErrors, setImageErrors] = useState({});
+  const [imageLoadingStates, setImageLoadingStates] = useState({});
   const [selectedWorkout, setSelectedWorkout] = useState(null);
   const [showWeightHistoryModal, setShowWeightHistoryModal] = useState(false);
   const [showAddRecordModal, setShowAddRecordModal] = useState(false);
@@ -1119,17 +1120,37 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
                   style={styles.exerciseListItem}
                   activeOpacity={0.7}
                 >
-                  {exercise.image ? (
-                    <Image
-                      source={{ uri: exercise.image }}
-                      style={styles.exerciseListImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View style={styles.exerciseListImagePlaceholder}>
-                      <Ionicons name="barbell-outline" size={32} color="#d1d5db" />
-                    </View>
-                  )}
+                  <View style={styles.exerciseListImageWrapper}>
+                    {exercise.image && !imageErrors[`picker-${exercise.name}`] ? (
+                      <>
+                        {imageLoadingStates[`picker-${exercise.name}`] && (
+                          <View style={styles.exerciseListImageLoadingOverlay}>
+                            <ActivityIndicator size="small" color="#9333ea" />
+                          </View>
+                        )}
+                        <Image
+                          source={{ uri: exercise.image }}
+                          style={styles.exerciseListImage}
+                          resizeMode="cover"
+                          fadeDuration={0}
+                          onLoadStart={() => {
+                            setImageLoadingStates(prev => ({ ...prev, [`picker-${exercise.name}`]: true }));
+                          }}
+                          onLoad={() => {
+                            setImageLoadingStates(prev => ({ ...prev, [`picker-${exercise.name}`]: false }));
+                          }}
+                          onError={() => {
+                            setImageLoadingStates(prev => ({ ...prev, [`picker-${exercise.name}`]: false }));
+                            setImageErrors(prev => ({ ...prev, [`picker-${exercise.name}`]: true }));
+                          }}
+                        />
+                      </>
+                    ) : (
+                      <View style={styles.exerciseListImagePlaceholder}>
+                        <Ionicons name="barbell-outline" size={32} color="#d1d5db" />
+                      </View>
+                    )}
+                  </View>
                   <View style={styles.exerciseListInfo}>
                     <Text style={styles.exerciseListName}>{exercise.name}</Text>
                     <Text style={styles.exerciseListCategory}>{exercise.category}</Text>
@@ -1174,17 +1195,37 @@ function StatsPage({ userStats, setUserStats, workoutHistory = [], onSaveComplet
               {/* Jeśli wybrano ćwiczenie z API, pokaż jego szczegóły */}
               {selectedExerciseFromApi ? (
                 <View style={styles.selectedExerciseContainer}>
-                  {selectedExerciseFromApi.image ? (
-                    <Image
-                      source={{ uri: selectedExerciseFromApi.image }}
-                      style={styles.selectedExerciseImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View style={styles.selectedExerciseImagePlaceholder}>
-                      <Ionicons name="barbell-outline" size={48} color="#d1d5db" />
-                    </View>
-                  )}
+                  <View style={styles.selectedExerciseImageWrapper}>
+                    {selectedExerciseFromApi.image && !imageErrors[`selected-${selectedExerciseFromApi.name}`] ? (
+                      <>
+                        {imageLoadingStates[`selected-${selectedExerciseFromApi.name}`] && (
+                          <View style={styles.selectedExerciseImageLoadingOverlay}>
+                            <ActivityIndicator size="large" color="#9333ea" />
+                          </View>
+                        )}
+                        <Image
+                          source={{ uri: selectedExerciseFromApi.image }}
+                          style={styles.selectedExerciseImage}
+                          resizeMode="cover"
+                          fadeDuration={0}
+                          onLoadStart={() => {
+                            setImageLoadingStates(prev => ({ ...prev, [`selected-${selectedExerciseFromApi.name}`]: true }));
+                          }}
+                          onLoad={() => {
+                            setImageLoadingStates(prev => ({ ...prev, [`selected-${selectedExerciseFromApi.name}`]: false }));
+                          }}
+                          onError={() => {
+                            setImageLoadingStates(prev => ({ ...prev, [`selected-${selectedExerciseFromApi.name}`]: false }));
+                            setImageErrors(prev => ({ ...prev, [`selected-${selectedExerciseFromApi.name}`]: true }));
+                          }}
+                        />
+                      </>
+                    ) : (
+                      <View style={styles.selectedExerciseImagePlaceholder}>
+                        <Ionicons name="barbell-outline" size={48} color="#d1d5db" />
+                      </View>
+                    )}
+                  </View>
                   <Text style={styles.selectedExerciseName}>{selectedExerciseFromApi.name}</Text>
                   <Text style={styles.selectedExerciseCategory}>{selectedExerciseFromApi.category}</Text>
                 </View>
@@ -2012,10 +2053,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e5e7eb',
   },
+  exerciseListImageWrapper: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#f3f4f6',
+  },
   exerciseListImage: {
     width: 60,
     height: 60,
     borderRadius: 8,
+  },
+  exerciseListImageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    zIndex: 1,
   },
   exerciseListImagePlaceholder: {
     width: 60,
@@ -2049,11 +2108,29 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
     marginBottom: 16,
   },
+  selectedExerciseImageWrapper: {
+    width: 120,
+    height: 120,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#f3f4f6',
+    marginBottom: 12,
+  },
   selectedExerciseImage: {
     width: 120,
     height: 120,
     borderRadius: 12,
-    marginBottom: 12,
+  },
+  selectedExerciseImageLoadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    zIndex: 1,
   },
   selectedExerciseImagePlaceholder: {
     width: 120,
@@ -2062,7 +2139,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
   },
   selectedExerciseName: {
     fontSize: 18,
