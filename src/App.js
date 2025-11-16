@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } fr
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import storage from './utils/storage';
+import { prefetchExercises } from './services/api';
 import StatsPage from './components/screens/StatsPage';
 import ProfilePage from './components/screens/ProfilePage';
 import SavedWorkoutsPage from './components/screens/SavedWorkoutsPage';
@@ -92,6 +93,12 @@ function App() {
 
       // Mark as loaded to enable saving
       isLoadedRef.current = true;
+
+      // Prefetch exercises w tle dla lepszej wydajności
+      if (__DEV__) console.log('🔮 Starting background prefetch of exercises...');
+      prefetchExercises().catch(err => {
+        if (__DEV__) console.warn('⚠️ Prefetch exercises failed (non-critical):', err);
+      });
       if (__DEV__) console.log('✅ Data loaded, auto-save enabled');
     } catch (error) {
       if (__DEV__) console.error('❌ Error loading data:', error);

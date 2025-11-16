@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import storage, { alertDialog } from '../../utils/storage';
 import { getExercises } from '../../utils/apiHelpers';
 import { getLocalISOString } from '../../utils/workoutHelpers';
+import { prefetchExerciseImages } from '../../utils/imagePrefetch';
 import GifModal from './GifModal';
 import ExerciseCard from './ExerciseCard';
 
@@ -69,7 +70,7 @@ function GeneratedWorkout({
 
   useEffect(() => {
     let mounted = true;
-    
+
     async function loadExercises() {
       try {
         if (__DEV__) console.log('Loading exercises...');
@@ -77,6 +78,12 @@ function GeneratedWorkout({
         if (__DEV__) console.log('Exercises loaded:', data.length);
         if (mounted) {
           setAllExercises(data);
+
+          // Prefetch obrazków w tle dla lepszej wydajności
+          if (data && data.length > 0) {
+            if (__DEV__) console.log('Starting image prefetch...');
+            prefetchExerciseImages(data, 1); // Priorytet 1
+          }
         }
       } catch (error) {
         if (__DEV__) console.error('Error loading exercises:', error);
@@ -86,9 +93,9 @@ function GeneratedWorkout({
         }
       }
     }
-    
+
     loadExercises();
-    
+
     return () => { mounted = false; };
   }, []);
 
