@@ -26,6 +26,10 @@
       "env": {
         "node": "22.11.0",
         "NODE_ENV": "production"
+      },
+      "ios": {
+        "image": "latest",
+        "cocoapods": "1.15.2"
       }
     }
   },
