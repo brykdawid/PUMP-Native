@@ -29,12 +29,8 @@
       },
       "ios": {
         "image": "latest",
-        "cocoapods": "1.15.2"
-      },
-      "hooks": {
-        "preUploadArtifact": {
-          "path": "./scripts/eas-build-pre-upload-artifact.sh"
-        }
+        "cocoapods": "1.15.2",
+        "buildConfiguration": "Release"
       }
     }
   },
