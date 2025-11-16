@@ -1,6 +1,6 @@
 // src/services/api.js
 // Kompletna konfiguracja połączenia z API dla PUMP-native
-// Z zaawansowanym cache'owaniem dla optymalizacji wydajności Fly.io
+// Z zaawansowanym cache'owaniem dla optymalizacji wydajności Railway
 
 import { Platform } from 'react-native';
 import cacheManager, { generateCacheKey, CACHE_CONFIG } from '../utils/apiCache';
@@ -36,17 +36,17 @@ import cacheManager, { generateCacheKey, CACHE_CONFIG } from '../utils/apiCache'
 // Dla fizycznych urządzeń - zmień na swoje lokalne IP
 const PHYSICAL_DEVICE_API_URL = 'http://192.168.1.100:5000/api'; // ← ZMIEŃ NA SWOJE IP!
 
-// Dla produkcji - Fly.io API
-const PRODUCTION_API_URL = 'https://ai-api-drlzza.fly.dev/api';
+// Dla produkcji - Railway API
+const PRODUCTION_API_URL = 'https://ai-api-bz4x-a-production.up.railway.app/api';
 
 // ============================================
 // AUTOMATYCZNA DETEKCJA URL
 // ============================================
 
 const getApiUrl = () => {
-  // ZAWSZE używaj produkcyjnego API Fly.io
+  // ZAWSZE używaj produkcyjnego API Railway
   // Lokalne API nie jest potrzebne
-  if (__DEV__) console.log('[API CONFIG] Using production Fly.io API');
+  if (__DEV__) console.log('[API CONFIG] Using production Railway API');
   return PRODUCTION_API_URL;
 };
 

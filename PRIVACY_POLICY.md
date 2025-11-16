@@ -23,7 +23,7 @@ PUMP Workout stores the following data **locally on your device only**:
 
 ### Information We Process
 
-- **Exercise Data Requests**: When you use the AI workout generator or browse the exercise library, your device sends requests to our API at https://ai-api-drlzza.fly.dev to fetch exercise information. These requests do not contain any personal information.
+- **Exercise Data Requests**: When you use the AI workout generator or browse the exercise library, your device sends requests to our API at https://ai-api-bz4x-a-production.up.railway.app to fetch exercise information. These requests do not contain any personal information.
 
 ### Information We Do NOT Collect
 
@@ -66,7 +66,7 @@ We only access photos when you explicitly choose to select or save them. We do n
 PUMP Workout uses the following third-party services:
 
 ### Exercise Database API
-- **Service**: Custom API hosted on Fly.io (https://ai-api-drlzza.fly.dev)
+- **Service**: Custom API hosted on Railway (https://ai-api-bz4x-a-production.up.railway.app)
 - **Purpose**: Provides exercise data and AI-powered workout generation
 - **Data Shared**: Only exercise category preferences (e.g., "chest", "back") - no personal information
 

@@ -115,9 +115,9 @@ PUMP-Native/
 
 ### API Configuration
 
-The app uses an AI API hosted on Fly.io for exercise generation:
+The app uses an AI API hosted on Railway for exercise generation:
 
-**Production API:** `https://ai-api-drlzza.fly.dev/api`
+**Production API:** `https://ai-api-bz4x-a-production.up.railway.app/api`
 
 To change the API URL, edit `src/services/api.js`:
 
@@ -284,7 +284,7 @@ npx expo start -c
 **API not responding:**
 ```bash
 # Check API status
-curl https://ai-api-drlzza.fly.dev/api/health
+curl https://ai-api-bz4x-a-production.up.railway.app/api/health
 ```
 
 **TestFlight not showing build:**
