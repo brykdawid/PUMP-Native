@@ -11,6 +11,7 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
+  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -40,14 +41,12 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
       onRequestClose={onClose}
       statusBarTranslucent={true}
     >
-      <View style={styles.overlay}>
-        <TouchableOpacity
-          style={styles.backdrop}
-          activeOpacity={1}
-          onPress={onClose}
-        />
-
-        <View style={styles.modalContainer}>
+      <Pressable style={styles.overlay} onPress={onClose}>
+        <View
+          style={styles.modalContainer}
+          onStartShouldSetResponder={() => true}
+          onTouchEnd={(e) => e.stopPropagation()}
+        >
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
@@ -149,7 +148,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
             </View>
           </ScrollView>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 }
@@ -163,14 +162,6 @@ const styles = StyleSheet.create({
     paddingVertical: 60,
     paddingHorizontal: 20,
   },
-  backdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
   modalContainer: {
     width: '100%',
     maxWidth: 500,
@@ -178,7 +169,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
-    zIndex: 2,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
