@@ -370,7 +370,7 @@ function GeneratedWorkout({
       });
 
       if (allExercises.length === 0) {
-        Alert.alert('Błąd', 'Nie możesz rozpocząć treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
+        alertDialog('Błąd', 'Nie możesz rozpocząć treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
         return;
       }
 
@@ -417,7 +417,7 @@ function GeneratedWorkout({
       });
 
       if (allExercises.length === 0) {
-        Alert.alert('Błąd', 'Nie możesz zapisać treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
+        alertDialog('Błąd', 'Nie możesz zapisać treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
         return;
       }
 
@@ -429,7 +429,7 @@ function GeneratedWorkout({
         date: customDate
       };
       onSaveWorkout(workoutData);
-      Alert.alert('Sukces', 'Trening został zapisany!');
+      alertDialog('Sukces', 'Trening został zapisany!');
     }
   };
 
@@ -452,7 +452,7 @@ function GeneratedWorkout({
 
       if (allExercises.length === 0) {
         scheduleCalledRef.current = false; // Reset aby można było spróbować ponownie
-        Alert.alert('Błąd', 'Nie możesz zaplanować treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
+        alertDialog('Błąd', 'Nie możesz zaplanować treningu bez ćwiczeń! Dodaj przynajmniej jedno ćwiczenie.');
         return;
       }
 
@@ -469,7 +469,7 @@ function GeneratedWorkout({
         scheduled: true
       };
       onScheduleWorkout(workoutData);
-      Alert.alert('Sukces', 'Trening został zaplanowany!');
+      alertDialog('Sukces', 'Trening został zaplanowany!');
     }
   };
 
