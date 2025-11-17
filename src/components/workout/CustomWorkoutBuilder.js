@@ -450,7 +450,7 @@ function CustomWorkoutBuilder({
     ];
 
     if (allExercises.length === 0) {
-      Alert.alert('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
+      alertDialog('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
       return;
     }
 
@@ -467,7 +467,7 @@ function CustomWorkoutBuilder({
         isFavorite: isFavorite
       };
       onSaveWorkout(workoutData);
-      Alert.alert('Sukces', 'Trening został zapisany!');
+      alertDialog('Sukces', 'Trening został zapisany!');
     }
   };
 
@@ -479,7 +479,7 @@ function CustomWorkoutBuilder({
     ];
 
     if (allExercises.length === 0) {
-      Alert.alert('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
+      alertDialog('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
       return;
     }
 
@@ -507,7 +507,7 @@ function CustomWorkoutBuilder({
     }));
 
     if (allExercises.length === 0) {
-      Alert.alert('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
+      alertDialog('Info', 'Dodaj przynajmniej jedno ćwiczenie do treningu');
       return;
     }
 
@@ -526,7 +526,7 @@ function CustomWorkoutBuilder({
         scheduled: true
       };
       onScheduleWorkout(workoutData);
-      Alert.alert('Sukces', 'Trening został zaplanowany!');
+      alertDialog('Sukces', 'Trening został zaplanowany!');
     }
   };
 
