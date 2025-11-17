@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } fr
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import storage from './utils/storage';
-import { prefetchExercises } from './services/api';
+import { preloadWithMinDuration } from './services/preloadService';
+import SplashScreen from './components/SplashScreen';
 import StatsPage from './components/screens/StatsPage';
 import ProfilePage from './components/screens/ProfilePage';
 import SavedWorkoutsPage from './components/screens/SavedWorkoutsPage';
@@ -17,6 +18,11 @@ import { normalizeWorkout, getLocalISOString } from './utils/workoutHelpers';
 import { TRAINING_TYPES } from './components/data/exercisesData';
 
 function App() {
+  // Splash screen states
+  const [isAppReady, setIsAppReady] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('Inicjalizacja...');
+
   const [currentTab, setCurrentTab] = useState('calendar');
   const [planScreen, setPlanScreen] = useState('landing');
   const [selectedMuscleGroups, setSelectedMuscleGroups] = useState([]);
@@ -45,9 +51,45 @@ function App() {
   const scrollViewRef = useRef(null);
   const isLoadedRef = useRef(false); // Flag to prevent saving before loading
 
+  // Initialize app with preloading
   useEffect(() => {
-    loadData();
+    initializeApp();
   }, []);
+
+  const initializeApp = async () => {
+    try {
+      if (__DEV__) console.log('[APP] 🚀 Initializing app with preloading...');
+
+      // Progress callback for splash screen
+      const onProgress = (progress, message) => {
+        setLoadingProgress(progress);
+        setLoadingMessage(message);
+      };
+
+      // Preload API data with splash screen
+      const preloadResults = await preloadWithMinDuration(onProgress);
+
+      if (__DEV__) {
+        console.log('[APP] 📊 Preload results:', {
+          success: preloadResults.success,
+          loadTime: preloadResults.loadTime,
+          errors: preloadResults.errors.length,
+        });
+      }
+
+      // Load local data
+      await loadData();
+
+      // Mark app as ready
+      setIsAppReady(true);
+      if (__DEV__) console.log('[APP] ✅ App initialization complete');
+
+    } catch (error) {
+      if (__DEV__) console.error('[APP] ❌ Initialization failed:', error);
+      // Even if preload fails, still show the app
+      setIsAppReady(true);
+    }
+  };
 
   // Timer dla aktywnego treningu
   useEffect(() => {
@@ -94,11 +136,6 @@ function App() {
       // Mark as loaded to enable saving
       isLoadedRef.current = true;
 
-      // Prefetch exercises w tle dla lepszej wydajności
-      if (__DEV__) console.log('🔮 Starting background prefetch of exercises...');
-      prefetchExercises().catch(err => {
-        if (__DEV__) console.warn('⚠️ Prefetch exercises failed (non-critical):', err);
-      });
       if (__DEV__) console.log('✅ Data loaded, auto-save enabled');
     } catch (error) {
       if (__DEV__) console.error('❌ Error loading data:', error);
@@ -510,10 +547,20 @@ function App() {
     );
   };
 
+  // Show splash screen while app is loading
+  if (!isAppReady) {
+    return (
+      <SplashScreen
+        progress={loadingProgress}
+        message={loadingMessage}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
-      
+
       <ScrollView
         ref={scrollViewRef}
         style={styles.scrollView}
