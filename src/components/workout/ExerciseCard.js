@@ -61,6 +61,7 @@ function ExerciseCard({
           onPress={onToggle}
           style={styles.imageContainer}
           activeOpacity={0.7}
+          disabled={!onToggle}
         >
           {imageLoading && !imageError && (
             <View style={styles.imagePlaceholder}>
