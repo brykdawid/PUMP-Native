@@ -42,10 +42,11 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
       statusBarTranslucent={true}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <View
+        <Pressable
           style={styles.modalContainer}
-          onStartShouldSetResponder={() => true}
-          onTouchEnd={(e) => e.stopPropagation()}
+          onPress={(e) => {
+            // Prevent closing modal when clicking inside content
+          }}
         >
           <ScrollView
             style={styles.scrollView}
@@ -147,7 +148,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
               )}
             </View>
           </ScrollView>
-        </View>
+        </Pressable>
       </Pressable>
     </Modal>
   );
