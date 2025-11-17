@@ -12,6 +12,7 @@ import {
   Platform,
   ActivityIndicator,
   Pressable,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -42,18 +43,14 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
       statusBarTranslucent={true}
     >
       <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable
-          style={styles.modalContainer}
-          onPress={(e) => {
-            // Prevent closing modal when clicking inside content
-          }}
-        >
-          <ScrollView
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            bounces={true}
-          >
+        <TouchableWithoutFeedback>
+          <View style={styles.modalContainer}>
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              bounces={true}
+            >
             {/* Header with gradient overlay */}
             <View style={styles.headerContainer}>
               <LinearGradient
@@ -146,9 +143,10 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
                   </View>
                 </View>
               )}
-            </View>
-          </ScrollView>
-        </Pressable>
+              </View>
+            </ScrollView>
+          </View>
+        </TouchableWithoutFeedback>
       </Pressable>
     </Modal>
   );
