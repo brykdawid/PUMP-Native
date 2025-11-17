@@ -27,6 +27,9 @@
         "node": "22.11.0",
         "NODE_ENV": "production"
       },
+      "android": {
+        "buildType": "app-bundle"
+      },
       "ios": {
         "image": "latest",
         "cocoapods": "1.15.2",
