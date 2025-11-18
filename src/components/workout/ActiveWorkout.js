@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import GifModal from './GifModal';
 import CalendarTab from './CalendarTab';
-import { getExercises } from '../../utils/apiHelpers';
+import { getExercises, getAbsoluteImageUrl } from '../../utils/apiHelpers';
 import { TRAINING_TYPES } from '../data/exercisesData';
 import { getLocalISOString } from '../../utils/workoutHelpers';
 
@@ -55,8 +55,20 @@ function ActiveWorkout({
   const [validationError, setValidationError] = useState(null);
   const [imageLoadingStates, setImageLoadingStates] = useState({});
   const [imageErrors, setImageErrors] = useState({});
+  const [muscleGroupImages, setMuscleGroupImages] = useState({});
 
   const workoutType = activeWorkout?.type || 'custom';
+
+  // Załaduj obrazy grup mięśniowych
+  useEffect(() => {
+    const images = {};
+    TRAINING_TYPES.forEach((type) => {
+      if (type.id !== 'fullbody') {
+        images[type.id] = getAbsoluteImageUrl(`image/Grupy/${type.name}.png`);
+      }
+    });
+    setMuscleGroupImages(images);
+  }, []);
 
   const exercisesByCategory = useMemo(() => {
     const grouped = {};
@@ -830,8 +842,16 @@ function ActiveWorkout({
         animationType="slide"
         onRequestClose={() => setShowSearchForCategory(null)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.searchModal}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSearchForCategory(null)}
+        >
+          <TouchableOpacity
+            style={styles.searchModal}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={styles.searchModalHeader}>
               <Text style={styles.searchModalTitle}>Dodaj ćwiczenie</Text>
               <TouchableOpacity
@@ -908,8 +928,8 @@ function ActiveWorkout({
                 <Text style={styles.noResultsText}>Brak dostępnych ćwiczeń</Text>
               )}
             </ScrollView>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       <Modal
@@ -918,8 +938,16 @@ function ActiveWorkout({
         animationType="slide"
         onRequestClose={() => setShowMuscleGroupModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.muscleGroupModal}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowMuscleGroupModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.muscleGroupModal}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Wybierz grupę mięśniową</Text>
               <TouchableOpacity
@@ -953,7 +981,17 @@ function ActiveWorkout({
                           <Ionicons name="checkmark" size={16} color="#ffffff" />
                         </View>
                       )}
-                      <Text style={styles.muscleGroupEmoji}>💪</Text>
+                      <View style={styles.muscleGroupImageContainer}>
+                        {muscleGroupImages[type.id] ? (
+                          <Image
+                            source={{ uri: muscleGroupImages[type.id] }}
+                            style={styles.muscleGroupImage}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Ionicons name="fitness" size={40} color="#9333ea" />
+                        )}
+                      </View>
                       <Text style={styles.muscleGroupName}>{type.name}</Text>
                       {alreadyExists && (
                         <Text style={styles.muscleGroupAlready}>Już w treningu</Text>
@@ -963,8 +1001,8 @@ function ActiveWorkout({
                 })}
               </View>
             </ScrollView>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       <Modal
@@ -1428,8 +1466,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    minHeight: '50%',
-    maxHeight: '70%',
+    minHeight: '60%',
+    maxHeight: '80%',
   },
   searchModalHeader: {
     flexDirection: 'row',
@@ -1515,8 +1553,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    minHeight: '50%',
-    maxHeight: '80%',
+    minHeight: '60%',
+    maxHeight: '85%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -1566,9 +1604,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  muscleGroupEmoji: {
-    fontSize: 40,
+  muscleGroupImageContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    overflow: 'hidden',
     marginBottom: 8,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  muscleGroupImage: {
+    width: '100%',
+    height: '100%',
   },
   muscleGroupName: {
     fontSize: 14,
