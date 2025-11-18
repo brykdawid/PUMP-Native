@@ -107,12 +107,12 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
   const [loadingImages, setLoadingImages] = useState(new Set());
 
   useEffect(() => {
-    // Użyj dedykowanych obrazów grup z folderu Grypy
+    // Użyj dedykowanych obrazów grup z folderu image/Grupy
     const images = {};
     TRAINING_TYPES.forEach((type) => {
       if (type.id !== 'fullbody') {
-        // Ścieżka: Grypy/Nazwa Grupy.png
-        images[type.id] = getAbsoluteImageUrl(`Grypy/${type.name}.png`);
+        // Ścieżka: image/Grupy/Nazwa Grupy.png
+        images[type.id] = getAbsoluteImageUrl(`image/Grupy/${type.name}.png`);
       }
     });
     setCategoryImages(images);
