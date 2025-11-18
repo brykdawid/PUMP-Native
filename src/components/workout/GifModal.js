@@ -11,7 +11,7 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
-  TouchableWithoutFeedback,
+  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -44,8 +44,9 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
     setImageError(true);
   }, []);
 
-  const handleClose = useCallback(() => {
-    console.log('[GifModal] Closing modal');
+  const handleOverlayPress = useCallback((event) => {
+    // Only close if we're clicking the overlay itself, not its children
+    console.log('[GifModal] Overlay press event');
     onClose();
   }, [onClose]);
 
@@ -66,15 +67,22 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
       visible={!!exercise}
       transparent={true}
       animationType="fade"
-      onRequestClose={handleClose}
+      onRequestClose={onClose}
       statusBarTranslucent={true}
       onShow={() => console.log('[GifModal] Modal shown')}
       onDismiss={() => console.log('[GifModal] Modal dismissed')}
     >
-      <TouchableWithoutFeedback onPress={handleClose}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback onPress={() => console.log('[GifModal] Content area pressed - not closing')}>
-            <View style={styles.modalContainer}>
+      <Pressable style={styles.overlay} onPress={handleOverlayPress}>
+        <View
+          style={styles.modalContainer}
+          onStartShouldSetResponder={() => {
+            console.log('[GifModal] Modal container intercepting touch');
+            return true;
+          }}
+          onResponderRelease={() => {
+            console.log('[GifModal] Touch released on modal container');
+          }}
+        >
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
@@ -175,10 +183,8 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
               )}
             </View>
           </ScrollView>
-            </View>
-          </TouchableWithoutFeedback>
         </View>
-      </TouchableWithoutFeedback>
+      </Pressable>
     </Modal>
   );
 }
