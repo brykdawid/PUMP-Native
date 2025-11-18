@@ -33,6 +33,17 @@ function ExerciseCard({
     setImageError(true);
   }, []);
 
+  const handleToggle = useCallback(() => {
+    console.log('[ExerciseCard] Exercise toggled/clicked:', {
+      exerciseId,
+      name: exercise?.name,
+      hasOnToggle: !!onToggle,
+    });
+    if (onToggle) {
+      onToggle();
+    }
+  }, [onToggle, exerciseId, exercise]);
+
   // Format sets display - handle string, number, or array
   const formatSets = (sets) => {
     if (!sets) return '';
@@ -58,7 +69,7 @@ function ExerciseCard({
       <View style={styles.cardContent}>
         {/* Clickable GIF area - opens preview modal */}
         <TouchableOpacity
-          onPress={onToggle}
+          onPress={handleToggle}
           style={styles.imageContainer}
           activeOpacity={0.7}
           disabled={!onToggle}
@@ -86,7 +97,7 @@ function ExerciseCard({
 
         {/* Clickable text/title area - opens preview modal */}
         <TouchableOpacity
-          onPress={onToggle}
+          onPress={handleToggle}
           style={styles.textContainer}
           activeOpacity={0.7}
           disabled={!onToggle}

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, memo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -22,16 +22,50 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
+  useEffect(() => {
+    if (exercise) {
+      console.log('[GifModal] Modal opened with exercise:', {
+        name: exercise.name,
+        hasImage: !!exercise.image,
+        hasDescription: !!exercise.description,
+        hasTips: !!exercise.tips,
+      });
+    }
+  }, [exercise]);
+
   const handleImageLoad = useCallback(() => {
+    console.log('[GifModal] Image loaded successfully');
     setImageLoading(false);
   }, []);
 
   const handleImageError = useCallback(() => {
+    console.log('[GifModal] Image failed to load');
     setImageLoading(false);
     setImageError(true);
   }, []);
 
-  if (!exercise) return null;
+  const handleClose = useCallback(() => {
+    console.log('[GifModal] Close button pressed');
+    onClose();
+  }, [onClose]);
+
+  const handleOverlayPress = useCallback((event) => {
+    // Only close if we're clicking the overlay itself, not its children
+    console.log('[GifModal] Overlay press event');
+    onClose();
+  }, [onClose]);
+
+  const handleToggleFavorite = useCallback(() => {
+    console.log('[GifModal] Toggling favorite');
+    onToggleFavorite();
+  }, [onToggleFavorite]);
+
+  if (!exercise) {
+    console.log('[GifModal] No exercise provided, not rendering');
+    return null;
+  }
+
+  console.log('[GifModal] Rendering modal');
 
   return (
     <Modal
@@ -40,12 +74,20 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
       animationType="fade"
       onRequestClose={onClose}
       statusBarTranslucent={true}
+      onShow={() => console.log('[GifModal] Modal shown')}
+      onDismiss={() => console.log('[GifModal] Modal dismissed')}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable
+      <View style={styles.overlayBackground}>
+        <TouchableOpacity
+          style={styles.dismissArea}
+          onPress={handleOverlayPress}
+          activeOpacity={1}
+        />
+        <View
           style={styles.modalContainer}
-          onPress={(e) => {
-            // Prevent closing modal when clicking inside content
+          onLayout={(event) => {
+            const { width, height } = event.nativeEvent.layout;
+            console.log('[GifModal] modalContainer layout:', { width, height });
           }}
         >
           <ScrollView
@@ -62,7 +104,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
               >
                 <View style={styles.headerButtons}>
                   <TouchableOpacity
-                    onPress={onToggleFavorite}
+                    onPress={handleToggleFavorite}
                     style={[
                       styles.iconButton,
                       isFavorite ? styles.favoriteButtonActive : styles.favoriteButtonInactive
@@ -77,7 +119,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={onClose}
+                    onPress={handleClose}
                     style={styles.closeButton}
                     activeOpacity={0.7}
                   >
@@ -148,28 +190,40 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
               )}
             </View>
           </ScrollView>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  overlayBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 60,
     paddingHorizontal: 20,
   },
+  dismissArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    zIndex: 1,
+    elevation: 0, // Android - keep background below modalContainer
+  },
   modalContainer: {
     width: '100%',
     maxWidth: 500,
-    maxHeight: SCREEN_HEIGHT * 0.8,
+    height: SCREEN_HEIGHT * 0.8, // FIXED: Use height instead of maxHeight
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
+    zIndex: 100,
+    borderWidth: 5, // DEBUG: Temporary visible border
+    borderColor: '#ff0000', // DEBUG: Red border
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -178,7 +232,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
       },
       android: {
-        elevation: 8,
+        elevation: 999, // DEBUG: Very high elevation to ensure it's on top
       },
     }),
   },
