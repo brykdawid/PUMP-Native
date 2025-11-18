@@ -561,13 +561,18 @@ function App() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
 
-      <ScrollView
-        ref={scrollViewRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {renderContent()}
-      </ScrollView>
+      {/* Render library tab without ScrollView to avoid VirtualizedList nesting */}
+      {currentTab === 'library' ? (
+        renderContent()
+      ) : (
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {renderContent()}
+        </ScrollView>
+      )}
 
       <View style={styles.bottomNav}>
         {/* Library Tab - Leftmost */}
