@@ -44,6 +44,11 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
     setImageError(true);
   }, []);
 
+  const handleClose = useCallback(() => {
+    console.log('[GifModal] Close button pressed');
+    onClose();
+  }, [onClose]);
+
   const handleOverlayPress = useCallback((event) => {
     // Only close if we're clicking the overlay itself, not its children
     console.log('[GifModal] Overlay press event');
