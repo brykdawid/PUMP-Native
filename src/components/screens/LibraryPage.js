@@ -15,6 +15,7 @@ import { TRAINING_TYPES } from '../data/exercisesData';
 import ExerciseCard from '../workout/ExerciseCard';
 import GifModal from '../workout/GifModal';
 import storage, { alertDialog } from '../../utils/storage';
+import { getLocalISOString } from '../../utils/workoutHelpers';
 
 const ITEMS_PER_PAGE = 20;
 
@@ -57,7 +58,18 @@ function LibraryPage() {
   const loadFavorites = async () => {
     try {
       const saved = await storage.getItem('favoriteExercises');
-      if (saved) setFavorites(JSON.parse(saved));
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Migration: convert old format (array of strings) to new format (array of objects)
+        if (parsed.length > 0 && typeof parsed[0] === 'string') {
+          // Old format detected, clear it to avoid errors
+          if (__DEV__) console.log('Migrating favorites from old format to new format');
+          await storage.setItem('favoriteExercises', JSON.stringify([]));
+          setFavorites([]);
+        } else {
+          setFavorites(parsed);
+        }
+      }
     } catch (error) {
       if (__DEV__) console.error('Error loading favorites:', error);
     }
@@ -72,10 +84,19 @@ function LibraryPage() {
     }
   };
 
-  const toggleFavorite = useCallback((exerciseId) => {
-    const newFavorites = favorites.includes(exerciseId)
-      ? favorites.filter(id => id !== exerciseId)
-      : [...favorites, exerciseId];
+  const toggleFavorite = useCallback((exercise) => {
+    const exists = favorites.find(ex => ex.name === exercise.name);
+    const newFavorites = exists
+      ? favorites.filter(ex => ex.name !== exercise.name)
+      : [...favorites, {
+          name: exercise.name,
+          image: exercise.image,
+          description: exercise.description,
+          tips: exercise.tips,
+          labels: exercise.labels,
+          category: exercise.category,
+          savedAt: getLocalISOString()
+        }];
     saveFavorites(newFavorites);
   }, [favorites]);
 
@@ -153,12 +174,12 @@ function LibraryPage() {
 
   const handleToggleFavoriteModal = useCallback(() => {
     if (selectedExercise) {
-      toggleFavorite(selectedExercise.id || selectedExercise.name);
+      toggleFavorite(selectedExercise);
     }
   }, [selectedExercise, toggleFavorite]);
 
   const isFavoriteSelected = useMemo(() => {
-    return selectedExercise ? favorites.includes(selectedExercise.id || selectedExercise.name) : false;
+    return selectedExercise ? favorites.some(ex => ex.name === selectedExercise.name) : false;
   }, [selectedExercise, favorites]);
 
   if (loading) {
@@ -234,8 +255,8 @@ function LibraryPage() {
               exercise={item}
               exerciseId={uniqueId}
               onToggle={() => handleImageClick(item)}
-              onFavorite={() => toggleFavorite(item.id || item.name)}
-              isFavorite={favorites.includes(item.id || item.name)}
+              onFavorite={() => toggleFavorite(item)}
+              isFavorite={favorites.some(ex => ex.name === item.name)}
             />
           );
         }}
