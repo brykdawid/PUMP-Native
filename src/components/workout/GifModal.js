@@ -77,19 +77,13 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
       onShow={() => console.log('[GifModal] Modal shown')}
       onDismiss={() => console.log('[GifModal] Modal dismissed')}
     >
-      <TouchableOpacity
-        style={styles.overlay}
-        activeOpacity={1}
-        onPress={handleOverlayPress}
-      >
+      <View style={styles.overlayBackground}>
         <TouchableOpacity
-          style={styles.modalContainer}
+          style={styles.dismissArea}
+          onPress={handleOverlayPress}
           activeOpacity={1}
-          onPress={(e) => {
-            e.stopPropagation();
-            console.log('[GifModal] Modal container pressed - stopping propagation');
-          }}
-        >
+        />
+        <View style={styles.modalContainer}>
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
@@ -190,20 +184,27 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
               )}
             </View>
           </ScrollView>
-        </TouchableOpacity>
-      </TouchableOpacity>
+        </View>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  overlayBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 60,
     paddingHorizontal: 20,
+  },
+  dismissArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
   },
   modalContainer: {
     width: '100%',
