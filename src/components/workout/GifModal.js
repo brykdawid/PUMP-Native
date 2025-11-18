@@ -1,8 +1,7 @@
-import React, { useState, useCallback, memo, useEffect } from 'react';
+import React, { useCallback, memo, useEffect } from 'react';
 import {
   View,
   Text,
-  Image,
   Modal,
   TouchableOpacity,
   ScrollView,
@@ -10,18 +9,14 @@ import {
   Dimensions,
   StatusBar,
   Platform,
-  ActivityIndicator,
-  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import OptimizedGif from '../common/OptimizedGif';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
-  const [imageLoading, setImageLoading] = useState(true);
-  const [imageError, setImageError] = useState(false);
-
   useEffect(() => {
     if (exercise) {
       console.log('[GifModal] Modal opened with exercise:', {
@@ -32,17 +27,6 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
       });
     }
   }, [exercise]);
-
-  const handleImageLoad = useCallback(() => {
-    console.log('[GifModal] Image loaded successfully');
-    setImageLoading(false);
-  }, []);
-
-  const handleImageError = useCallback(() => {
-    console.log('[GifModal] Image failed to load');
-    setImageLoading(false);
-    setImageError(true);
-  }, []);
 
   const handleClose = useCallback(() => {
     console.log('[GifModal] Close button pressed');
@@ -128,37 +112,23 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
                 </View>
               </LinearGradient>
 
-              {/* GIF/Image */}
+              {/* GIF/Image - Zoptymalizowany z expo-image */}
               <View style={styles.imageContainer}>
-                {exercise.image ? (
-                  <>
-                    {imageLoading && !imageError && (
-                      <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color="#9333ea" />
-                      </View>
-                    )}
-                    {!imageError && (
-                      <Image
-                        source={{ uri: exercise.image }}
-                        style={styles.exerciseImage}
-                        resizeMode="contain"
-                        onLoad={handleImageLoad}
-                        onError={handleImageError}
-                        fadeDuration={0}
-                      />
-                    )}
-                    {imageError && (
-                      <View style={styles.placeholderContainer}>
-                        <Ionicons name="barbell" size={96} color="#6b7280" />
-                        <Text style={styles.errorText}>Nie można załadować obrazu</Text>
-                      </View>
-                    )}
-                  </>
-                ) : (
-                  <View style={styles.placeholderContainer}>
-                    <Ionicons name="barbell" size={96} color="#6b7280" />
-                  </View>
-                )}
+                <OptimizedGif
+                  uri={exercise.image}
+                  style={styles.exerciseImage}
+                  contentFit="contain"
+                  priority="high"
+                  cachePolicy="memory-disk"
+                  transition={150}
+                  showLoadingIndicator={true}
+                  loadingIndicatorColor="#9333ea"
+                  errorIcon="barbell"
+                  errorIconSize={96}
+                  errorIconColor="#6b7280"
+                  onLoad={() => console.log('[GifModal] Image loaded successfully')}
+                  onError={() => console.log('[GifModal] Image failed to load')}
+                />
               </View>
             </View>
 
@@ -285,28 +255,7 @@ const styles = StyleSheet.create({
   exerciseImage: {
     width: '100%',
     height: '100%',
-  },
-  placeholderContainer: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#ffffff',
-    zIndex: 1,
-  },
-  errorText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: '#6b7280',
   },
   infoContainer: {
     padding: 16,
