@@ -843,7 +843,7 @@ function ActiveWorkout({
         onRequestClose={() => setShowSearchForCategory(null)}
       >
         <TouchableOpacity
-          style={styles.modalOverlay}
+          style={styles.searchModalOverlay}
           activeOpacity={1}
           onPress={() => setShowSearchForCategory(null)}
         >
@@ -1462,12 +1462,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
+  searchModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+  },
   searchModal: {
     backgroundColor: '#ffffff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    minHeight: '60%',
-    maxHeight: '80%',
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    minHeight: '50%',
+    maxHeight: '70%',
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
   },
   searchModalHeader: {
     flexDirection: 'row',
