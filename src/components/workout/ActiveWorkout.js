@@ -406,6 +406,36 @@ function ActiveWorkout({
     addExerciseToWorkout(randomExercise, groupId);
   };
 
+  const handleAddAIExercise = (category) => {
+    const categoryLabels = {
+      'barki': 'shoulders',
+      'biceps': 'biceps',
+      'brzuch': 'abs',
+      'klatka': 'chest',
+      'nogi': 'legs',
+      'plecy': 'back',
+      'posladki': 'glutes',
+      'przedramiona': 'forearms',
+      'triceps': 'triceps'
+    };
+
+    const targetLabel = categoryLabels[category];
+    const currentExerciseNames = workoutExercises.map(ex => ex.name);
+
+    // Filtruj ćwiczenia - tylko te z odpowiednią kategorią i nie dodane jeszcze
+    const availableExercises = allExercises.filter(ex =>
+      ex.labels && ex.labels.includes(targetLabel) && !currentExerciseNames.includes(ex.name)
+    );
+
+    if (availableExercises.length === 0) {
+      alertDialog('Info', 'Brak więcej ćwiczeń dla tej grupy mięśniowej');
+      return;
+    }
+
+    const randomExercise = availableExercises[Math.floor(Math.random() * availableExercises.length)];
+    addExerciseToWorkout(randomExercise, category);
+  };
+
   const getCategoryName = (id) => {
     const names = {
       'barki': 'Barki',
@@ -792,14 +822,25 @@ function ActiveWorkout({
             })}
 
               {isExpanded && (
-                <TouchableOpacity
-                  onPress={() => setShowSearchForCategory(category)}
-                  style={styles.addExerciseButton}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="add-circle-outline" size={20} color="#9333ea" />
-                  <Text style={styles.addExerciseButtonText}>Dodaj ćwiczenie</Text>
-                </TouchableOpacity>
+                workoutType === 'ai' ? (
+                  <TouchableOpacity
+                    onPress={() => handleAddAIExercise(category)}
+                    style={styles.addExerciseButtonAI}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="sparkles" size={20} color="#7c3aed" />
+                    <Text style={styles.addExerciseButtonTextAI}>Generuj ćwiczenie AI</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => setShowSearchForCategory(category)}
+                    style={styles.addExerciseButton}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="add-circle-outline" size={20} color="#9333ea" />
+                    <Text style={styles.addExerciseButtonText}>Dodaj ćwiczenie</Text>
+                  </TouchableOpacity>
+                )
               )}
             </View>
           );
@@ -1423,6 +1464,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#9333ea',
+  },
+  addExerciseButtonAI: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderWidth: 2,
+    borderColor: '#7c3aed',
+    borderRadius: 12,
+    backgroundColor: '#f3e8ff',
+  },
+  addExerciseButtonTextAI: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#7c3aed',
   },
   addGroupButton: {
     marginBottom: 16,
