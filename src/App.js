@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
 import storage from './utils/storage';
 import { preloadWithMinDuration } from './services/preloadService';
 import SplashScreen from './components/SplashScreen';
@@ -18,6 +19,11 @@ import { normalizeWorkout, getLocalISOString } from './utils/workoutHelpers';
 import { TRAINING_TYPES } from './components/data/exercisesData';
 
 function App() {
+  // Load Ionicons font
+  const [fontsLoaded] = useFonts({
+    'Ionicons': require('@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf'),
+  });
+
   // Splash screen states
   const [isAppReady, setIsAppReady] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -547,12 +553,12 @@ function App() {
     );
   };
 
-  // Show splash screen while app is loading
-  if (!isAppReady) {
+  // Show splash screen while app is loading or fonts are loading
+  if (!isAppReady || !fontsLoaded) {
     return (
       <SplashScreen
         progress={loadingProgress}
-        message={loadingMessage}
+        message={!fontsLoaded ? 'Ładowanie fontów...' : loadingMessage}
       />
     );
   }
