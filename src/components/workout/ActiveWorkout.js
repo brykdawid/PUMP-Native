@@ -16,7 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import GifModal from './GifModal';
 import CalendarTab from './CalendarTab';
-import { getExercises } from '../../utils/apiHelpers';
+import { getExercises, getAbsoluteImageUrl } from '../../utils/apiHelpers';
 import { TRAINING_TYPES } from '../data/exercisesData';
 import { getLocalISOString } from '../../utils/workoutHelpers';
 
@@ -55,8 +55,20 @@ function ActiveWorkout({
   const [validationError, setValidationError] = useState(null);
   const [imageLoadingStates, setImageLoadingStates] = useState({});
   const [imageErrors, setImageErrors] = useState({});
+  const [muscleGroupImages, setMuscleGroupImages] = useState({});
 
   const workoutType = activeWorkout?.type || 'custom';
+
+  // Załaduj obrazy grup mięśniowych
+  useEffect(() => {
+    const images = {};
+    TRAINING_TYPES.forEach((type) => {
+      if (type.id !== 'fullbody') {
+        images[type.id] = getAbsoluteImageUrl(`image/Grupy/${type.name}.png`);
+      }
+    });
+    setMuscleGroupImages(images);
+  }, []);
 
   const exercisesByCategory = useMemo(() => {
     const grouped = {};
@@ -392,6 +404,36 @@ function ActiveWorkout({
     
     const randomExercise = categoryExercises[Math.floor(Math.random() * categoryExercises.length)];
     addExerciseToWorkout(randomExercise, groupId);
+  };
+
+  const handleAddAIExercise = (category) => {
+    const categoryLabels = {
+      'barki': 'shoulders',
+      'biceps': 'biceps',
+      'brzuch': 'abs',
+      'klatka': 'chest',
+      'nogi': 'legs',
+      'plecy': 'back',
+      'posladki': 'glutes',
+      'przedramiona': 'forearms',
+      'triceps': 'triceps'
+    };
+
+    const targetLabel = categoryLabels[category];
+    const currentExerciseNames = workoutExercises.map(ex => ex.name);
+
+    // Filtruj ćwiczenia - tylko te z odpowiednią kategorią i nie dodane jeszcze
+    const availableExercises = allExercises.filter(ex =>
+      ex.labels && ex.labels.includes(targetLabel) && !currentExerciseNames.includes(ex.name)
+    );
+
+    if (availableExercises.length === 0) {
+      alertDialog('Info', 'Brak więcej ćwiczeń dla tej grupy mięśniowej');
+      return;
+    }
+
+    const randomExercise = availableExercises[Math.floor(Math.random() * availableExercises.length)];
+    addExerciseToWorkout(randomExercise, category);
   };
 
   const getCategoryName = (id) => {
@@ -780,14 +822,25 @@ function ActiveWorkout({
             })}
 
               {isExpanded && (
-                <TouchableOpacity
-                  onPress={() => setShowSearchForCategory(category)}
-                  style={styles.addExerciseButton}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="add-circle-outline" size={20} color="#9333ea" />
-                  <Text style={styles.addExerciseButtonText}>Dodaj ćwiczenie</Text>
-                </TouchableOpacity>
+                workoutType === 'ai' ? (
+                  <TouchableOpacity
+                    onPress={() => handleAddAIExercise(category)}
+                    style={styles.addExerciseButtonAI}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="sparkles" size={20} color="#7c3aed" />
+                    <Text style={styles.addExerciseButtonTextAI}>Generuj ćwiczenie AI</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={() => setShowSearchForCategory(category)}
+                    style={styles.addExerciseButton}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="add-circle-outline" size={20} color="#9333ea" />
+                    <Text style={styles.addExerciseButtonText}>Dodaj ćwiczenie</Text>
+                  </TouchableOpacity>
+                )
               )}
             </View>
           );
@@ -830,8 +883,16 @@ function ActiveWorkout({
         animationType="slide"
         onRequestClose={() => setShowSearchForCategory(null)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.searchModal}>
+        <TouchableOpacity
+          style={styles.searchModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSearchForCategory(null)}
+        >
+          <TouchableOpacity
+            style={styles.searchModal}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={styles.searchModalHeader}>
               <Text style={styles.searchModalTitle}>Dodaj ćwiczenie</Text>
               <TouchableOpacity
@@ -908,8 +969,8 @@ function ActiveWorkout({
                 <Text style={styles.noResultsText}>Brak dostępnych ćwiczeń</Text>
               )}
             </ScrollView>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       <Modal
@@ -918,8 +979,16 @@ function ActiveWorkout({
         animationType="slide"
         onRequestClose={() => setShowMuscleGroupModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.muscleGroupModal}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowMuscleGroupModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.muscleGroupModal}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Wybierz grupę mięśniową</Text>
               <TouchableOpacity
@@ -953,7 +1022,17 @@ function ActiveWorkout({
                           <Ionicons name="checkmark" size={16} color="#ffffff" />
                         </View>
                       )}
-                      <Text style={styles.muscleGroupEmoji}>💪</Text>
+                      <View style={styles.muscleGroupImageContainer}>
+                        {muscleGroupImages[type.id] ? (
+                          <Image
+                            source={{ uri: muscleGroupImages[type.id] }}
+                            style={styles.muscleGroupImage}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <Ionicons name="fitness" size={40} color="#9333ea" />
+                        )}
+                      </View>
                       <Text style={styles.muscleGroupName}>{type.name}</Text>
                       {alreadyExists && (
                         <Text style={styles.muscleGroupAlready}>Już w treningu</Text>
@@ -963,8 +1042,8 @@ function ActiveWorkout({
                 })}
               </View>
             </ScrollView>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       <Modal
@@ -1386,6 +1465,22 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#9333ea',
   },
+  addExerciseButtonAI: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderWidth: 2,
+    borderColor: '#7c3aed',
+    borderRadius: 12,
+    backgroundColor: '#f3e8ff',
+  },
+  addExerciseButtonTextAI: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#7c3aed',
+  },
   addGroupButton: {
     marginBottom: 16,
     borderRadius: 16,
@@ -1424,11 +1519,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
+  searchModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+  },
   searchModal: {
     backgroundColor: '#ffffff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    minHeight: '50%',
     maxHeight: '70%',
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
   },
   searchModalHeader: {
     flexDirection: 'row',
@@ -1458,6 +1560,7 @@ const styles = StyleSheet.create({
   searchResults: {
     flex: 1,
     paddingHorizontal: 16,
+    paddingBottom: 24,
   },
   searchResultItem: {
     flexDirection: 'row',
@@ -1513,7 +1616,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '80%',
+    minHeight: '60%',
+    maxHeight: '85%',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -1563,9 +1667,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  muscleGroupEmoji: {
-    fontSize: 40,
+  muscleGroupImageContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    overflow: 'hidden',
     marginBottom: 8,
+    backgroundColor: '#f3f4f6',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  muscleGroupImage: {
+    width: '100%',
+    height: '100%',
   },
   muscleGroupName: {
     fontSize: 14,
