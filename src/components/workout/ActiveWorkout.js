@@ -1428,6 +1428,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    minHeight: '50%',
     maxHeight: '70%',
   },
   searchModalHeader: {
@@ -1458,6 +1459,7 @@ const styles = StyleSheet.create({
   searchResults: {
     flex: 1,
     paddingHorizontal: 16,
+    paddingBottom: 24,
   },
   searchResultItem: {
     flexDirection: 'row',
@@ -1513,6 +1515,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    minHeight: '50%',
     maxHeight: '80%',
   },
   modalHeader: {
