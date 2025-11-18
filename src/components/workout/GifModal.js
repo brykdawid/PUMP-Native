@@ -199,10 +199,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
 const styles = StyleSheet.create({
   overlayBackground: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 20,
+    backgroundColor: 'transparent',
   },
   dismissArea: {
     position: 'absolute',
@@ -212,18 +209,19 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
     zIndex: 1,
-    elevation: 0, // Android - keep background below modalContainer
   },
   modalContainer: {
-    width: '100%',
+    position: 'absolute',
+    top: SCREEN_HEIGHT * 0.1, // 10% from top
+    left: 20,
+    right: 20,
+    height: SCREEN_HEIGHT * 0.8,
     maxWidth: 500,
-    height: SCREEN_HEIGHT * 0.8, // FIXED: Use height instead of maxHeight
+    alignSelf: 'center',
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
     zIndex: 100,
-    borderWidth: 5, // DEBUG: Temporary visible border
-    borderColor: '#ff0000', // DEBUG: Red border
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -232,7 +230,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
       },
       android: {
-        elevation: 999, // DEBUG: Very high elevation to ensure it's on top
+        elevation: 24,
       },
     }),
   },
