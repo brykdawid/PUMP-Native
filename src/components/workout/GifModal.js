@@ -77,17 +77,13 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
       onShow={() => console.log('[GifModal] Modal shown')}
       onDismiss={() => console.log('[GifModal] Modal dismissed')}
     >
-      <Pressable style={styles.overlay} onPress={handleOverlayPress}>
-        <View
-          style={styles.modalContainer}
-          onStartShouldSetResponder={() => {
-            console.log('[GifModal] Modal container intercepting touch');
-            return true;
-          }}
-          onResponderRelease={() => {
-            console.log('[GifModal] Touch released on modal container');
-          }}
-        >
+      <View style={styles.overlay}>
+        <TouchableOpacity
+          style={StyleSheet.absoluteFill}
+          activeOpacity={1}
+          onPress={handleOverlayPress}
+        />
+        <View style={styles.modalContainer}>
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
@@ -189,7 +185,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
             </View>
           </ScrollView>
         </View>
-      </Pressable>
+      </View>
     </Modal>
   );
 }
