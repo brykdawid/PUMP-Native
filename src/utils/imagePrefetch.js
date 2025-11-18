@@ -1,7 +1,8 @@
 // src/utils/imagePrefetch.js
 // System prefetch'owania i cache'owania obrazków/GIF-ów
+// Zoptymalizowany z expo-image dla lepszego cache'owania na dysku
 
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 
 /**
  * ============================================
@@ -87,7 +88,8 @@ class ImagePrefetchManager {
     try {
       if (__DEV__) console.log(`[ImagePrefetch] 🔄 Prefetching: ${item.uri}`);
 
-      await Image.prefetch(item.uri);
+      // expo-image prefetch z cache na dysku
+      await Image.prefetch([item.uri], 'disk');
 
       this.prefetchedImages.add(item.uri);
       if (__DEV__) console.log(`[ImagePrefetch] ✅ Prefetched: ${item.uri}`);
@@ -114,26 +116,72 @@ class ImagePrefetchManager {
       .map(exercise => exercise?.image)
       .filter(Boolean); // Usuń null/undefined
 
-    this.addBatch(imageUrls, priority);
+    // Dla wysokiego priorytetu, użyj natywnego batch prefetch expo-image
+    if (priority >= 1 && imageUrls.length > 0) {
+      this.nativeBatchPrefetch(imageUrls);
+    } else {
+      this.addBatch(imageUrls, priority);
+    }
 
-    if (__DEV__) console.log(`[ImagePrefetch] 💪 Queued ${imageUrls.length} exercise images`);
+    if (__DEV__) console.log(`[ImagePrefetch] 💪 Queued ${imageUrls.length} exercise images (priority: ${priority})`);
   }
 
   /**
-   * Wyczyść wszystkie cache obrazków (React Native cache)
+   * Natywny batch prefetch - najbardziej wydajny dla expo-image
+   * Prefetchuje wszystkie obrazy równolegle używając natywnej implementacji
+   * @param {Array<string>} uris - Lista URL-i
+   */
+  async nativeBatchPrefetch(uris) {
+    if (!uris || uris.length === 0) return;
+
+    // Filtruj już prefetch'owane
+    const newUris = uris.filter(uri =>
+      uri && !this.prefetchedImages.has(uri) && !this.failedImages.has(uri)
+    );
+
+    if (newUris.length === 0) {
+      if (__DEV__) console.log('[ImagePrefetch] ⏭️ All images already prefetched');
+      return;
+    }
+
+    try {
+      if (__DEV__) console.log(`[ImagePrefetch] 🚀 Native batch prefetch: ${newUris.length} images`);
+
+      // expo-image natywny batch prefetch - bardzo wydajny
+      await Image.prefetch(newUris, 'disk');
+
+      // Oznacz wszystkie jako prefetch'owane
+      newUris.forEach(uri => this.prefetchedImages.add(uri));
+
+      if (__DEV__) console.log(`[ImagePrefetch] ✅ Batch prefetch complete: ${newUris.length} images`);
+    } catch (error) {
+      if (__DEV__) console.error('[ImagePrefetch] ❌ Batch prefetch failed:', error);
+
+      // Fallback do kolejki dla nieudanych
+      this.addBatch(newUris, 0);
+    }
+  }
+
+  /**
+   * Wyczyść wszystkie cache obrazków (expo-image cache)
    */
   async clearCache() {
     try {
       if (__DEV__) console.log('[ImagePrefetch] 🧹 Clearing image cache...');
 
-      // W React Native nie ma prostej metody do czyszczenia całego cache Image.prefetch
-      // Ale możemy wyczyścić naszą lokalną listę
+      // Wyczyść cache dyskowy i pamięciowy expo-image
+      await Promise.all([
+        Image.clearDiskCache(),
+        Image.clearMemoryCache()
+      ]);
+
+      // Wyczyść lokalną listę
       this.prefetchedImages.clear();
       this.failedImages.clear();
       this.prefetchQueue = [];
       this.activePrefetches = 0;
 
-      if (__DEV__) console.log('[ImagePrefetch] ✅ Cache cleared');
+      if (__DEV__) console.log('[ImagePrefetch] ✅ Cache cleared (disk + memory)');
     } catch (error) {
       if (__DEV__) console.error('[ImagePrefetch] ❌ Failed to clear cache:', error);
     }
@@ -209,7 +257,8 @@ class IntelligentImageLoader {
     try {
       if (__DEV__) console.log(`[ImageLoader] 🔄 Loading (attempt ${attempts + 1}): ${uri}`);
 
-      await Image.prefetch(uri);
+      // expo-image prefetch z cache na dysku
+      await Image.prefetch([uri], 'disk');
 
       // Reset licznika przy sukcesie
       this.retryAttempts.delete(uri);
@@ -222,9 +271,10 @@ class IntelligentImageLoader {
 
       if (__DEV__) console.error(`[ImageLoader] ❌ Failed (attempt ${attempts + 1}): ${uri}`, error);
 
-      // Retry po opóźnieniu jeśli nie osiągnięto limitu
+      // Retry po opóźnieniu z exponential backoff
       if (attempts + 1 < this.maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+        const delay = this.retryDelay * Math.pow(2, attempts); // 2s, 4s, 8s
+        await new Promise(resolve => setTimeout(resolve, delay));
         return this.loadWithRetry(uri);
       }
 
@@ -292,6 +342,14 @@ export const prefetchExerciseImages = (exercises, priority = 0) => {
 };
 
 /**
+ * Natywny batch prefetch - najbardziej wydajny
+ * @param {Array<string>} uris - Lista URL-i
+ */
+export const nativeBatchPrefetch = (uris) => {
+  return imagePrefetchManager.nativeBatchPrefetch(uris);
+};
+
+/**
  * Załaduj obrazek z retry logic
  * @param {string} uri - URL obrazka
  * @returns {Promise<boolean>}
@@ -333,6 +391,7 @@ export default {
   prefetchImage,
   prefetchImages,
   prefetchExerciseImages,
+  nativeBatchPrefetch,
   loadImageWithRetry,
   clearImageCache,
   getImagePrefetchStats,

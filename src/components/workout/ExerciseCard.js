@@ -1,6 +1,7 @@
-import React, { useState, memo, useCallback } from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { memo, useCallback } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import OptimizedGif from '../common/OptimizedGif';
 
 function ExerciseCard({
   exercise,
@@ -16,22 +17,10 @@ function ExerciseCard({
   // AI tag
   showAITag = false
 }) {
-  const [imageLoading, setImageLoading] = useState(true);
-  const [imageError, setImageError] = useState(false);
-
   // Safety check - if exercise is null/undefined, render nothing
   if (!exercise) {
     return null;
   }
-
-  const handleImageLoad = useCallback(() => {
-    setImageLoading(false);
-  }, []);
-
-  const handleImageError = useCallback(() => {
-    setImageLoading(false);
-    setImageError(true);
-  }, []);
 
   const handleToggle = useCallback(() => {
     console.log('[ExerciseCard] Exercise toggled/clicked:', {
@@ -74,25 +63,19 @@ function ExerciseCard({
           activeOpacity={0.7}
           disabled={!onToggle}
         >
-          {imageLoading && !imageError && (
-            <View style={styles.imagePlaceholder}>
-              <ActivityIndicator size="small" color="#9333ea" />
-            </View>
-          )}
-          {imageError || !exercise.image ? (
-            <View style={styles.imagePlaceholder}>
-              <Ionicons name="image-outline" size={32} color="#d1d5db" />
-            </View>
-          ) : (
-            <Image
-              source={{ uri: exercise.image }}
-              style={styles.image}
-              resizeMode="cover"
-              onLoad={handleImageLoad}
-              onError={handleImageError}
-              fadeDuration={0}
-            />
-          )}
+          <OptimizedGif
+            uri={exercise.image}
+            style={styles.image}
+            contentFit="cover"
+            priority="normal"
+            cachePolicy="memory-disk"
+            transition={100}
+            showLoadingIndicator={true}
+            loadingIndicatorColor="#9333ea"
+            errorIcon="image-outline"
+            errorIconSize={32}
+            errorIconColor="#d1d5db"
+          />
         </TouchableOpacity>
 
         {/* Clickable text/title area - opens preview modal */}
@@ -196,18 +179,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flexShrink: 0,
     backgroundColor: '#f3f4f6',
-    position: 'relative',
-  },
-  imagePlaceholder: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f3f4f6',
-    zIndex: 1,
   },
   image: {
     width: '100%',
