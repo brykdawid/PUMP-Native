@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, memo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   StatusBar,
   Platform,
   ActivityIndicator,
-  Pressable,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,32 +22,59 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
+  useEffect(() => {
+    if (exercise) {
+      console.log('[GifModal] Modal opened with exercise:', {
+        name: exercise.name,
+        hasImage: !!exercise.image,
+        hasDescription: !!exercise.description,
+        hasTips: !!exercise.tips,
+      });
+    }
+  }, [exercise]);
+
   const handleImageLoad = useCallback(() => {
+    console.log('[GifModal] Image loaded successfully');
     setImageLoading(false);
   }, []);
 
   const handleImageError = useCallback(() => {
+    console.log('[GifModal] Image failed to load');
     setImageLoading(false);
     setImageError(true);
   }, []);
 
-  if (!exercise) return null;
+  const handleClose = useCallback(() => {
+    console.log('[GifModal] Closing modal');
+    onClose();
+  }, [onClose]);
+
+  const handleToggleFavorite = useCallback(() => {
+    console.log('[GifModal] Toggling favorite');
+    onToggleFavorite();
+  }, [onToggleFavorite]);
+
+  if (!exercise) {
+    console.log('[GifModal] No exercise provided, not rendering');
+    return null;
+  }
+
+  console.log('[GifModal] Rendering modal');
 
   return (
     <Modal
       visible={!!exercise}
       transparent={true}
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
       statusBarTranslucent={true}
+      onShow={() => console.log('[GifModal] Modal shown')}
+      onDismiss={() => console.log('[GifModal] Modal dismissed')}
     >
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable
-          style={styles.modalContainer}
-          onPress={(e) => {
-            // Prevent closing modal when clicking inside content
-          }}
-        >
+      <TouchableWithoutFeedback onPress={handleClose}>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback onPress={() => console.log('[GifModal] Content area pressed - not closing')}>
+            <View style={styles.modalContainer}>
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
@@ -62,7 +89,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
               >
                 <View style={styles.headerButtons}>
                   <TouchableOpacity
-                    onPress={onToggleFavorite}
+                    onPress={handleToggleFavorite}
                     style={[
                       styles.iconButton,
                       isFavorite ? styles.favoriteButtonActive : styles.favoriteButtonInactive
@@ -77,7 +104,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={onClose}
+                    onPress={handleClose}
                     style={styles.closeButton}
                     activeOpacity={0.7}
                   >
@@ -148,8 +175,10 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
               )}
             </View>
           </ScrollView>
-        </Pressable>
-      </Pressable>
+            </View>
+          </TouchableWithoutFeedback>
+        </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 }

@@ -165,14 +165,22 @@ function LibraryPage() {
   };
 
   const handleImageClick = useCallback((exercise) => {
+    console.log('[LibraryPage] Exercise clicked:', {
+      name: exercise.name,
+      hasImage: !!exercise.image,
+      category: exercise.category,
+    });
     setSelectedExercise(exercise);
+    console.log('[LibraryPage] Selected exercise set');
   }, []);
 
   const closeModal = useCallback(() => {
+    console.log('[LibraryPage] Closing modal');
     setSelectedExercise(null);
   }, []);
 
   const handleToggleFavoriteModal = useCallback(() => {
+    console.log('[LibraryPage] Toggle favorite in modal');
     if (selectedExercise) {
       toggleFavorite(selectedExercise);
     }
