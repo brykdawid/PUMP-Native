@@ -83,7 +83,13 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
           onPress={handleOverlayPress}
           activeOpacity={1}
         />
-        <View style={styles.modalContainer}>
+        <View
+          style={styles.modalContainer}
+          onLayout={(event) => {
+            const { width, height } = event.nativeEvent.layout;
+            console.log('[GifModal] modalContainer layout:', { width, height });
+          }}
+        >
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
@@ -205,6 +211,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    zIndex: 1,
+    elevation: 0, // Android - keep background below modalContainer
   },
   modalContainer: {
     width: '100%',
@@ -213,7 +221,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
-    zIndex: 10,
+    zIndex: 100,
+    borderWidth: 5, // DEBUG: Temporary visible border
+    borderColor: '#ff0000', // DEBUG: Red border
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -222,7 +232,7 @@ const styles = StyleSheet.create({
         shadowRadius: 8,
       },
       android: {
-        elevation: 8,
+        elevation: 999, // DEBUG: Very high elevation to ensure it's on top
       },
     }),
   },
