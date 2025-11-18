@@ -12,7 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { alertDialog } from '../../utils/storage';
-import { getExercises } from '../../utils/apiHelpers';
+import { getAbsoluteImageUrl } from '../../utils/apiHelpers';
 
 // Skeleton loader z animacją shimmer
 const SkeletonLoader = () => {
@@ -107,51 +107,17 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
   const [loadingImages, setLoadingImages] = useState(new Set());
 
   useEffect(() => {
-    // Pobierz reprezentatywne zdjęcie dla każdej kategorii - równolegle dla lepszej wydajności
-    const fetchCategoryImages = async () => {
-      // Zaznacz wszystkie jako ładujące się
-      const allIds = new Set(TRAINING_TYPES.map(t => t.id));
-      setLoadingImages(allIds);
-
-      // Pobierz wszystkie obrazki równolegle
-      TRAINING_TYPES.forEach(async (type) => {
-        try {
-          const exercises = await getExercises(type.id, 1);
-
-          if (exercises && exercises.length > 0) {
-            // Aktualizuj obrazek natychmiast po załadowaniu
-            setCategoryImages(prev => ({
-              ...prev,
-              [type.id]: exercises[0].image
-            }));
-
-            // Usuń z listy ładujących się
-            setLoadingImages(prev => {
-              const next = new Set(prev);
-              next.delete(type.id);
-              return next;
-            });
-          } else {
-            // Usuń z listy ładujących się jeśli brak wyników
-            setLoadingImages(prev => {
-              const next = new Set(prev);
-              next.delete(type.id);
-              return next;
-            });
-          }
-        } catch (error) {
-          if (__DEV__) console.error(`Error fetching image for ${type.id}:`, error);
-          // Usuń z listy ładujących się nawet przy błędzie
-          setLoadingImages(prev => {
-            const next = new Set(prev);
-            next.delete(type.id);
-            return next;
-          });
-        }
-      });
-    };
-
-    fetchCategoryImages();
+    // Użyj dedykowanych obrazów grup z folderu Grypy
+    const images = {};
+    TRAINING_TYPES.forEach((type) => {
+      if (type.id !== 'fullbody') {
+        // Ścieżka: Grypy/Nazwa Grupy.png
+        images[type.id] = getAbsoluteImageUrl(`Grypy/${type.name}.png`);
+      }
+    });
+    setCategoryImages(images);
+    // Brak ładowania - obrazy są statyczne
+    setLoadingImages(new Set());
   }, [TRAINING_TYPES]);
 
   // Prefetch obrazków dla lepszej wydajności (tylko na natywnych platformach)
