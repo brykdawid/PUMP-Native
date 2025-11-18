@@ -77,13 +77,19 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
       onShow={() => console.log('[GifModal] Modal shown')}
       onDismiss={() => console.log('[GifModal] Modal dismissed')}
     >
-      <View style={styles.overlay}>
+      <TouchableOpacity
+        style={styles.overlay}
+        activeOpacity={1}
+        onPress={handleOverlayPress}
+      >
         <TouchableOpacity
-          style={StyleSheet.absoluteFill}
+          style={styles.modalContainer}
           activeOpacity={1}
-          onPress={handleOverlayPress}
-        />
-        <View style={styles.modalContainer}>
+          onPress={(e) => {
+            e.stopPropagation();
+            console.log('[GifModal] Modal container pressed - stopping propagation');
+          }}
+        >
           <ScrollView
             style={styles.scrollView}
             contentContainerStyle={styles.scrollContent}
@@ -184,8 +190,8 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
               )}
             </View>
           </ScrollView>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 }
@@ -206,6 +212,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 16,
     overflow: 'hidden',
+    zIndex: 10,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
