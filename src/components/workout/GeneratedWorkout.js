@@ -377,7 +377,7 @@ function GeneratedWorkout({
       if (__DEV__) console.log('Beginning workout with exercises:', allExercises.map(e => `${e.name} (${e.category})`));
 
       const workoutData = {
-        type: 'generated',
+        type: 'ai',
         exercises: allExercises,
         categories: selectedTypes,
         title: selectedTypes.map(t => getShortCategoryName(t)).join('+')
@@ -422,7 +422,7 @@ function GeneratedWorkout({
       }
 
       const workoutData = {
-        type: 'generated',
+        type: 'ai',
         exercises: allExercises,
         categories: selectedTypes,
         name: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
@@ -460,7 +460,7 @@ function GeneratedWorkout({
 
       const workoutData = {
         id: Date.now(),
-        type: 'generated',
+        type: 'ai',
         exercises: allExercises,
         categories: selectedTypes,
         name: selectedTypes.map(t => getShortCategoryName(t)).join('+'),
