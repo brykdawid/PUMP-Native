@@ -181,7 +181,7 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
     // Przekazujemy ID zaplanowanego treningu aby później go zaktualizować zamiast tworzyć nowy
     const workoutData = {
       scheduledWorkoutId: workout.id, // ID zaplanowanego treningu do aktualizacji
-      type: workout.type || 'generated',
+      type: workout.type || 'custom',
       exercises: workout.exercises || [],
       categories: workout.categories || [],
       title: workout.title || workout.name || 'Trening'
@@ -452,7 +452,7 @@ function CalendarTab({ workoutHistory, setWorkoutHistory, onGoToPlan, onBeginWor
                           )}
                         </View>
                         <View style={styles.workoutTypeBadgeContainer}>
-                          {workout.type === 'generated' ? (
+                          {workout.type === 'ai' ? (
                             <View style={styles.aiPoweredBadge}>
                               <Ionicons name="sparkles" size={12} color="#9333ea" />
                               <Text style={styles.aiPoweredText}>AI Powered</Text>
