@@ -28,7 +28,7 @@
         "NODE_ENV": "production"
       },
       "android": {
-        "buildType": "aab-bundle"
+        "buildType": "app-bundle"
       },
       "ios": {
         "image": "latest",
