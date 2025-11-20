@@ -31,11 +31,11 @@ export function getLocalISOString(date = new Date()) {
  * {
  *   id: number,
  *   title: string,
- *   type: 'generated' | 'custom',
+ *   type: 'ai' | 'custom',
  *   exercises: Array<Exercise>,  // Zawsze płaska lista
  *   metadata: {
- *     selectedTypes?: string[],   // Dla generated
- *     warmupExercises?: Exercise[], // Dla generated
+ *     selectedTypes?: string[],   // Dla ai
+ *     warmupExercises?: Exercise[], // Dla ai
  *     isFavorite?: boolean,       // Dla custom
  *   },
  *   savedAt: string (ISO date)
@@ -48,6 +48,10 @@ export function getLocalISOString(date = new Date()) {
 export function normalizeWorkout(workout) {
   // Jeśli już znormalizowany (ma exercises ale nie ma workoutPlan)
   if (workout.exercises && Array.isArray(workout.exercises) && !workout.workoutPlan) {
+    // Backward compatibility: zmień 'generated' na 'ai'
+    if (workout.type === 'generated') {
+      return { ...workout, type: 'ai' };
+    }
     return workout;
   }
 
@@ -104,7 +108,7 @@ export function normalizeWorkout(workout) {
     return {
       id: workout.id,
       title: workout.title || 'Generated Workout',
-      type: 'generated',
+      type: 'ai',
       exercises: allExercises,
       workoutPlan: workout.workoutPlan, // ZACHOWAJ dla wyświetlania
       aiGenerated: workout.aiGenerated,
@@ -157,12 +161,12 @@ export function getTotalExercises(workout) {
 }
 
 /**
- * Grupuje ćwiczenia po kategoriach (dla generated workouts)
+ * Grupuje ćwiczenia po kategoriach (dla ai workouts)
  */
 export function groupExercisesByCategory(workout) {
   const normalized = normalizeWorkout(workout);
-  
-  if (normalized.type !== 'generated') {
+
+  if (normalized.type !== 'ai') {
     return null;
   }
 
