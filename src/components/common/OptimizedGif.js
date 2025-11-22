@@ -102,23 +102,14 @@ function OptimizedGif({
           contentFit={contentFit}
           placeholder={placeholder}
           placeholderContentFit={placeholderContentFit}
-          transition={transition}
+          transition={Platform.OS === 'android' ? 0 : transition}
           onLoad={handleLoad}
           onError={handleError}
           priority={priority}
-          // Use memory-disk for better caching on both platforms
           cachePolicy="memory-disk"
-          // Critical: Use URI as recycling key for stable caching
           recyclingKey={cacheKey}
-          // Enable autoplay for animated GIFs
           autoplay={true}
-          // Prevent quality loss on Android
           allowDownscaling={false}
-          // Disable transitions to prevent re-loading appearance
-          ...(Platform.OS === 'android' && {
-            transition: 0,
-            fadeDuration: 0,
-          })
         />
       )}
     </View>
