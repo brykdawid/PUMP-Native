@@ -35,8 +35,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#9333ea"
       },
-      "package": "com.pump.workout",
-      "versionCode": 1,
+      "package": "com.pumpworkout.app",
+      "versionCode": 4,
       "permissions": [
         "READ_EXTERNAL_STORAGE",
         "READ_MEDIA_IMAGES"
