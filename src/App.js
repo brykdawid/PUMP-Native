@@ -379,6 +379,13 @@ function App() {
   };
 
   const handleTabChange = (tab) => {
+    // Jeśli użytkownik klika kalendarz podczas aktywnego treningu,
+    // przekieruj go na ekran aktywnego treningu zamiast kalendarza
+    if (tab === 'calendar' && activeWorkout && workoutStartTime) {
+      setCurrentTab('workout-active');
+      return;
+    }
+
     setCurrentTab(tab);
     if (tab === 'calendar') {
       setPlanScreen('landing');
