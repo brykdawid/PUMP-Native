@@ -333,11 +333,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f9fafb',
+    paddingHorizontal: 20,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
     color: '#6b7280',
+    textAlign: 'center',
+    paddingHorizontal: 16,
   },
   header: {
     padding: 20,

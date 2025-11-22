@@ -1384,29 +1384,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    minWidth: 0,
   },
   metricLabel: {
     fontSize: 14,
     color: '#6b7280',
     marginBottom: 8,
+    textAlign: 'center',
+    paddingHorizontal: 4,
   },
   metricValueContainer: {
     alignItems: 'center',
+    width: '100%',
   },
   metricValue: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#111827',
+    textAlign: 'center',
   },
   metricUnit: {
     fontSize: 12,
     color: '#6b7280',
     marginTop: 4,
+    textAlign: 'center',
+    minWidth: 25,
+    paddingHorizontal: 2,
   },
   bmiCategory: {
     fontSize: 12,
     fontWeight: '600',
     marginTop: 4,
+    textAlign: 'center',
+    paddingHorizontal: 2,
   },
   editContainer: {
     flexDirection: 'row',
@@ -1462,12 +1472,14 @@ const styles = StyleSheet.create({
   },
   recordInfo: {
     flex: 1,
+    minWidth: 0,
   },
   recordExercise: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
     marginBottom: 4,
+    flexShrink: 1,
   },
   recordLabel: {
     fontSize: 14,
@@ -1475,6 +1487,7 @@ const styles = StyleSheet.create({
   },
   recordValueContainer: {
     alignItems: 'flex-end',
+    minWidth: 50,
   },
   recordValueButton: {
     alignItems: 'flex-end',
@@ -1483,11 +1496,14 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#111827',
+    textAlign: 'right',
   },
   recordUnit: {
     fontSize: 12,
     color: '#6b7280',
     marginTop: 2,
+    textAlign: 'right',
+    minWidth: 25,
   },
   recordEditInput: {
     width: 80,
@@ -1511,6 +1527,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    minWidth: 0,
   },
   statHeader: {
     marginBottom: 12,
@@ -1520,16 +1537,22 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginBottom: 8,
     fontWeight: '500',
+    textAlign: 'center',
+    paddingHorizontal: 4,
   },
   statValue: {
     fontSize: 32,
     fontWeight: 'bold',
     color: '#111827',
     marginBottom: 4,
+    textAlign: 'center',
   },
   statUnit: {
     fontSize: 12,
     color: '#6b7280',
+    textAlign: 'center',
+    minWidth: 50,
+    paddingHorizontal: 2,
   },
   detailsButton: {
     flexDirection: 'row',
@@ -1614,12 +1637,15 @@ const styles = StyleSheet.create({
   },
   exerciseHeaderLeft: {
     flex: 1,
+    minWidth: 0,
   },
   exerciseName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
     marginBottom: 4,
+    flexShrink: 1,
+    minWidth: 0,
   },
   exerciseVolume: {
     fontSize: 14,
@@ -1684,12 +1710,15 @@ const styles = StyleSheet.create({
   },
   workoutCardHeaderLeft: {
     flex: 1,
+    minWidth: 0,
   },
   workoutTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
     marginBottom: 4,
+    flexShrink: 1,
+    minWidth: 0,
   },
   workoutDate: {
     fontSize: 14,
@@ -1816,6 +1845,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    minWidth: 0,
   },
   weightStatLabel: {
     fontSize: 14,
@@ -1824,16 +1854,21 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontWeight: '500',
     textAlign: 'center',
+    paddingHorizontal: 4,
   },
   weightStatValue: {
     fontSize: 36,
     fontWeight: 'bold',
     color: '#111827',
     marginBottom: 4,
+    textAlign: 'center',
   },
   weightStatUnit: {
     fontSize: 14,
     color: '#6b7280',
+    textAlign: 'center',
+    minWidth: 25,
+    paddingHorizontal: 2,
   },
   modalInfo: {
     flexDirection: 'row',
@@ -2106,12 +2141,15 @@ const styles = StyleSheet.create({
   exerciseListInfo: {
     flex: 1,
     marginLeft: 12,
+    minWidth: 0,
   },
   exerciseListName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#111827',
     marginBottom: 4,
+    flexShrink: 1,
+    minWidth: 0,
   },
   exerciseListCategory: {
     fontSize: 14,
