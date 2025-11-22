@@ -33,6 +33,15 @@ function OptimizedGif({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
+  // Log when component mounts with URI
+  React.useEffect(() => {
+    console.log('[OptimizedGif] 🎬 Component mounted with URI:', uri);
+    console.log('[OptimizedGif] 📱 Platform:', Platform.OS);
+    return () => {
+      console.log('[OptimizedGif] 🔚 Component unmounted');
+    };
+  }, [uri]);
+
   // Generate stable cache key from URI for better caching
   const cacheKey = React.useMemo(() => {
     if (!uri) return null;
@@ -41,7 +50,7 @@ function OptimizedGif({
   }, [uri, recyclingKey]);
 
   const handleLoad = useCallback((event) => {
-    console.log('[OptimizedGif] Image loaded from cache or network:', uri);
+    console.log('[OptimizedGif] ✅ Image loaded from cache or network:', uri);
     setIsLoading(false);
     setHasError(false);
     if (onLoad) {
@@ -50,8 +59,8 @@ function OptimizedGif({
   }, [onLoad, uri]);
 
   const handleError = useCallback((event) => {
-    console.log('[OptimizedGif] Error loading image:', uri);
-    console.log('[OptimizedGif] Error details:', event);
+    console.log('[OptimizedGif] ❌ Error loading image:', uri);
+    console.log('[OptimizedGif] ❌ Error details:', event);
     setIsLoading(false);
     setHasError(true);
     if (onError) {
@@ -61,6 +70,7 @@ function OptimizedGif({
 
   // Jeśli nie ma URI, pokaż placeholder
   if (!uri) {
+    console.log('[OptimizedGif] ⚠️ No URI provided, showing placeholder');
     return (
       <View style={[styles.container, style]}>
         <View style={styles.placeholderContainer}>
@@ -69,6 +79,8 @@ function OptimizedGif({
       </View>
     );
   }
+
+  console.log('[OptimizedGif] 🖼️ Rendering with URI:', uri);
 
   return (
     <View style={[styles.container, style]}>
@@ -95,6 +107,7 @@ function OptimizedGif({
             ...(Platform.OS === 'android' && {
               headers: {
                 'Accept': 'image/gif,image/webp,image/*,*/*;q=0.8',
+                'User-Agent': 'Mozilla/5.0',
               }
             })
           }}
