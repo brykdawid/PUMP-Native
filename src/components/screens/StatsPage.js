@@ -1384,7 +1384,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    minWidth: 90,
+    minWidth: 100,
   },
   metricLabel: {
     fontSize: 14,
@@ -1525,7 +1525,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    minWidth: 120,
+    minWidth: 140,
   },
   statHeader: {
     marginBottom: 12,
