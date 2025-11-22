@@ -1384,14 +1384,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    minWidth: 0,
+    minWidth: 90,
   },
   metricLabel: {
     fontSize: 14,
     color: '#6b7280',
     marginBottom: 8,
     textAlign: 'center',
-    paddingHorizontal: 4,
+    width: '100%',
   },
   metricValueContainer: {
     alignItems: 'center',
@@ -1408,15 +1408,14 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginTop: 4,
     textAlign: 'center',
-    minWidth: 25,
-    paddingHorizontal: 2,
+    width: '100%',
   },
   bmiCategory: {
     fontSize: 12,
     fontWeight: '600',
     marginTop: 4,
     textAlign: 'center',
-    paddingHorizontal: 2,
+    width: '100%',
   },
   editContainer: {
     flexDirection: 'row',
@@ -1503,7 +1502,6 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginTop: 2,
     textAlign: 'right',
-    minWidth: 25,
   },
   recordEditInput: {
     width: 80,
@@ -1527,7 +1525,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    minWidth: 0,
+    minWidth: 120,
   },
   statHeader: {
     marginBottom: 12,
@@ -1538,7 +1536,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontWeight: '500',
     textAlign: 'center',
-    paddingHorizontal: 4,
+    width: '100%',
   },
   statValue: {
     fontSize: 32,
@@ -1551,8 +1549,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#6b7280',
     textAlign: 'center',
-    minWidth: 50,
-    paddingHorizontal: 2,
+    width: '100%',
   },
   detailsButton: {
     flexDirection: 'row',
@@ -1845,7 +1842,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e5e7eb',
-    minWidth: 0,
   },
   weightStatLabel: {
     fontSize: 14,
@@ -1854,7 +1850,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     fontWeight: '500',
     textAlign: 'center',
-    paddingHorizontal: 4,
+    width: '100%',
   },
   weightStatValue: {
     fontSize: 36,
@@ -1867,8 +1863,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#6b7280',
     textAlign: 'center',
-    minWidth: 25,
-    paddingHorizontal: 2,
+    width: '100%',
   },
   modalInfo: {
     flexDirection: 'row',

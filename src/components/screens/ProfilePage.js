@@ -970,9 +970,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#111827',
     fontWeight: '500',
-    flex: 1,
-    flexShrink: 1,
-    minWidth: 0,
+    flexShrink: 0,
   },
   settingRight: {
     flexDirection: 'row',
