@@ -1,7 +1,26 @@
 import React, { memo, useCallback, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Platform, Image as RNImage } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+
+// Helper to properly encode URI for Android
+const encodeURI_Android = (uri) => {
+  if (!uri || Platform.OS !== 'android') return uri;
+
+  try {
+    // Split URL into parts
+    const url = new URL(uri);
+    // Encode only the pathname part (keeps domain intact)
+    const encodedPath = url.pathname.split('/').map(segment =>
+      encodeURIComponent(decodeURIComponent(segment))
+    ).join('/');
+
+    return `${url.protocol}//${url.host}${encodedPath}${url.search}`;
+  } catch (e) {
+    console.log('[OptimizedGif] URL encoding failed, using original:', e);
+    return uri;
+  }
+};
 
 /**
  * OptimizedGif - Zoptymalizowany komponent do wyświetlania GIF-ów
@@ -32,15 +51,39 @@ function OptimizedGif({
 }) {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [loadTimeout, setLoadTimeout] = useState(false);
+
+  // Encode URI for Android compatibility
+  const encodedUri = React.useMemo(() => {
+    return encodeURI_Android(uri);
+  }, [uri]);
 
   // Log when component mounts with URI
   React.useEffect(() => {
     console.log('[OptimizedGif] 🎬 Component mounted with URI:', uri);
+    if (encodedUri !== uri) {
+      console.log('[OptimizedGif] 🔄 Encoded URI:', encodedUri);
+    }
     console.log('[OptimizedGif] 📱 Platform:', Platform.OS);
     return () => {
       console.log('[OptimizedGif] 🔚 Component unmounted');
     };
-  }, [uri]);
+  }, [uri, encodedUri]);
+
+  // Add timeout for loading (10 seconds)
+  React.useEffect(() => {
+    if (!uri) return;
+
+    const timeoutId = setTimeout(() => {
+      if (isLoading && !hasError) {
+        console.log('[OptimizedGif] ⏱️ Load timeout for:', uri);
+        setLoadTimeout(true);
+        setIsLoading(false);
+      }
+    }, 10000);
+
+    return () => clearTimeout(timeoutId);
+  }, [uri, isLoading, hasError]);
 
   // Generate stable cache key from URI for better caching
   const cacheKey = React.useMemo(() => {
@@ -82,48 +125,54 @@ function OptimizedGif({
 
   console.log('[OptimizedGif] 🖼️ Rendering with URI:', uri);
 
+  // Use native Image for Android GIFs for better compatibility
+  const useNativeImage = Platform.OS === 'android';
+
   return (
     <View style={[styles.container, style]}>
       {/* Loading indicator */}
-      {isLoading && showLoadingIndicator && !hasError && (
+      {isLoading && showLoadingIndicator && !hasError && !loadTimeout && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="small" color={loadingIndicatorColor} />
         </View>
       )}
 
-      {/* Error state */}
-      {hasError && (
+      {/* Error or timeout state */}
+      {(hasError || loadTimeout) && (
         <View style={styles.placeholderContainer}>
           <Ionicons name={errorIcon} size={errorIconSize} color={errorIconColor} />
         </View>
       )}
 
-      {/* Main image */}
-      {!hasError && (
-        <Image
-          source={{
-            uri,
-            // Android-specific settings for better GIF support
-            ...(Platform.OS === 'android' && {
-              headers: {
-                'Accept': 'image/gif,image/webp,image/*,*/*;q=0.8',
-                'User-Agent': 'Mozilla/5.0',
-              }
-            })
-          }}
-          style={styles.image}
-          contentFit={contentFit}
-          placeholder={placeholder}
-          placeholderContentFit={placeholderContentFit}
-          transition={Platform.OS === 'android' ? 0 : transition}
-          onLoad={handleLoad}
-          onError={handleError}
-          priority={priority}
-          cachePolicy="memory-disk"
-          recyclingKey={cacheKey}
-          autoplay={true}
-          allowDownscaling={false}
-        />
+      {/* Main image - use native Image for Android, expo-image for iOS */}
+      {!hasError && !loadTimeout && (
+        useNativeImage ? (
+          <RNImage
+            source={{ uri: encodedUri }}
+            style={styles.image}
+            resizeMode={contentFit === 'cover' ? 'cover' : 'contain'}
+            onLoad={handleLoad}
+            onError={handleError}
+          />
+        ) : (
+          <Image
+            source={{
+              uri: encodedUri,
+            }}
+            style={styles.image}
+            contentFit={contentFit}
+            placeholder={placeholder}
+            placeholderContentFit={placeholderContentFit}
+            transition={transition}
+            onLoad={handleLoad}
+            onError={handleError}
+            priority={priority}
+            cachePolicy="memory-disk"
+            recyclingKey={cacheKey}
+            autoplay={true}
+            allowDownscaling={false}
+          />
+        )
       )}
     </View>
   );
