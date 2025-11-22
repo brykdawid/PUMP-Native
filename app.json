@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "PUMP Workout",
+    "name": "PUMP",
     "slug": "pump-workout",
     "version": "2",
-    "description": "PUMP Workout - Your personal AI-powered workout companion. Track exercises, create custom workouts, and achieve your fitness goals.",
+    "description": "PUMP - Your personal AI-powered workout companion. Track exercises, create custom workouts, and achieve your fitness goals.",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -23,7 +23,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.gym.pump",
-      "buildNumber": "1.0.1",
+      "buildNumber": "15",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "PUMP Workout needs access to your photos to let you set a profile picture.",
         "NSPhotoLibraryAddUsageDescription": "PUMP Workout needs permission to save photos to your library.",
@@ -47,7 +47,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "169a0b3d-6289-4de3-9acf-ae30fda1360b"
+        "projectId": "94b97311-b7fa-478e-a336-75952456d64c"
       }
     }
   }
