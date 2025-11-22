@@ -24,7 +24,8 @@
       "node": "22.11.0",
       "autoIncrement": true,
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "credentialsSource": "remote"
       },
       "ios": {
         "image": "latest",
