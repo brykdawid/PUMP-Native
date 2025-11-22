@@ -2,6 +2,7 @@
   "expo": {
     "name": "PUMP",
     "slug": "pump-workout",
+    "owner": "dawidcegla",
     "version": "2",
     "description": "PUMP - Your personal AI-powered workout companion. Track exercises, create custom workouts, and achieve your fitness goals.",
     "orientation": "portrait",
