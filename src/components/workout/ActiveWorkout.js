@@ -117,37 +117,56 @@ function ActiveWorkout({
         initialExpanded[exercise.name] = true; // Domyślnie rozwinięte
       });
 
-      // Spróbuj załadować zapisane serie z AsyncStorage
-      const loadSavedSets = async () => {
+      // Spróbuj załadować zapisane dane z AsyncStorage
+      const loadSavedWorkoutState = async () => {
         try {
+          // 1. Załaduj zapisane workoutExercises (mogły się zmienić od pierwotnego activeWorkout)
+          const savedExercisesJSON = await storage.getItem('activeWorkoutExercises');
+          let exercisesToUse = exercisesWithIds;
+
+          if (savedExercisesJSON) {
+            const savedExercises = JSON.parse(savedExercisesJSON);
+            if (savedExercises.length > 0) {
+              if (__DEV__) console.log('📥 Załadowano zapisane workoutExercises z AsyncStorage');
+              exercisesToUse = savedExercises;
+              setWorkoutExercises(savedExercises);
+            }
+          } else {
+            setWorkoutExercises(exercisesWithIds);
+          }
+
+          // 2. Załaduj zapisane serie
           const savedSetsJSON = await storage.getItem('activeWorkoutSets');
           if (savedSetsJSON) {
             const savedSets = JSON.parse(savedSetsJSON);
-            // Sprawdź czy zapisane serie pasują do obecnego treningu
-            const savedExerciseNames = Object.keys(savedSets);
-            const currentExerciseNames = exercisesWithIds.map(ex => ex.name);
+            if (__DEV__) console.log('📥 Załadowano zapisane serie z AsyncStorage');
+            setExerciseSets(savedSets);
+          } else {
+            setExerciseSets(initialSets);
+          }
 
-            // Jeśli wszystkie zapisane ćwiczenia są w obecnym treningu, użyj zapisanych serii
-            const allMatch = savedExerciseNames.every(name => currentExerciseNames.includes(name));
-            if (allMatch) {
-              if (__DEV__) console.log('📥 Załadowano zapisane serie z AsyncStorage');
-              setExerciseSets(savedSets);
-              setExpandedExercises(initialExpanded);
-              setExpandedCategories(initialExpandedCategories);
-              return;
-            }
+          // 3. Załaduj zapisane stany UI
+          const savedUIStateJSON = await storage.getItem('activeWorkoutUIState');
+          if (savedUIStateJSON) {
+            const savedUIState = JSON.parse(savedUIStateJSON);
+            if (__DEV__) console.log('📥 Załadowano zapisany stan UI z AsyncStorage');
+            setExpandedExercises(savedUIState.expandedExercises || initialExpanded);
+            setExpandedCategories(savedUIState.expandedCategories || initialExpandedCategories);
+          } else {
+            setExpandedExercises(initialExpanded);
+            setExpandedCategories(initialExpandedCategories);
           }
         } catch (error) {
-          if (__DEV__) console.error('Błąd ładowania zapisanych serii:', error);
+          if (__DEV__) console.error('Błąd ładowania zapisanego stanu treningu:', error);
+          // W przypadku błędu, użyj domyślnych wartości
+          setWorkoutExercises(exercisesWithIds);
+          setExerciseSets(initialSets);
+          setExpandedExercises(initialExpanded);
+          setExpandedCategories(initialExpandedCategories);
         }
-
-        // Jeśli nie udało się załadować lub nie pasują, użyj domyślnych
-        setExerciseSets(initialSets);
-        setExpandedExercises(initialExpanded);
-        setExpandedCategories(initialExpandedCategories);
       };
 
-      loadSavedSets();
+      loadSavedWorkoutState();
     }
   }, [activeWorkout]);
 
@@ -170,6 +189,43 @@ function ActiveWorkout({
 
     saveSets();
   }, [exerciseSets, activeWorkout, workoutStartTime]);
+
+  // AUTO-SAVE: Zapisuj workoutExercises (mogą się zmieniać gdy użytkownik dodaje/usuwa ćwiczenia)
+  useEffect(() => {
+    if (!activeWorkout || !workoutStartTime) return;
+    if (workoutExercises.length === 0) return;
+
+    const saveExercises = async () => {
+      try {
+        await storage.setItem('activeWorkoutExercises', JSON.stringify(workoutExercises));
+        if (__DEV__) console.log('💾 AUTO-SAVE: Zapisano workoutExercises do AsyncStorage');
+      } catch (error) {
+        if (__DEV__) console.error('Błąd zapisywania workoutExercises:', error);
+      }
+    };
+
+    saveExercises();
+  }, [workoutExercises, activeWorkout, workoutStartTime]);
+
+  // AUTO-SAVE: Zapisuj stany UI (rozwinięte ćwiczenia i kategorie)
+  useEffect(() => {
+    if (!activeWorkout || !workoutStartTime) return;
+
+    const saveUIState = async () => {
+      try {
+        const uiState = {
+          expandedExercises,
+          expandedCategories
+        };
+        await storage.setItem('activeWorkoutUIState', JSON.stringify(uiState));
+        if (__DEV__) console.log('💾 AUTO-SAVE: Zapisano stan UI do AsyncStorage');
+      } catch (error) {
+        if (__DEV__) console.error('Błąd zapisywania stanu UI:', error);
+      }
+    };
+
+    saveUIState();
+  }, [expandedExercises, expandedCategories, activeWorkout, workoutStartTime]);
 
   // Log zmian w workoutExercises
   useEffect(() => {
@@ -599,11 +655,15 @@ function ActiveWorkout({
       });
     }
 
-    // Wyczyść zapisane serie z AsyncStorage po zakończeniu treningu
-    storage.removeItem('activeWorkoutSets').then(() => {
-      if (__DEV__) console.log('🗑️ Wyczyszczono zapisane serie z AsyncStorage');
+    // Wyczyść wszystkie zapisane stany z AsyncStorage po zakończeniu treningu
+    Promise.all([
+      storage.removeItem('activeWorkoutSets'),
+      storage.removeItem('activeWorkoutExercises'),
+      storage.removeItem('activeWorkoutUIState')
+    ]).then(() => {
+      if (__DEV__) console.log('🗑️ Wyczyszczono wszystkie zapisane stany treningu z AsyncStorage');
     }).catch(error => {
-      if (__DEV__) console.error('Błąd czyszczenia zapisanych serii:', error);
+      if (__DEV__) console.error('Błąd czyszczenia zapisanych stanów:', error);
     });
 
     // Use setTimeout to ensure state update completes before navigation
