@@ -10,6 +10,7 @@ import {
   StatusBar,
   Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import OptimizedGif from '../common/OptimizedGif';
@@ -17,6 +18,8 @@ import OptimizedGif from '../common/OptimizedGif';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
+  const insets = useSafeAreaInsets();
+
   useEffect(() => {
     if (exercise) {
       console.log('[GifModal] Modal opened with exercise:', {
@@ -84,7 +87,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
             <View style={styles.headerContainer}>
               <LinearGradient
                 colors={['rgba(0, 0, 0, 0.6)', 'transparent']}
-                style={styles.headerGradient}
+                style={[styles.headerGradient, { paddingTop: Math.max(insets.top + 10, Platform.OS === 'ios' ? 50 : 20) }]}
               >
                 <View style={styles.headerButtons}>
                   <TouchableOpacity
@@ -221,7 +224,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 10,
-    paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight + 10 || 20,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },

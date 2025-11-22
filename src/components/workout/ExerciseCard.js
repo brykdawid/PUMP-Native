@@ -186,18 +186,22 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
+    minWidth: 0, // Important for text truncation on Android
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    flexWrap: 'wrap',
+    flexWrap: 'nowrap', // Changed from 'wrap' to prevent breaking
+    width: '100%',
   },
   exerciseName: {
     color: '#111827',
     fontWeight: '600',
     fontSize: 16,
     flex: 1,
+    flexShrink: 1, // Allow text to shrink
+    minWidth: 0, // Important for text truncation on Android
   },
   aiTag: {
     flexDirection: 'row',
@@ -209,6 +213,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     borderWidth: 1,
     borderColor: '#d8b4fe',
+    flexShrink: 0, // Prevent tag from shrinking
   },
   aiTagText: {
     color: '#9333ea',

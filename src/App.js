@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import storage from './utils/storage';
@@ -558,23 +559,24 @@ function App() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <StatusBar style="dark" />
 
-      {/* Render library tab without ScrollView to avoid VirtualizedList nesting */}
-      {currentTab === 'library' ? (
-        renderContent()
-      ) : (
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {renderContent()}
-        </ScrollView>
-      )}
+        {/* Render library tab without ScrollView to avoid VirtualizedList nesting */}
+        {currentTab === 'library' ? (
+          renderContent()
+        ) : (
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+          >
+            {renderContent()}
+          </ScrollView>
+        )}
 
-      <View style={styles.bottomNav}>
+        <View style={styles.bottomNav}>
         {/* Library Tab - Leftmost */}
         <TouchableOpacity
           onPress={() => handleTabChange('library')}
@@ -688,7 +690,8 @@ function App() {
           </Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

@@ -310,11 +310,13 @@ const styles = StyleSheet.create({
     color: '#111827',
     textAlign: 'center',
     marginBottom: 8,
+    paddingHorizontal: 8,
   },
   subtitle: {
     fontSize: 14,
     color: '#6b7280',
     textAlign: 'center',
+    paddingHorizontal: 8,
   },
   fbwButton: {
     borderRadius: 16,
@@ -413,6 +415,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#111827',
     textAlign: 'center',
+    width: '100%',
+    paddingHorizontal: 4,
   },
   muscleNameSelected: {
     color: '#16a34a',

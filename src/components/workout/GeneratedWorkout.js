@@ -709,11 +709,13 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     marginBottom: 8,
+    paddingHorizontal: 8,
   },
   subtitle: {
     fontSize: 14,
     color: '#6b7280',
     textAlign: 'center',
+    paddingHorizontal: 8,
   },
   actionButtons: {
     marginBottom: 24,

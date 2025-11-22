@@ -43,6 +43,7 @@ function OptimizedGif({
 
   const handleError = useCallback((event) => {
     console.log('[OptimizedGif] Error loading image:', uri);
+    console.log('[OptimizedGif] Error details:', event);
     setIsLoading(false);
     setHasError(true);
     if (onError) {
@@ -91,6 +92,8 @@ function OptimizedGif({
           priority={priority}
           cachePolicy={cachePolicy}
           recyclingKey={recyclingKey}
+          autoplay={true} // Enable autoplay for animated GIFs
+          allowDownscaling={false} // Prevent quality loss on Android
         />
       )}
     </View>

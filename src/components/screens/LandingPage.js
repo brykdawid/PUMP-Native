@@ -95,9 +95,11 @@ const styles = StyleSheet.create({
     color: '#111827',
     textAlign: 'center',
     marginBottom: 12,
+    paddingHorizontal: 8,
   },
   subtitle: {
     fontSize: 16,
+    paddingHorizontal: 8,
     color: '#6b7280',
     textAlign: 'center',
   },
