@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, BackHandler } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -149,6 +149,57 @@ function App() {
       scrollViewRef.current.scrollTo({ y: 0, animated: false });
     }
   }, [currentTab, planScreen]);
+
+  // Handle Android back button
+  useEffect(() => {
+    const backAction = () => {
+      if (__DEV__) console.log('[BackHandler] Current state:', { currentTab, planScreen, activeWorkout: !!activeWorkout });
+
+      // If in active workout, go back to calendar
+      if (currentTab === 'workout-active' && activeWorkout) {
+        setCurrentTab('calendar');
+        return true; // Prevent default (exit app)
+      }
+
+      // If in workout builder screens
+      if (currentTab === 'workout-builder') {
+        if (planScreen === 'generated-workout') {
+          // From generated workout -> back to muscle selector
+          setPlanScreen('muscle-selector');
+          return true;
+        }
+        if (planScreen === 'muscle-selector') {
+          // From muscle selector -> back to landing
+          setPlanScreen('landing');
+          return true;
+        }
+        if (planScreen === 'custom-workout') {
+          // From custom workout -> back to landing
+          setPlanScreen('landing');
+          return true;
+        }
+        if (planScreen === 'landing') {
+          // From landing -> back to calendar
+          setCurrentTab('calendar');
+          setPlanScreen('landing');
+          return true;
+        }
+      }
+
+      // If in other tabs (library, saved, statistics, profile), go back to calendar
+      if (currentTab !== 'calendar') {
+        setCurrentTab('calendar');
+        return true;
+      }
+
+      // If already in calendar, allow default behavior (exit app)
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+
+    return () => backHandler.remove();
+  }, [currentTab, planScreen, activeWorkout]);
 
   useEffect(() => {
     if (!isLoadedRef.current) return; // Don't save until data is loaded
