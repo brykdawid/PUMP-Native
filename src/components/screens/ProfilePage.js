@@ -930,17 +930,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderWidth: 1,
     borderColor: '#e5e7eb',
+    gap: 12,
   },
   recordExercise: {
     fontSize: 14,
     fontWeight: '500',
     color: '#111827',
     flex: 1,
+    minWidth: 0,
+    flexShrink: 1,
   },
   recordWeight: {
     fontSize: 14,
     fontWeight: '700',
     color: '#9333ea',
+    flexShrink: 0,
+    minWidth: 50,
+    textAlign: 'right',
   },
   section: {
     backgroundColor: '#f9fafb',
