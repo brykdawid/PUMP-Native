@@ -379,9 +379,10 @@ function App() {
   };
 
   const handleTabChange = (tab) => {
-    // Jeśli trening jest aktywny i przełączamy się na kalendarz,
-    // przejdź do workout-active zamiast kalendarza
-    if (tab === 'calendar' && activeWorkout && workoutStartTime) {
+    // KRYTYCZNE: Jeśli trening jest aktywny, zablokuj wszystkie zmiany zakładek
+    // aby nie stracić danych serii (exerciseSets w ActiveWorkout)
+    if (activeWorkout && workoutStartTime) {
+      // Zawsze przekieruj z powrotem na aktywny trening
       setCurrentTab('workout-active');
       return;
     }

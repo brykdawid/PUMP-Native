@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { alertDialog, confirmDialog } from '../../utils/storage';
+import storage from '../../utils/storage';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import GifModal from './GifModal';
@@ -116,11 +117,59 @@ function ActiveWorkout({
         initialExpanded[exercise.name] = true; // Domyślnie rozwinięte
       });
 
-      setExerciseSets(initialSets);
-      setExpandedExercises(initialExpanded);
-      setExpandedCategories(initialExpandedCategories);
+      // Spróbuj załadować zapisane serie z AsyncStorage
+      const loadSavedSets = async () => {
+        try {
+          const savedSetsJSON = await storage.getItem('activeWorkoutSets');
+          if (savedSetsJSON) {
+            const savedSets = JSON.parse(savedSetsJSON);
+            // Sprawdź czy zapisane serie pasują do obecnego treningu
+            const savedExerciseNames = Object.keys(savedSets);
+            const currentExerciseNames = exercisesWithIds.map(ex => ex.name);
+
+            // Jeśli wszystkie zapisane ćwiczenia są w obecnym treningu, użyj zapisanych serii
+            const allMatch = savedExerciseNames.every(name => currentExerciseNames.includes(name));
+            if (allMatch) {
+              if (__DEV__) console.log('📥 Załadowano zapisane serie z AsyncStorage');
+              setExerciseSets(savedSets);
+              setExpandedExercises(initialExpanded);
+              setExpandedCategories(initialExpandedCategories);
+              return;
+            }
+          }
+        } catch (error) {
+          if (__DEV__) console.error('Błąd ładowania zapisanych serii:', error);
+        }
+
+        // Jeśli nie udało się załadować lub nie pasują, użyj domyślnych
+        setExerciseSets(initialSets);
+        setExpandedExercises(initialExpanded);
+        setExpandedCategories(initialExpandedCategories);
+      };
+
+      loadSavedSets();
     }
   }, [activeWorkout]);
+
+  // AUTO-SAVE: Zapisuj serie do AsyncStorage za każdym razem gdy się zmienią
+  useEffect(() => {
+    // Nie zapisuj jeśli nie ma aktywnego treningu
+    if (!activeWorkout || !workoutStartTime) return;
+
+    // Nie zapisuj jeśli exerciseSets jest pusty (inicjalizacja)
+    if (Object.keys(exerciseSets).length === 0) return;
+
+    const saveSets = async () => {
+      try {
+        await storage.setItem('activeWorkoutSets', JSON.stringify(exerciseSets));
+        if (__DEV__) console.log('💾 AUTO-SAVE: Zapisano serie do AsyncStorage');
+      } catch (error) {
+        if (__DEV__) console.error('Błąd zapisywania serii:', error);
+      }
+    };
+
+    saveSets();
+  }, [exerciseSets, activeWorkout, workoutStartTime]);
 
   // Log zmian w workoutExercises
   useEffect(() => {
@@ -549,6 +598,13 @@ function ActiveWorkout({
         }
       });
     }
+
+    // Wyczyść zapisane serie z AsyncStorage po zakończeniu treningu
+    storage.removeItem('activeWorkoutSets').then(() => {
+      if (__DEV__) console.log('🗑️ Wyczyszczono zapisane serie z AsyncStorage');
+    }).catch(error => {
+      if (__DEV__) console.error('Błąd czyszczenia zapisanych serii:', error);
+    });
 
     // Use setTimeout to ensure state update completes before navigation
     setTimeout(() => {
