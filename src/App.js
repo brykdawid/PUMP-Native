@@ -379,8 +379,8 @@ function App() {
   };
 
   const handleTabChange = (tab) => {
-    // Jeśli trening jest aktywny i przełączamy się na kalendarz,
-    // przejdź do workout-active zamiast kalendarza
+    // Jeśli użytkownik klika kalendarz podczas aktywnego treningu,
+    // przekieruj go na ekran aktywnego treningu zamiast kalendarza
     if (tab === 'calendar' && activeWorkout && workoutStartTime) {
       setCurrentTab('workout-active');
       return;
