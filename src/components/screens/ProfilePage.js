@@ -945,7 +945,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#9333ea',
     flexShrink: 0,
-    minWidth: 50,
+    minWidth: 65,
     textAlign: 'right',
   },
   section: {
@@ -963,17 +963,16 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e5e7eb',
-    gap: 8,
   },
   settingLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    flexShrink: 1,
-    minWidth: 0,
+    flex: 1,
+    paddingRight: 8,
   },
   settingLabel: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#111827',
     fontWeight: '500',
   },
@@ -982,7 +981,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     flexShrink: 0,
-    minWidth: 80,
   },
   settingValue: {
     fontSize: 14,
