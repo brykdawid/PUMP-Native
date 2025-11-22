@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useState } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -81,7 +81,15 @@ function OptimizedGif({
       {/* Main image */}
       {!hasError && (
         <Image
-          source={{ uri }}
+          source={{
+            uri,
+            // Android-specific settings for better GIF support
+            ...(Platform.OS === 'android' && {
+              headers: {
+                'Accept': 'image/gif,image/webp,image/*,*/*;q=0.8',
+              }
+            })
+          }}
           style={styles.image}
           contentFit={contentFit}
           placeholder={placeholder}
@@ -90,7 +98,7 @@ function OptimizedGif({
           onLoad={handleLoad}
           onError={handleError}
           priority={priority}
-          cachePolicy={cachePolicy}
+          cachePolicy={Platform.OS === 'android' ? 'memory-disk' : cachePolicy} // Force memory-disk on Android
           recyclingKey={recyclingKey}
           autoplay={true} // Enable autoplay for animated GIFs
           allowDownscaling={false} // Prevent quality loss on Android

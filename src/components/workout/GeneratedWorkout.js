@@ -513,8 +513,8 @@ function GeneratedWorkout({
         </TouchableOpacity>
 
         <View style={styles.headerContainer}>
-          <Text style={styles.title}>Twój Plan Treningowy</Text>
-          <Text style={styles.subtitle}>
+          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">Twój Plan Treningowy</Text>
+          <Text style={styles.subtitle} numberOfLines={2} ellipsizeMode="tail">
             Wygenerowany plan ćwiczeń
           </Text>
         </View>
@@ -535,7 +535,7 @@ function GeneratedWorkout({
                   end={{ x: 1, y: 0 }}
                 >
                   <Ionicons name="play-circle" size={20} color="#ffffff" />
-                  <Text style={styles.buttonText}>Rozpocznij Teraz</Text>
+                  <Text style={styles.buttonText} numberOfLines={1} ellipsizeMode="tail">Rozpocznij Teraz</Text>
                 </LinearGradient>
               </TouchableOpacity>
 
@@ -552,7 +552,7 @@ function GeneratedWorkout({
                   end={{ x: 1, y: 0 }}
                 >
                   <Ionicons name="calendar" size={20} color="#ffffff" />
-                  <Text style={styles.buttonText}>Zaplanuj na Dzisiaj</Text>
+                  <Text style={styles.buttonText} numberOfLines={1} ellipsizeMode="tail">Zaplanuj na Dzisiaj</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </>
@@ -610,8 +610,8 @@ function GeneratedWorkout({
             >
               <View style={styles.sectionHeaderLeft}>
                 <Text style={styles.sectionIcon}>{getCategoryIcon(category)}</Text>
-                <Text style={styles.sectionTitle}>{getCategoryName(category)}</Text>
-                <Text style={styles.sectionCount}>({workoutPlan[category]?.length || 0} ćwiczeń)</Text>
+                <Text style={styles.sectionTitle} numberOfLines={1} ellipsizeMode="tail">{getCategoryName(category)}</Text>
+                <Text style={styles.sectionCount} numberOfLines={1}>({workoutPlan[category]?.length || 0} ćwiczeń)</Text>
               </View>
               <Ionicons
                 name={expandedCategories[category] ? 'chevron-up' : 'chevron-down'}
@@ -794,6 +794,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    flex: 1,
+    minWidth: 0,
   },
   sectionIcon: {
     fontSize: 24,
@@ -802,10 +804,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#111827',
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   sectionCount: {
     fontSize: 12,
     color: '#6b7280',
+    flexShrink: 0,
   },
   exerciseList: {
     borderTopWidth: 1,

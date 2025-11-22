@@ -137,12 +137,12 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
 
             {/* Info Section */}
             <View style={styles.infoContainer}>
-              <Text style={styles.exerciseName}>{exercise.name || 'Bez nazwy'}</Text>
+              <Text style={styles.exerciseName} numberOfLines={3} ellipsizeMode="tail">{exercise.name || 'Bez nazwy'}</Text>
 
               {exercise.description && (
                 <View style={styles.section}>
                   <Text style={styles.sectionTitle}>Opis:</Text>
-                  <Text style={styles.descriptionText}>{exercise.description}</Text>
+                  <Text style={styles.descriptionText} numberOfLines={10} ellipsizeMode="tail">{exercise.description}</Text>
                 </View>
               )}
 
@@ -155,7 +155,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
                         <View style={styles.tipNumber}>
                           <Text style={styles.tipNumberText}>{idx + 1}</Text>
                         </View>
-                        <Text style={styles.tipText}>{tip}</Text>
+                        <Text style={styles.tipText} numberOfLines={5} ellipsizeMode="tail">{tip}</Text>
                       </View>
                     ))}
                   </View>
@@ -268,6 +268,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#111827',
     marginBottom: 12,
+    paddingHorizontal: 4,
   },
   section: {
     marginBottom: 12,
@@ -313,6 +314,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#374151',
     lineHeight: 20,
+    flexShrink: 1,
+    minWidth: 0,
   },
 });
 

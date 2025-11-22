@@ -28,8 +28,8 @@ function LandingPage({ onSelectMode, targetDate }) {
     <View style={styles.container}>
       <View style={styles.content}>
         <View style={styles.headerContainer}>
-          <Text style={styles.title}>Wybierz Tryb Treningu</Text>
-          <Text style={styles.subtitle}>
+          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">Wybierz Tryb Treningu</Text>
+          <Text style={styles.subtitle} numberOfLines={2} ellipsizeMode="tail">
             Jak chcesz zaplanować swój trening?
           </Text>
         </View>
@@ -45,8 +45,8 @@ function LandingPage({ onSelectMode, targetDate }) {
               style={styles.modeGradient}
             >
               <Ionicons name="flash" size={48} color="#ffffff" />
-              <Text style={styles.modeTitle}>Wygeneruj Trening</Text>
-              <Text style={styles.modeDescription}>
+              <Text style={styles.modeTitle} numberOfLines={2} ellipsizeMode="tail">Wygeneruj Trening</Text>
+              <Text style={styles.modeDescription} numberOfLines={3} ellipsizeMode="tail">
                 Automatycznie wygenerowany plan dla wybranych partii mięśniowych
               </Text>
             </LinearGradient>
@@ -62,8 +62,8 @@ function LandingPage({ onSelectMode, targetDate }) {
               style={styles.modeGradient}
             >
               <Ionicons name="construct" size={48} color="#ffffff" />
-              <Text style={styles.modeTitle}>Własny Trening</Text>
-              <Text style={styles.modeDescription}>
+              <Text style={styles.modeTitle} numberOfLines={2} ellipsizeMode="tail">Własny Trening</Text>
+              <Text style={styles.modeDescription} numberOfLines={3} ellipsizeMode="tail">
                 Stwórz spersonalizowany plan treningowy od podstaw
               </Text>
             </LinearGradient>
@@ -125,12 +125,16 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     marginTop: 16,
     marginBottom: 8,
+    textAlign: 'center',
+    paddingHorizontal: 8,
   },
   modeDescription: {
     fontSize: 14,
     color: '#ffffff',
     textAlign: 'center',
     opacity: 0.9,
+    paddingHorizontal: 8,
+    lineHeight: 20,
   },
 });
 

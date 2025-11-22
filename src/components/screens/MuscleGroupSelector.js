@@ -86,10 +86,14 @@ const MuscleCard = React.memo(({ type, isSelected, onPress, imageUri, isLoading 
         <Text style={styles.muscleEmoji}>💪</Text>
       )}
 
-      <Text style={[
-        styles.muscleName,
-        isSelected && styles.muscleNameSelected
-      ]}>
+      <Text
+        style={[
+          styles.muscleName,
+          isSelected && styles.muscleNameSelected
+        ]}
+        numberOfLines={2}
+        ellipsizeMode="tail"
+      >
         {type.name}
       </Text>
     </TouchableOpacity>
@@ -200,8 +204,8 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
         </TouchableOpacity>
 
         <View style={styles.headerContainer}>
-          <Text style={styles.title}>Wybierz Partie Mięśniowe</Text>
-          <Text style={styles.subtitle}>
+          <Text style={styles.title} numberOfLines={2} ellipsizeMode="tail">Wybierz Partie Mięśniowe</Text>
+          <Text style={styles.subtitle} numberOfLines={2} ellipsizeMode="tail">
             Wybierz grupy mięśniowe które chcesz trenować
           </Text>
         </View>
@@ -225,12 +229,12 @@ function MuscleGroupSelector({ onBack, onStartWorkout, TRAINING_TYPES }) {
                 size={24}
                 color="#ffffff"
               />
-              <Text style={styles.fbwButtonText}>FBW (Full Body Workout)</Text>
+              <Text style={styles.fbwButtonText} numberOfLines={1} ellipsizeMode="tail">FBW (Full Body Workout)</Text>
             </View>
           </LinearGradient>
         </TouchableOpacity>
 
-        <Text style={styles.fbwDescription}>
+        <Text style={styles.fbwDescription} numberOfLines={3} ellipsizeMode="tail">
           Trening FBW angażuje wszystkie partie mięśniowe - 2 ćwiczenia na każdą grupę
         </Text>
 
