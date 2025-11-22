@@ -23,7 +23,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.gym.pump",
-      "buildNumber": "1.0.1",
+      "buildNumber": "15",
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "PUMP Workout needs access to your photos to let you set a profile picture.",
         "NSPhotoLibraryAddUsageDescription": "PUMP Workout needs permission to save photos to your library.",
