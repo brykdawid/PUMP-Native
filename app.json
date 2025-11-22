@@ -3,6 +3,7 @@
     "name": "PUMP",
     "slug": "pump-workout",
     "version": "2",
+    "owner": "dawidbryk",
     "description": "PUMP - Your personal AI-powered workout companion. Track exercises, create custom workouts, and achieve your fitness goals.",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
