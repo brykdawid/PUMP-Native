@@ -129,6 +129,7 @@ function GifModal({ exercise, onClose, onToggleFavorite, isFavorite }) {
                   errorIcon="barbell"
                   errorIconSize={96}
                   errorIconColor="#6b7280"
+                  recyclingKey={exercise.image}
                   onLoad={() => console.log('[GifModal] Image loaded successfully')}
                   onError={() => console.log('[GifModal] Image failed to load')}
                 />

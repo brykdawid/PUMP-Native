@@ -33,13 +33,21 @@ function OptimizedGif({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
+  // Generate stable cache key from URI for better caching
+  const cacheKey = React.useMemo(() => {
+    if (!uri) return null;
+    // Use URI as cache key - expo-image will handle the rest
+    return recyclingKey || uri;
+  }, [uri, recyclingKey]);
+
   const handleLoad = useCallback((event) => {
+    console.log('[OptimizedGif] Image loaded from cache or network:', uri);
     setIsLoading(false);
     setHasError(false);
     if (onLoad) {
       onLoad(event);
     }
-  }, [onLoad]);
+  }, [onLoad, uri]);
 
   const handleError = useCallback((event) => {
     console.log('[OptimizedGif] Error loading image:', uri);
@@ -98,10 +106,19 @@ function OptimizedGif({
           onLoad={handleLoad}
           onError={handleError}
           priority={priority}
-          cachePolicy={Platform.OS === 'android' ? 'memory-disk' : cachePolicy} // Force memory-disk on Android
-          recyclingKey={recyclingKey}
-          autoplay={true} // Enable autoplay for animated GIFs
-          allowDownscaling={false} // Prevent quality loss on Android
+          // Use memory-disk for better caching on both platforms
+          cachePolicy="memory-disk"
+          // Critical: Use URI as recycling key for stable caching
+          recyclingKey={cacheKey}
+          // Enable autoplay for animated GIFs
+          autoplay={true}
+          // Prevent quality loss on Android
+          allowDownscaling={false}
+          // Disable transitions to prevent re-loading appearance
+          ...(Platform.OS === 'android' && {
+            transition: 0,
+            fadeDuration: 0,
+          })
         />
       )}
     </View>

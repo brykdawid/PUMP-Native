@@ -75,6 +75,7 @@ function ExerciseCard({
             errorIcon="image-outline"
             errorIconSize={32}
             errorIconColor="#d1d5db"
+            recyclingKey={exercise.image}
           />
         </TouchableOpacity>
 
